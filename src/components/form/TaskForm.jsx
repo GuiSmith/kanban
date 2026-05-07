@@ -40,7 +40,7 @@ export default function TaskForm({
       }}
     >
       <Stack spacing={2.5}>
-        <Typography component="h1" variant="h4">
+        <Typography component="h1" variant="h4" align='center'>
           {formTitle}
         </Typography>
 

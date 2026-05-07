@@ -5,12 +5,15 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
-    command: sh -c "npm run dev"
+    command: sh -c "npm run dev -- --webpack"
     ports:
       - "3001:3000"
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=${DATABASE_URL}
+      WATCHPACK_POLLING: true
+      CHOKIDAR_USEPOLLING: true
+      CHOKIDAR_INTERVAL: 1000
     depends_on:
       - postgresql
 
@@ -23,7 +26,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
-      - "5433:5432"
+      - ${POSTGRES_PORT}:5432
     volumes:
       - postgres_data_vol:/var/lib/postgresql
 

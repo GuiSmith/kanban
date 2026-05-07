@@ -75,7 +75,7 @@ export default function TaskForm({
           value={values.data_cadastro ? dayjs(values.data_cadastro).format(dateFormat) : ''}
           fullWidth
           disabled
-          InputProps={{readOnly: true}}
+          inputProps={{readOnly: true}}
         />
 
         <TextField
@@ -84,7 +84,7 @@ export default function TaskForm({
           value={values.data_atualizacao ? dayjs(values.data_atualizacao).format(dateFormat) : ''}
           fullWidth
           disabled
-          InputProps={{readOnly: true}}
+          inputProps={{readOnly: true}}
         />
 
         <Stack direction='row' spacing={2}>

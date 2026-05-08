@@ -1,5 +1,9 @@
 import Head from "next/head";
-import { Box, Typography } from "@mui/material";
+
+// MUI
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
 
 export default function SobrePage() {
   return (
@@ -9,19 +13,11 @@ export default function SobrePage() {
         <meta name="description" content="Tela sobre" />
       </Head>
 
-      <Box
-        component="main"
-        sx={{
-          minHeight: "calc(100vh - 64px)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Typography component="h1" variant="h2" textAlign="center">
+      <Container component="main" >
+        <Typography component="h1" variant="h2" align='center' sx={{ mb: 4 }}>
           Sobre
         </Typography>
-      </Box>
+      </Container>
     </>
   );
 }

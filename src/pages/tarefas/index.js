@@ -160,7 +160,7 @@ export default function TarefasPage() {
   ];
 
   return (
-    <section>
+    <>
       <Head>
         <title>Tarefas</title>
         <meta name="description" content="Tela de tarefas" />
@@ -240,6 +240,6 @@ export default function TarefasPage() {
           </Grid>
         )}
       </Container>
-    </section>
+    </>
   );
 }

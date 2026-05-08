@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: production
     container_name: kanban-app
     ports:
       - "3001:3000"
@@ -12,14 +13,17 @@ services:
       - postgresql
    
   kanban-app-dev:
-    image: node:20-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
     container_name: kanban-app-dev
     working_dir: /app
-    command: sh -c "npm run dev -- --webpack"
     ports:
       - "3002:3000"
     volumes:
       - ./:/app
+      - kanban_node_modules:/app/node_modules
     env_file:
       - .env
     environment:
@@ -29,7 +33,7 @@ services:
       CHOKIDAR_INTERVAL: 1000
       NEXT_TELEMETRY_DISABLED: 1
     depends_on:
-    - postgresql
+      - postgresql
 
   postgresql:
     image: postgres:18-alpine
@@ -47,3 +51,4 @@ services:
 
 volumes:
   postgres_data_vol:
+  kanban_node_modules:

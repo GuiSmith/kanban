@@ -41,6 +41,9 @@ export default function TarefasPage() {
     socket.emit('join_tarefas');
 
     socket.on('tarefas', payload => {
+
+      console.debug(payload);
+
       switch(payload.op) {
         case 'DELETE':
           setTarefas(prev => prev.filter(tarefa => tarefa.id !== payload.data.id));

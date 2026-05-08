@@ -5,8 +5,13 @@ services:
       dockerfile: Dockerfile
       target: production
     container_name: kanban-app
+    networks:
+     - kanban-shared-services
+     - kanban-network
     ports:
       - "3001:3000"
+    environment:
+      STAGE: production
     env_file:
       - .env
     depends_on:
@@ -18,6 +23,9 @@ services:
       dockerfile: Dockerfile
       target: development
     container_name: kanban-app-dev
+    networks:
+     - kanban-shared-services
+     - kanban-network
     working_dir: /app
     ports:
       - "3002:3000"
@@ -27,6 +35,7 @@ services:
     env_file:
       - .env
     environment:
+      STAGE: development
       NODE_ENV: development
       WATCHPACK_POLLING: true
       CHOKIDAR_USEPOLLING: true
@@ -38,6 +47,8 @@ services:
   postgresql:
     image: postgres:18-alpine
     container_name: kanban-postgres
+    networks:
+     - kanban-network
     restart: unless-stopped
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
@@ -52,3 +63,10 @@ services:
 volumes:
   postgres_data_vol:
   kanban_node_modules:
+
+networks:
+  kanban-shared-services:
+    external: true
+  kanban-network:
+    driver: bridge
+  

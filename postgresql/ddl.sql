@@ -59,3 +59,11 @@ CREATE TRIGGER trg_tarefa_delete_notify
 AFTER DELETE ON tarefa
 FOR EACH ROW
 EXECUTE FUNCTION notify_tarefa_changes();
+
+CREATE TABLE IF NOT EXISTS tarefa_arquivo (
+  id SERIAL PRIMARY KEY,
+  id_tarefa INT REFERENCES tarefa(id),
+  nome VARCHAR(255) NOT NULL,
+  data_cadastro TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  public_url TEXT
+);

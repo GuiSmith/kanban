@@ -65,6 +65,7 @@ export default function TaskForm({
           value={values.descricao}
           onChange={handleChange("descricao")}
           fullWidth
+          required
           multiline
           minRows={4}
         />
@@ -75,7 +76,6 @@ export default function TaskForm({
           value={values.data_cadastro ? dayjs(values.data_cadastro).format(dateFormat) : ''}
           fullWidth
           disabled
-          inputProps={{readOnly: true}}
         />
 
         <TextField
@@ -84,7 +84,6 @@ export default function TaskForm({
           value={values.data_atualizacao ? dayjs(values.data_atualizacao).format(dateFormat) : ''}
           fullWidth
           disabled
-          inputProps={{readOnly: true}}
         />
 
         <Stack direction='row' spacing={2}>

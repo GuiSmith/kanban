@@ -1,7 +1,6 @@
 "use client";
 //Next
 import Head from "next/head";
-import Link from "next/link";
 import axios from 'axios';
 import dayjs from 'dayjs';
 
@@ -17,38 +16,70 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Dialog from '@mui/material/Dialog';
 
-
 // React
-import { useEffect, useState } from 'react'; 
+import { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 
+// UI Personalizado
 import Loading from '@/components/Loading';
-
 import TaskForm from "@/components/form/TaskForm";
-import { BorderAllRounded } from "@mui/icons-material";
+import { toast } from 'react-toastify';
 
 
 export default function TarefasPage() {
   const [tarefas, setTarefas] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isModalOpen,setIsModalOpen] = useState(false);
-  const [taskFormData,setTaskFormData] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [taskFormData, setTaskFormData] = useState({});
 
   const dateFormat = 'DD/MM/YYYY HH:mm:ss';
 
   useEffect(() => {
+
+    const socket = io({ path: '/api/socketio' });
+
+    socket.emit('join_tarefas');
+
+    socket.on('tarefas', payload => {
+      switch(payload.op) {
+        case 'DELETE':
+          setTarefas(prev => prev.filter(tarefa => tarefa.id !== payload.data.id));
+          break;
+        case 'UPDATE':
+          setTarefas(tarefas => tarefas.map(tarefa => {
+            if (tarefa.id == payload.data.id) {
+              return {
+                ...tarefa,
+                ...payload.data,
+              };
+            }
+            return tarefa;
+          }));
+          break;
+        case 'INSERT':
+          setTarefas(tarefas => [ ...tarefas, { ...payload.data } ]);
+          break;
+      }
+    });
+
     const fetchTarefas = async () => {
       try {
         setIsLoading(true);
         const res = await axios.post('/api/tarefas/listarTarefas');
         setTarefas(res.data.data);
       } catch (error) {
-        console.log(error);
-        alert(error);
+        console.log(error.response);
+        toast.error(error.response?.data?.mensagem || 'Erro ao listar tarefas');
       } finally {
         setIsLoading(false);
       }
     };
     fetchTarefas();
+
+    return () => {
+      socket.emit('leave_tarefas');
+      socket.disconnect();
+    }
   }, []);
 
   const handleNovaTarefa = () => {
@@ -68,7 +99,6 @@ export default function TarefasPage() {
   };
 
   const handleEditarTarefa = (tarefa) => {
-    console.log(`Editar tarefa ${tarefa?.id}`);
 
     setTaskFormData({
       formTitle: 'Editar tarefa',
@@ -86,10 +116,10 @@ export default function TarefasPage() {
   const handleDeletarTarefa = async (id) => {
     try {
       const res = await axios.delete(`/api/tarefas/deletarTarefa?id=${id}`);
-      alert('Tarefa deletada!');
+      toast.success('Tarefa deletada');
     } catch (error) {
-      console.log(error);
-      alert(error);
+      console.log(error.response);
+      toast.error(error.response?.data?.mensagem || 'Erro ao deletar tarefa');
     } finally {
       setIsModalOpen(false);
     }
@@ -103,22 +133,22 @@ export default function TarefasPage() {
   const submitNovaTarefa = async (values) => {
     try {
       const res = await axios.post('/api/tarefas/criarTarefa', values);
-      alert('Tarefa criada!');
-    } catch (error) {
-      console.log(error);
-      alert(error);
-    } finally {
+      toast.success('Tarefa criada');
       setIsModalOpen(false);
+    } catch (error) {
+      console.log(error.response);
+      toast.error(error.response?.data?.mensagem || 'Erro ao inserir tarefa');
     }
   }
 
   const submitEditarTarefa = async (values) => {
     try {
-        const res = await axios.put('/api/tarefas/editarTarefa', values);
-        alert('Tarefa editada!');
+      const res = await axios.put('/api/tarefas/editarTarefa', values);
+      toast.success('Tarefa editada');
+      setIsModalOpen(false);
     } catch (error) {
-        console.log(error);
-        alert(error);
+      console.log(error.response);
+      toast.error(error.response?.data?.mensagem || 'Erro ao editar tarefa');
     }
   }
 

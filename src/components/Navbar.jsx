@@ -15,7 +15,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Toolbar from "@mui/material/Toolbar";
 
 // MUI Icons
-import CreateIcon from '@mui/icons-material/Create';
+import HouseIcon from '@mui/icons-material/House';
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -24,8 +24,8 @@ export const drawerWidth = 240;
 const collapsedDrawerWidth = 72;
 
 const menuItems = [
+  { label: 'Início', href: '/', icon: <HouseIcon /> },
   { label: "Tarefas", href: "/tarefas", icon: <AssignmentTurnedInOutlinedIcon /> },
-  { label: "Criar tarefa", href: "tarefas/criar", icon: <CreateIcon /> },
   { label: "Sobre", href: "/sobre", icon: <InfoOutlinedIcon /> },
 ];
 

@@ -96,8 +96,6 @@ const TarefaFormulario = ({
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    console.log("Dados do formulário:", values);
-
     switch(mode) {
       case 'create':
         const createOk = await criarTarefa(values);
@@ -114,7 +112,8 @@ const TarefaFormulario = ({
 
   const renderizarFormulario = () => {
     return (
-      <>
+      <Stack spacing={2.5}>
+
         <Typography component="h1" variant="h4" align='center'>
           {mode === 'edit' ? 'Editar tarefa' : 'Criar tarefa'}
         </Typography>
@@ -158,19 +157,17 @@ const TarefaFormulario = ({
           fullWidth
           disabled
         />
-      </>
+      </Stack>
     );
   }
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{ width: "100%", maxWidth: 520, mx: "auto", }}
-    >
+    <Box sx={{ width: "100%", maxWidth: 520, mx: "auto", }} >
       <Stack spacing={2.5}>
-        {renderizarFormulario()}
-        {mode !== 'create' ? <TarefaArquivos /> : <></>}
+        <form onSubmit={handleSubmit} >
+          {renderizarFormulario()}
+        </form>
+        {mode !== 'create' ? <TarefaArquivos tarefa={ values } /> : <></>}
         {isLoading ? <Loading /> : <></>}
       </Stack>
     </Box>

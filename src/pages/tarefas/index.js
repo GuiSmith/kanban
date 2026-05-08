@@ -22,7 +22,7 @@ import { io } from 'socket.io-client';
 
 // UI Personalizado
 import Loading from '@/components/Loading';
-import TaskForm from "@/components/form/TaskForm";
+import TaskForm from "@/pages/tarefas/TaskForm";
 import { toast } from 'react-toastify';
 
 

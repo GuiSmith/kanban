@@ -22,7 +22,7 @@ import { io } from 'socket.io-client';
 
 // UI Personalizado
 import Loading from '@/components/Loading';
-import TaskForm from "@/pages/tarefas/TaskForm";
+import TarefaFormulario from "@/pages/tarefas/TarefaFormulario";
 import { toast } from 'react-toastify';
 
 
@@ -86,73 +86,18 @@ export default function TarefasPage() {
   }, []);
 
   const handleNovaTarefa = () => {
-    console.log('Nova tarefa selecionada');
-
-    setTaskFormData({
-      formTitle: 'Criar tarefa',
-      buttons: [
-        <Button key='criar tarefa' variant='contained' color='success' type='submit' >Criar</Button>
-      ],
-      initialValues: {},
-      onSubmit: (values) => submitNovaTarefa(values)
-    });
-
+    setTaskFormData({ mode: 'create', initialValues: {} });
     setIsModalOpen(true);
-
   };
 
   const handleEditarTarefa = (tarefa) => {
-
-    setTaskFormData({
-      formTitle: 'Editar tarefa',
-      buttons: [
-        <Button key='editar tarefa' variant='contained' color='success' type='submit' >Editar</Button>,
-        <Button key='deletar tarefa' variant='contained' color='error' onClick={() => handleDeletarTarefa(tarefa.id)} >Deletar</Button>
-      ],
-      initialValues: { ...tarefa },
-      onSubmit: (values) => submitEditarTarefa(values)
-    });
-
+    setTaskFormData({ mode: 'edit', initialValues: { ...tarefa } });
     setIsModalOpen(true);
-  }
-
-  const handleDeletarTarefa = async (id) => {
-    try {
-      const res = await axios.delete(`/api/tarefas/deletarTarefa?id=${id}`);
-      toast.success('Tarefa deletada');
-    } catch (error) {
-      console.log(error.response);
-      toast.error(error.response?.data?.mensagem || 'Erro ao deletar tarefa');
-    } finally {
-      setIsModalOpen(false);
-    }
   }
 
   const handleFecharModal = () => {
     setTaskFormData({});
     setIsModalOpen(false);
-  }
-
-  const submitNovaTarefa = async (values) => {
-    try {
-      const res = await axios.post('/api/tarefas/criarTarefa', values);
-      toast.success('Tarefa criada');
-      setIsModalOpen(false);
-    } catch (error) {
-      console.log(error.response);
-      toast.error(error.response?.data?.mensagem || 'Erro ao inserir tarefa');
-    }
-  }
-
-  const submitEditarTarefa = async (values) => {
-    try {
-      const res = await axios.put('/api/tarefas/editarTarefa', values);
-      toast.success('Tarefa editada');
-      setIsModalOpen(false);
-    } catch (error) {
-      console.log(error.response);
-      toast.error(error.response?.data?.mensagem || 'Erro ao editar tarefa');
-    }
   }
 
   const buttons = [
@@ -181,11 +126,10 @@ export default function TarefasPage() {
             },
           }}
         >
-          <TaskForm
-            formTitle={taskFormData?.formTitle}
-            buttons={taskFormData?.buttons}
+          <TarefaFormulario
+            mode={taskFormData?.mode}
             initialValues={taskFormData?.initialValues}
-            onSubmit={taskFormData?.onSubmit}
+            onClose={handleFecharModal}
           />
         </Dialog>
         <Typography component="h1" variant="h3" align="center" sx={{ mb: 4 }}>

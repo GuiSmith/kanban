@@ -11,7 +11,7 @@ import readFileAsync from '@/pages/api/utils/readFileAsync';
 import maxSize from '@/pages/api/utils/maxSize';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import getCurrentUrl from '@/pages/api/config/getCurrentUrl';
-
+import buildImgSrc from '@/pages/api/utils/buildImgSrc';
 
 export const config = {
   api: {
@@ -75,7 +75,7 @@ const handler = async (req, res) => {
         const tarefaArquivoData = {
             id_tarefa: idTarefa,
             nome: nome,
-            public_url: response.data.public_url
+            public_url: response.data.content.public_url
         };
         const tarefaArquivoInsert = buildInsert('tarefa_arquivo',tarefaArquivoData);
         const tarefaArquivo = await db.query({ text: tarefaArquivoInsert.text, values: tarefaArquivoInsert.values });
@@ -93,7 +93,7 @@ const handler = async (req, res) => {
             }
         }
 
-        returnObj.src = `${getCurrentUrl()}/${process.env.OPERA_PORT}/files/${tarefaArquivo.public_url}`;
+        returnObj.src = buildImgSrc(tarefaArquivo.public_url);
 
         return res.status(200).json(defaultResponse('Arquivo registrado', { ...returnObj }));
     } catch (error) {

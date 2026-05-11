@@ -28,15 +28,15 @@ const handler = async (req, res) => {
         // Extraindo dados
         const { fields, files } = await parseForm(req);
         const arquivo = Array.isArray(files?.arquivo) ? files.arquivo[0] : files?.arquivo;
-        const nome = Array.isArray(fields?.nome) ? fields.nome[0] : fields?.nome;
+        const descricao = Array.isArray(fields?.descricao) ? fields.descricao[0] : fields?.descricao;
         const idTarefa = Array.isArray(fields?.id_tarefa) ? fields.id_tarefa[0] : fields?.id_tarefa;
 
         // Validando dados
         if (!arquivo) {
             return res.status(400).json(defaultResponse('Nenhum arquivo foi enviado'));
         }
-        if (!nome) {
-            return res.status(400).json(defaultResponse('Informe o nome do arquivo'));
+        if (!descricao) {
+            return res.status(400).json(defaultResponse('Informe a descrição do arquivo'));
         }
         if (!idTarefa){
             return res.status(400).json(defaultResponse('Informe a tarefa!'));
@@ -74,15 +74,18 @@ const handler = async (req, res) => {
         // Inserindo no BD
         const tarefaArquivoData = {
             id_tarefa: idTarefa,
-            nome: nome,
+            descricao,
+            nome: arquivo.originalFilename,
             public_url: response.data.content.public_url
         };
         const tarefaArquivoInsert = buildInsert('tarefa_arquivo',tarefaArquivoData);
-        const tarefaArquivo = await db.query({ text: tarefaArquivoInsert.text, values: tarefaArquivoInsert.values });
+        const result = await db.query({ text: tarefaArquivoInsert.text, values: tarefaArquivoInsert.values });
 
-        if (!tarefaArquivo){
+        if (!result){
             return res.status(400).json(defaultResponse('Erro ao salvar arquivo no banco de dados!'));
         }
+
+        const tarefaArquivo = result.rows[0];
 
         const dadosNaoEnviados = ['public_url'];
         const returnObj = {};

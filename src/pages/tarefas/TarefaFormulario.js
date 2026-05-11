@@ -15,7 +15,7 @@ import Typography from "@mui/material/Typography";
 
 // Componentes
 import Loading from '@/components/Loading';
-import TarefaArquivos from "./TarefaArquivos";
+import TarefaArquivos from "@/pages/tarefas/arquivos";
 
 
 const TarefaFormulario = ({
@@ -162,7 +162,7 @@ const TarefaFormulario = ({
   }
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 520, mx: "auto", }} >
+    <Box sx={{ width: "100%", mx: "auto", }} >
       <Stack spacing={2.5}>
         <form onSubmit={handleSubmit} >
           {renderizarFormulario()}

@@ -116,7 +116,7 @@ export default function TarefasPage() {
         <Dialog
           open={isModalOpen}
           onClose={handleFecharModal}
-          maxWidth="sm"
+          maxWidth="lg"
           fullWidth
           slotProps={{
             paper: {

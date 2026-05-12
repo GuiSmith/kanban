@@ -15,7 +15,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgresql
+      kanban-db:
+        condition: service_healthy
    
   kanban-app-dev:
     build:
@@ -42,11 +43,12 @@ services:
       CHOKIDAR_INTERVAL: 1000
       NEXT_TELEMETRY_DISABLED: 1
     depends_on:
-      - postgresql
+      kanban-db:
+        condition: service_healthy
 
-  postgresql:
+  kanban-db:
     image: postgres:18-alpine
-    container_name: kanban-postgres
+    container_name: kanban-db
     networks:
      - kanban-network
     restart: unless-stopped
@@ -58,6 +60,12 @@ services:
       - ${POSTGRES_PORT}:5432
     volumes:
       - postgres_data_vol:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   postgres_data_vol:

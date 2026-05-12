@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This is a Next.js 16 project using the Pages Router under `src/pages`. UI routes live in `src/pages/tarefas`, `src/pages/usuarios`, and `src/pages/sobre`; API endpoints live under `src/pages/api`. Shared components are in `src/components`, client helpers in `src/utils`, styles in `src/styles`, and static assets in `public`. Database setup is split between `postgresql/ddl.sql`, `src/database/migrate.js`, and numbered SQL migrations in `src/database/migrations`.
+This is a Next.js 16 project using the Pages Router under `src/pages`. UI routes live in `src/pages/tarefas`, `src/pages/usuarios`, and `src/pages/sobre`; API endpoints live under `src/pages/api`. Shared components are in `src/components`, client helpers in `src/utils`, styles in `src/styles`, and static assets in `public`. Database setup is at `src/database/migrate.js`, and numbered SQL migrations in `src/database/migrations`.
 
 ## Build, Test, and Development Commands
 

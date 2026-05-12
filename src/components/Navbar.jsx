@@ -19,6 +19,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import LoginIcon from '@mui/icons-material/Login';
 
 export const drawerWidth = 240;
 const collapsedDrawerWidth = 72;
@@ -28,6 +29,7 @@ const menuItems = [
   { label: "Sobre", href: "/sobre", icon: <InfoOutlinedIcon /> },
   { label: "Tarefas", href: "/tarefas", icon: <AssignmentTurnedInOutlinedIcon /> },
   { label: "Criar conta", href: '/usuarios/novo', icon: <PersonAddIcon /> },
+  { label: "Entrar", href: '/usuarios/login', icon: <LoginIcon /> },
 ];
 
 const Navbar = () => {

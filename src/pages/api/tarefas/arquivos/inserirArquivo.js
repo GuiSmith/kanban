@@ -10,8 +10,8 @@ import parseForm from '@/pages/api/utils/parseForm';
 import readFileAsync from '@/pages/api/utils/readFileAsync';
 import maxSize from '@/pages/api/utils/maxSize';
 import defaultResponse from '@/pages/api/config/defaultResponse';
-import getCurrentUrl from '@/pages/api/config/getCurrentUrl';
 import buildImgSrc from '@/pages/api/utils/buildImgSrc';
+import authMiddleware from '../../config/middlewares/authMiddleware';
 
 export const config = {
   api: {
@@ -21,6 +21,8 @@ export const config = {
 
 const handler = async (req, res) => {
     try {
+        const user = req.user;
+        
         const maxSizeMb = 22;
         const maxSizeByte = maxSize(maxSizeMb); // 22MB
         const extensoesPermitidas = ['pdf', 'jpg', 'png', 'jpeg'];
@@ -42,7 +44,7 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('Informe a tarefa!'));
         }
 
-        const tarefa = await db.query({ text: 'SELECT id FROM tarefa WHERE id = $1', values: [idTarefa]});
+        const tarefa = await db.query({ text: 'SELECT id FROM tarefa WHERE id = $1 AND id_usuario = $2', values: [idTarefa, user.id]});
 
         if (!tarefa){
             return res.status(400).json(defaultResponse('Tarefa não encontrada!'));
@@ -106,4 +108,4 @@ const handler = async (req, res) => {
     }
 };
 
-export default handler;
+export default authMiddleware(handler);

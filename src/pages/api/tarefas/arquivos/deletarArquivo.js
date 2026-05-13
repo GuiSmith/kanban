@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
+import authMiddleware from '../../config/middlewares/authMiddleware';
 
 const handler = async (req, res) => {
     if (req.method !== 'DELETE') {
@@ -9,6 +10,7 @@ const handler = async (req, res) => {
     }
 
     try {
+        const user = req.user;
         const { id } = req.query ?? {};
 
         if (!id) {
@@ -17,12 +19,17 @@ const handler = async (req, res) => {
 
         const idArquivo = Number(id);
         if (!Number.isInteger(idArquivo) || idArquivo <= 0) {
-            return res.status(400).json(defaultResponse('Arquivo invÃ¡lido!'));
+            return res.status(400).json(defaultResponse('Arquivo inválido!'));
         }
 
         const tarefaArquivo = await db.query({
-            text: 'SELECT * FROM tarefa_arquivo WHERE id = $1',
-            values: [idArquivo],
+            text: `
+                SELECT ta.*
+                FROM tarefa_arquivo ta
+                JOIN tarefa t ON t.id = ta.id_tarefa
+                WHERE ta.id = $1 AND t.id_usuario = $2
+            `,
+            values: [idArquivo, user.id],
         });
 
         if (!tarefaArquivo || tarefaArquivo.rowCount === 0) {
@@ -61,4 +68,4 @@ const handler = async (req, res) => {
     }
 };
 
-export default handler;
+export default authMiddleware(handler);

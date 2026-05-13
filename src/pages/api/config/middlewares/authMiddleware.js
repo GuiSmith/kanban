@@ -2,25 +2,33 @@ import jwt from 'jsonwebtoken';
 import db from '../connectDB';
 import defaultResponse from '../defaultResponse';
 
+const MESSAGE = 'Não autorizado';
+
 const authMiddleware = handler => async (req, res) => {
     try {
         const token = req.headers.authorization;
 
+        if(!token){
+            return res.status(401).json(defaultResponse(MESSAGE));
+        }
+
         const tokenData = jwt.verify(token, process.env.JWT_SECRET);
 
-        const userResult = db.query({
-            text: "SELECT id, nome, avatar_public_url, email, senha, data_cadastro, ativo FROM usuario WHERE id = $1",
-            values: [tokenData.user.id]
+        const userResult = await db.query({
+            text: "SELECT * FROM usuario WHERE id = $1",
+            values: [tokenData.id]
         });
 
-        if (!userResult || userResult.rows.length === 0){
-            return res.status(401).json(defaultResponse('Usuário não encontrado!'));
+        if (userResult.rowCount !== 1) {
+            console.log('Usuário não encontrado');
+            return res.status(401).json(defaultResponse(MESSAGE));
         }
 
         const user = userResult.rows[0];
 
-        if(user?.ativo !== true){
-            return res.status(401).json(defaultResponse('Usuário inativo!'));
+        if (user?.ativo !== true) {
+            console.log('Autenticação: Usuário inativo!');
+            return res.status(401).json(defaultResponse(MESSAGE));
         }
 
         req.user = user;

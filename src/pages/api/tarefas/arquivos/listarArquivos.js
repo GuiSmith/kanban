@@ -1,12 +1,15 @@
 import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import buildImgSrc from '@/pages/api/utils/buildImgSrc';
+import authMiddleware from '../../config/middlewares/authMiddleware';
 
 const handler = async (req, res) => {
     try {
         if (req.method !== 'GET') {
             return res.status(405).json(defaultResponse('Método não permitido'));
         }
+
+        const user = req.user;
 
         const idTarefaRaw = req.query?.id_tarefa;
         if (!idTarefaRaw) {
@@ -19,8 +22,8 @@ const handler = async (req, res) => {
         }
 
         const tarefa = await db.query({
-            text: 'SELECT id FROM tarefa WHERE id = $1',
-            values: [idTarefa],
+            text: 'SELECT id FROM tarefa WHERE id = $1 AND id_usuario = $2',
+            values: [idTarefa,user.id],
         });
 
         if (!tarefa || tarefa.rowCount === 0) {
@@ -50,4 +53,4 @@ const handler = async (req, res) => {
     }
 };
 
-export default handler;
+export default authMiddleware(handler);

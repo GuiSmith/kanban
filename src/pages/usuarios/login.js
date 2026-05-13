@@ -121,6 +121,8 @@ export default function LoginUsuarioPage() {
   );
 }
 
+LoginUsuarioPage.disableMainCard = true;
+
 export const getServerSideProps = async () => ({
   props: {},
 });

@@ -269,6 +269,8 @@ export default function DocumentacaoPage() {
   );
 }
 
+DocumentacaoPage.disableMainCard = true;
+
 export const getServerSideProps = async () => ({
   props: {},
 });

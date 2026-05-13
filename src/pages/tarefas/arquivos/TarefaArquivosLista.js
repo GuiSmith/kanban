@@ -3,7 +3,6 @@ import IconButton from '@mui/material/IconButton';
 import ToolTip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import DownloadIcon from '@mui/icons-material/Download';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 // Personalized UI
@@ -60,8 +59,6 @@ const TarefaArquivosLista = ({ arquivos, setArquivos }) => {
         }
     };
 
-    const handleDownload = (src) => toast.info('Ainda não implementado');
-
     const tableColumns = {
         descricao: {
             display: 'Descrição',
@@ -102,16 +99,6 @@ const TarefaArquivosLista = ({ arquivos, setArquivos }) => {
                     <ToolTip title='Copiar link'>
                         <IconButton color='secondary' onClick={() => handleCopy(src)}>
                             <ContentCopyIcon />
-                        </IconButton>
-                    </ToolTip>
-                )
-            },
-            download: {
-                key: 'src',
-                action: (src) => (
-                    <ToolTip title='Baixar arquivo'>
-                        <IconButton color='success' onClick={() => handleDownload(src)}>
-                            <DownloadIcon />
                         </IconButton>
                     </ToolTip>
                 )

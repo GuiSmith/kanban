@@ -3,6 +3,8 @@ import "@/styles/globals.css";
 
 // MUI
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import Toolbar from '@mui/material/Toolbar';
 
 // React / Next
@@ -43,12 +45,21 @@ export default function App({ Component, pageProps }) {
   const renderPage = () => {
     if (isLoading) return <Loading />;
 
+    const pageContent = <Component {...pageProps} />;
+    const shouldUseMainCard = Component.disableMainCard !== true;
+
     return (<>
       <Navbar />
 
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        <Component {...pageProps} />
+        {shouldUseMainCard ? (
+          <Card sx={{ width: '100%', maxWidth: 1200, mx: 'auto' }}>
+            <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
+              {pageContent}
+            </CardContent>
+          </Card>
+        ) : pageContent}
         <ToastContainer position='bottom-right' />
       </Box>
     </>);

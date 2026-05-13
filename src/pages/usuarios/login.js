@@ -39,9 +39,6 @@ export default function LoginUsuarioPage() {
       const res = await axios.post("/api/usuarios/login", data);
       const token = res.data?.data;
 
-      console.log("🚀 ~ onSubmit ~ res:", res);
-      console.log("🚀 ~ onSubmit ~ token:", token);
-
       if (!token) {
         toast.error("Não foi possível autenticar. Tente novamente.");
         return;

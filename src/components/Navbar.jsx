@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
 // Mui material
@@ -20,6 +20,10 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
+
+// Utils
+import hasRouteAcess from '@/utils/hasRouteAccess';
 
 export const drawerWidth = 240;
 const collapsedDrawerWidth = 72;
@@ -30,12 +34,15 @@ const menuItems = [
   { label: "Tarefas", href: "/tarefas", icon: <AssignmentTurnedInOutlinedIcon /> },
   { label: "Criar conta", href: '/usuarios/novo', icon: <PersonAddIcon /> },
   { label: "Entrar", href: '/usuarios/login', icon: <LoginIcon /> },
+  { label: 'Sair', href: '/usuarios/logout', icon: <LogoutIcon /> },
 ];
 
 const Navbar = () => {
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(JSON.parse(localStorage.getItem('kanban-toolbar-collapsed')) ?? false);
   const currentWidth = collapsed ? collapsedDrawerWidth : drawerWidth;
+
+  useEffect(() => { localStorage.setItem('kanban-toolbar-collapsed', JSON.stringify(collapsed)) },[collapsed]);
 
   return (
     <Drawer
@@ -62,7 +69,7 @@ const Navbar = () => {
         </IconButton>
       </Toolbar>
       <List>
-        {menuItems.map((item) => (
+        {menuItems.filter(item => hasRouteAcess(item.href) === true).map((item) => (
           <ListItemButton
             key={item.href}
             component={Link}

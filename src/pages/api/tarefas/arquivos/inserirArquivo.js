@@ -1,6 +1,6 @@
 // DB
 import db from '@/pages/api/config/connectDB';
-import { buildInsert } from '@/pages/api/utils/buildInsert';
+import buildInsert from '@/pages/api/utils/buildInsert';
 
 // Js
 import axios from 'axios';

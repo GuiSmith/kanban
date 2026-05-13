@@ -32,13 +32,17 @@ const handler = async (req, res) => {
         const arquivo = tarefaArquivo.rows[0];
 
         if (arquivo.id_opera) {
-            const urlParams = new URLSearchParams({ file_id: arquivo.id_opera });
-            const deleteOperaUrl = `${process.env.OPERA_LINK}/files?${urlParams.toString()}`;
-            await axios.delete(deleteOperaUrl, {
-                headers: {
-                    authorization: process.env.OPERA_API_KEY,
-                },
-            });
+            try {
+                const urlParams = new URLSearchParams({ file_id: arquivo.id_opera });
+                const deleteOperaUrl = `${process.env.OPERA_LINK}/files?${urlParams.toString()}`;
+                await axios.delete(deleteOperaUrl, {
+                    headers: {
+                        authorization: process.env.OPERA_API_KEY,
+                    },
+                });
+            } catch (error) {
+                console.log('Erro ao deletar arquivo no opera:', error?.response?.data?.message || 'Erro genérico');
+            }
         }
 
         const arquivoDeletado = await db.query({

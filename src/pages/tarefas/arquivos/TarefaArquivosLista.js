@@ -40,7 +40,7 @@ const TarefaArquivosLista = ({ arquivos, setArquivos }) => {
         }
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         try {
             if(!confirm('Tem certeza de que deseja deletar este arquivo?')) {
                 toast.info('Deleção cancelada');
@@ -48,7 +48,7 @@ const TarefaArquivosLista = ({ arquivos, setArquivos }) => {
             };
             setIsLoading(true);
             const urlParams = new URLSearchParams({ id });
-            const res = axios.delete(`/api/tarefas/arquivos/deletarArquivo?${urlParams.toString()}`);
+            const res = await axios.delete(`/api/tarefas/arquivos/deletarArquivo?${urlParams.toString()}`);
             setArquivos(prev => prev.filter(a => a.id !== id));
             toast.success(res?.data?.mensagem || 'Arquivo deletado');
         } catch (error) {

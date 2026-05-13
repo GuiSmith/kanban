@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run migrate && next dev",
+    "dev": "next dev",
     "build": "next build",
-    "start": "npm run migrate && next start",
+    "start": "next start",
     "migrate": "node src/database/migrate.js",
     "lint": "eslint"
   },

@@ -1,0 +1,1 @@
+ALTER TABLE tarefa ADD COLUMN id_usuario INT NOT NULL REFERENCES usuario(id);

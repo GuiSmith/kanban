@@ -21,13 +21,13 @@ import { io } from 'socket.io-client';
 
 // UI Personalizado
 import Loading from '@/components/Loading';
-import TarefaFormulario from "@/pages/tarefas/TarefaFormulario";
+import TarefaFormulario from "./TarefaFormulario";
 import { toast } from 'react-toastify';
 
 // Utils
 import authAxios from "@/utils/authAxios";
 
-export default function TarefasPage() {
+export default function TarefasPage({ espaco }) {
   const [tarefas, setTarefas] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,6 +35,7 @@ export default function TarefasPage() {
 
   const dateFormat = 'DD/MM/YYYY HH:mm:ss';
 
+  // Socket
   useEffect(() => {
 
     const socket = io({ path: '/api/socketio' });
@@ -66,10 +67,19 @@ export default function TarefasPage() {
       }
     });
 
+    return () => {
+      socket.emit('leave_tarefas');
+      socket.disconnect();
+    }
+  }, []);
+
+  // Buscar tarefas
+  useEffect(() => {
     const fetchTarefas = async () => {
       try {
         setIsLoading(true);
-        const res = await authAxios('post','/api/tarefas/listarTarefas');
+        const urlParams = new URLSearchParams({ id_espaco: espaco.id });
+        const res = await authAxios('post',`/api/espacos/tarefas/listarTarefas?${urlParams.toString()}`);
         setTarefas(res.data.data);
       } catch (error) {
         console.log(error.response);
@@ -79,15 +89,10 @@ export default function TarefasPage() {
       }
     };
     fetchTarefas();
-
-    return () => {
-      socket.emit('leave_tarefas');
-      socket.disconnect();
-    }
-  }, []);
+  },[espaco]);
 
   const handleNovaTarefa = () => {
-    setTaskFormData({ mode: 'create', initialValues: {} });
+    setTaskFormData({ mode: 'create', initialValues: { id_espaco: espaco.id } });
     setIsModalOpen(true);
   };
 
@@ -112,7 +117,7 @@ export default function TarefasPage() {
         <meta name="description" content="Tela de tarefas" />
       </Head>
 
-      <Container maxWidth="lg" component="main" sx={{ py: 4 }}>
+      <Container maxWidth="lg" component="main" >
 
         <Dialog
           open={isModalOpen}
@@ -133,9 +138,6 @@ export default function TarefasPage() {
             onClose={handleFecharModal}
           />
         </Dialog>
-        <Typography component="h1" variant="h3" align="center" sx={{ mb: 4 }}>
-          Tarefas
-        </Typography>
 
         <ButtonGroup orientation="horizontal" sx={{ mb: 3 }}>
           {buttons}

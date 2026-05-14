@@ -19,6 +19,9 @@ import WorkspacesIcon from '@mui/icons-material/Workspaces';
 import EspacoFormulario from './EspacoFormulario';
 import Loading from '@/components/Loading';
 
+// Paginas
+import TarefasPage from '@/pages/espacos/tarefas';
+
 // Uitls
 import authAxios from '@/utils/authAxios';
 
@@ -54,6 +57,7 @@ export default function EspacosPage() {
       try {
         if (!id) {
           setSpace(null);
+          setActiveTab(0);
           return;
         }
         setIsLoading(true);
@@ -86,17 +90,17 @@ export default function EspacosPage() {
       <Stack spacing={3}>
         <Box>
           <Typography component="h1" variant="h3" sx={{ mb: 1 }}>
-            Espaços
+            {space ? space.nome : 'Criar espaço'}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Cadastre as informações iniciais de um espaço e acompanhe a futura configuração do quadro.
+            Gerencie suas tarefas
           </Typography>
         </Box>
 
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="Abas da tela de espaços">
             <Tab icon={<WorkspacesIcon />} iconPosition="start" label="Espaço" {...getTabProps(0)} />
-            <Tab icon={<DashboardIcon />} iconPosition="start" label="Quadro" {...getTabProps(1)} />
+            <Tab icon={<DashboardIcon />} iconPosition="start" label="Quadro" {...getTabProps(1)} disabled={!space} />
           </Tabs>
         </Box>
 
@@ -105,9 +109,10 @@ export default function EspacosPage() {
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>
-          <Typography variant="body1" color="text.secondary">
-            Configuração do quadro será implementada futuramente.
-          </Typography>
+          {space
+            ? <TarefasPage espaco={space} />
+            : <Typography variant="body1" color="text.secondary"> Salve o espaço para continuar  </Typography>
+          }
         </TabPanel>
       </Stack>
     </>

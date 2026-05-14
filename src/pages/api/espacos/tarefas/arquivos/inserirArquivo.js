@@ -11,7 +11,7 @@ import readFileAsync from '@/pages/api/utils/readFileAsync';
 import maxSize from '@/pages/api/utils/maxSize';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import buildImgSrc from '@/pages/api/utils/buildImgSrc';
-import authMiddleware from '../../config/middlewares/authMiddleware';
+import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 
 export const config = {
   api: {
@@ -20,9 +20,7 @@ export const config = {
 };
 
 const handler = async (req, res) => {
-    try {
-        const user = req.user;
-        
+    try {       
         const maxSizeMb = 22;
         const maxSizeByte = maxSize(maxSizeMb); // 22MB
         const extensoesPermitidas = ['pdf', 'jpg', 'png', 'jpeg'];
@@ -44,7 +42,7 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('Informe a tarefa!'));
         }
 
-        const tarefa = await db.query({ text: 'SELECT id FROM tarefa WHERE id = $1 AND id_usuario = $2', values: [idTarefa, user.id]});
+        const tarefa = await db.query({ text: 'SELECT id FROM tarefa WHERE id = $1', values: [idTarefa]});
 
         if (!tarefa){
             return res.status(400).json(defaultResponse('Tarefa não encontrada!'));
@@ -62,16 +60,23 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse(`Extensões permitidas: ${extensoesPermitidas.join(', ')}`));
         }
 
+        let response;
+
         // Publicando foto
-        const url = `${process.env.OPERA_LINK}/files`;
-        const response = await axios.post(url, fileBuffer, {
-            headers: {
-                authorization: process.env.OPERA_API_KEY,
-                'Content-Type': 'application/octet-stream',
-                'x-file-extension': extensao,
-                'x-folder-id': process.env.OPERA_FOLDER_ID
-            },
-        });
+        try {
+            const url = `${process.env.OPERA_LINK}/files`;
+            response = await axios.post(url, fileBuffer, {
+                headers: {
+                    authorization: process.env.OPERA_API_KEY,
+                    'Content-Type': 'application/octet-stream',
+                    'x-file-extension': extensao,
+                    'x-folder-id': process.env.OPERA_FOLDER_ID
+                },
+            });
+        } catch (error) {
+            console.log('Erro ao salvar arquivo no Opera', error?.response ?? error);
+            return res.status(500).json(defaultResponse('Erro ao salvar arquivo internamente. Contate o suporte!'));
+        }
 
         // Inserindo no BD
         const tarefaArquivoData = {

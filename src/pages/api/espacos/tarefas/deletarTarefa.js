@@ -1,6 +1,6 @@
 import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
-import authMiddleware from '../config/middlewares/authMiddleware';
+import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 
 const handler = async (req, res) => {
     if (req.method !== 'DELETE') {
@@ -8,14 +8,13 @@ const handler = async (req, res) => {
     }
 
     try {
-        const user = req.user;
         const { id } = req.query ?? {};
 
         if (!id) {
             return res.status(400).json(defaultResponse('Preencha todos os dados para continuar'));
         }
 
-        const tarefaExistente = await db.query({text: 'SELECT 1 FROM tarefa WHERE id = $1 AND id_usuario = $2', values: [id, user.id]});
+        const tarefaExistente = await db.query({text: 'SELECT 1 FROM tarefa WHERE id = $1', values: [id]});
 
         if(tarefaExistente.rowCount !== 1){
             return res.status(404).json(defaultResponse('Tarefa não encontrada'));

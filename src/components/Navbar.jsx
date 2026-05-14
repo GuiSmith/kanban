@@ -44,7 +44,6 @@ const collapsedDrawerWidth = 72;
 const menuItems = [
   { label: 'Início', href: '/', icon: <HouseIcon /> },
   { label: "Sobre", href: "/sobre", icon: <InfoOutlinedIcon /> },
-  { label: "Tarefas", href: "/tarefas", icon: <AssignmentTurnedInOutlinedIcon /> },
   { label: "Espaços", href: "/espacos", icon: <WorkspacesIcon /> },
   { label: "Documentação", href: "/documentacao", icon: <MenuBookIcon /> },
   { label: "Criar conta", href: '/usuarios/novo', icon: <PersonAddIcon /> },
@@ -70,6 +69,9 @@ const Navbar = () => {
   const currentWidth = collapsed ? collapsedDrawerWidth : drawerWidth;
   const isDarkMode = mode === 'dark';
   const themeButtonLabel = isDarkMode ? 'Ativar modo claro' : 'Ativar modo escuro';
+
+  const selectedSpaceId = router.query?.id ?Number(router.query.id) : null;
+  const isOnEspacosPage = router.pathname === '/espacos';
 
   useEffect(() => {
     localStorage.setItem('kanban-toolbar-collapsed', JSON.stringify(collapsed));
@@ -141,6 +143,7 @@ const Navbar = () => {
         <ListItemButton
           key={espaco.id}
           component={Link}
+          selected={isOnEspacosPage && selectedSpaceId === Number(espaco.id)}
           href={`/espacos?id=${espaco.id}`}
           sx={{ pl: 5, minHeight: 40 }}
         >
@@ -153,56 +156,59 @@ const Navbar = () => {
     });
   };
 
-  const renderSpacesItem = (item) => (
-    <Box key={item.href}>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <ListItemButton
-          component={Link}
-          href={item.href}
-          selected={router.pathname === item.href}
-          sx={{
-            minHeight: 48,
-            justifyContent: collapsed ? "center" : "initial",
-            px: 2,
-            flexGrow: 1,
-          }}
-        >
-          <ListItemIcon
+  const renderSpacesItem = (item) => {
+
+    return (
+      <Box key={item.href}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <ListItemButton
+            component={Link}
+            href={item.href}
+            selected={isOnEspacosPage && !selectedSpaceId}
             sx={{
-              minWidth: 0,
-              mr: collapsed ? 0 : 2,
-              justifyContent: "center",
+              minHeight: 48,
+              justifyContent: collapsed ? "center" : "initial",
+              px: 2,
+              flexGrow: 1,
             }}
           >
-            {item.icon}
-          </ListItemIcon>
-          <Box sx={{ opacity: collapsed ? 0 : 1, width: collapsed ? 0 : "auto", transition: "opacity 0.2s ease" }}>
-            <ListItemText primary={item.label} />
-          </Box>
-        </ListItemButton>
+            <ListItemIcon
+              sx={{
+                minWidth: 0,
+                mr: collapsed ? 0 : 2,
+                justifyContent: "center",
+              }}
+            >
+              {item.icon}
+            </ListItemIcon>
+            <Box sx={{ opacity: collapsed ? 0 : 1, width: collapsed ? 0 : "auto", transition: "opacity 0.2s ease" }}>
+              <ListItemText primary={item.label} />
+            </Box>
+          </ListItemButton>
+
+          {!collapsed ? (
+            <Tooltip title={spacesOpen ? 'Recolher espaços' : 'Expandir espaços'} placement="right">
+              <IconButton
+                aria-label={spacesOpen ? 'Recolher espaços' : 'Expandir espaços'}
+                onClick={() => setSpacesOpen((prev) => !prev)}
+                sx={{ mr: 1 }}
+              >
+                {spacesOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Tooltip>
+          ) : null}
+        </Box>
 
         {!collapsed ? (
-          <Tooltip title={spacesOpen ? 'Recolher espaços' : 'Expandir espaços'} placement="right">
-            <IconButton
-              aria-label={spacesOpen ? 'Recolher espaços' : 'Expandir espaços'}
-              onClick={() => setSpacesOpen((prev) => !prev)}
-              sx={{ mr: 1 }}
-            >
-              {spacesOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </IconButton>
-          </Tooltip>
+          <Collapse in={spacesOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {renderSpaceSubItems()}
+            </List>
+          </Collapse>
         ) : null}
       </Box>
-
-      {!collapsed ? (
-        <Collapse in={spacesOpen} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {renderSpaceSubItems()}
-          </List>
-        </Collapse>
-      ) : null}
-    </Box>
-  );
+    )
+  };
 
   return (
     <Drawer

@@ -1,7 +1,7 @@
 import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import buildImgSrc from '@/pages/api/utils/buildImgSrc';
-import authMiddleware from '../../config/middlewares/authMiddleware';
+import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 
 const handler = async (req, res) => {
     try {
@@ -22,8 +22,8 @@ const handler = async (req, res) => {
         }
 
         const tarefa = await db.query({
-            text: 'SELECT id FROM tarefa WHERE id = $1 AND id_usuario = $2',
-            values: [idTarefa,user.id],
+            text: 'SELECT id FROM tarefa WHERE id = $1',
+            values: [idTarefa],
         });
 
         if (!tarefa || tarefa.rowCount === 0) {

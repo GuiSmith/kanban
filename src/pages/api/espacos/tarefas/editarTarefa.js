@@ -1,18 +1,36 @@
 import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
-import authMiddleware from '../config/middlewares/authMiddleware';
+import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 
 const handler = async (req, res) => {
     try {
-        const user = req.user;
         const dadosForm = req.body ?? {};
-        const { id, titulo, descricao } = dadosForm;
+        const requiredData = {
+            id: 'ID',
+            titulo: 'título',
+            descricao: 'descrição',
+            id_espaco: 'espaço',
+        };
+        const data = {};
+        const { id, titulo, descricao, id_espaco } = dadosForm;
 
-        if (!id || !titulo || !descricao) {
-            return res.status(400).json(defaultResponse('Preencha todos os dados para continuar'));
+        for(const requiredKey in requiredData){
+            if(!dadosForm[requiredKey]){
+                console.log('chave faltante: ', requiredKey);
+                return res.status(400).json(defaultResponse('Preencha todos os dados para continuar'));
+            }
+            data[requiredKey] = dadosForm[requiredKey];
         }
 
-        const tarefaExistente = await db.query({text: 'SELECT 1 FROM tarefa WHERE id = $1 AND id_usuario = $2', values: [id, user.id]});
+        const tarefaExistente = await db.query({
+            text: `
+                SELECT
+                FROM tarefa t
+                JOIN espaco e ON e.id = t.id_espaco
+                WHERE t.id = $1 AND e.id = $2
+            `,
+            values: [data.id, data.id_espaco]
+        });
 
         if(tarefaExistente.rowCount !== 1){
             return res.status(404).json(defaultResponse('Tarefa não encontrada'));

@@ -1,5 +1,5 @@
 // React/JS
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import { useForm } from 'react-hook-form';
@@ -13,23 +13,29 @@ import Typography from "@mui/material/Typography";
 
 // Componentes
 import Loading from '@/components/Loading';
-import TarefaArquivos from "@/pages/tarefas/arquivos";
+import TarefaArquivos from "./arquivos";
 
 // Utils
 import authAxios from "@/utils/authAxios";
 
-const TarefaFormulario = ({ mode = 'create', initialValues = { titulo: '', descricao: '' }, onClose }) => {
+const defaultValues = { titulo: '', descricao: '' }
 
-  const { register, handleSubmit, getValues } = useForm({ defaultValues: initialValues });
+const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) => {
+
+  const { reset, register, handleSubmit, getValues } = useForm({ defaultValues: initialValues });
 
   const [isLoading, setIsLoading] = useState(false);
 
   const dateFormat = 'DD/MM/YYYY HH:mm:ss';
 
+  useEffect(() => {
+    reset(initialValues ? initialValues : defaultValues);
+  },[initialValues]);
+
   const criarTarefa = async (data) => {
     try {
       setIsLoading(true);
-      const res = await authAxios('post','/api/tarefas/criarTarefa', data);
+      const res = await authAxios('post','/api/espacos/tarefas/criarTarefa', data);
       toast.success('Tarefa criada');
       return true;
     } catch (error) {
@@ -44,7 +50,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = { titulo: '', descr
   const editarTarefa = async (data) => {
     try {
       setIsLoading(true);
-      const res = await authAxios('put','/api/tarefas/editarTarefa', data);
+      const res = await authAxios('put','/api/espacos/tarefas/editarTarefa', data);
       toast.success('Tarefa editada');
       return true;
     } catch (error) {
@@ -64,7 +70,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = { titulo: '', descr
       if(!id) return;
       
       setIsLoading(true);
-      const res = await authAxios('delete',`/api/tarefas/deletarTarefa?id=${id}`);
+      const res = await authAxios('delete',`/api/espacos/tarefas/deletarTarefa?id=${id}`);
       toast.success('Tarefa deletada');
       onClose();
       return true;

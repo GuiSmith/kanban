@@ -53,7 +53,7 @@ export default function LoginUsuarioPage() {
       toast.success(res.data?.mensagem || "Login realizado.");
 
       const params = new URLSearchParams(window.location.search);
-      const redirectUrl = params.get("redirectUrl") || "/tarefas";
+      const redirectUrl = params.get("redirectUrl") || "/documentacao";
       Router.push(redirectUrl);
     } catch (error) {
       console.log(error.response || error);

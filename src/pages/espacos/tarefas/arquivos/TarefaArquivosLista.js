@@ -48,7 +48,7 @@ const TarefaArquivosLista = ({ arquivos, setArquivos }) => {
             };
             setIsLoading(true);
             const urlParams = new URLSearchParams({ id });
-            const res = await authAxios('delete',`/api/tarefas/arquivos/deletarArquivo?${urlParams.toString()}`);
+            const res = await authAxios('delete',`/api/espacos/tarefas/arquivos/deletarArquivo?${urlParams.toString()}`);
             setArquivos(prev => prev.filter(a => a.id !== id));
             toast.success(res?.data?.mensagem || 'Arquivo deletado');
         } catch (error) {

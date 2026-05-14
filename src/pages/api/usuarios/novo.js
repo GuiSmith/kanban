@@ -75,6 +75,26 @@ const handler = async (req, res) => {
 
         const user = userResult.rows[0];
 
+        try {
+            const espacoData = {
+                id_usuario: user.id,
+                nome: 'Espaço pessoal',
+                descricao: 'Espaço pessoal padrão. Criado ao criar conta',
+                sigla: 'EP',
+                icon: 'Folder',
+            };
+
+            const espacoInsert = buildInsert('espaco', espacoData);
+
+            const espacoResult = await db.query({ text: espacoInsert.text, values: espacoInsert.values });
+
+            if (espacoResult.rowCount !== 1){
+                console.log('Espaço pessoal não foi criado!');
+            }
+        } catch (error) {
+            console.log('Erro ao criar espaço pessoal padrão:', error);
+        }
+
         return res.status(201).json(defaultResponse('Usuário criado com sucesso', user));
     } catch (error) {
         console.log(error);

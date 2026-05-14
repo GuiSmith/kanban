@@ -1,0 +1,1 @@
+ALTER TABLE espaco_convite ALTER COLUMN data_expiracao SET DEFAULT CURRENT_TIMESTAMP

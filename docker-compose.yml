@@ -17,6 +17,8 @@ services:
     depends_on:
       kanban-db:
         condition: service_healthy
+      kanban-rabbitmq:
+        condition: service_healthy
    
   kanban-app-dev:
     build:
@@ -45,6 +47,8 @@ services:
     depends_on:
       kanban-db:
         condition: service_healthy
+      kanban-rabbitmq:
+        condition: service_healthy
 
   kanban-db:
     image: postgres:18-alpine
@@ -66,6 +70,25 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+  
+  kanban-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: kanban-rabbitmq
+    restart: unless-stopped
+    networks:
+     - kanban-network
+    ports:
+      - "${RABBITMQ_HOST_PORT}:${RABBITMQ_PORT}"
+      - "${RABBITMQ_PANEL_PORT}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
 volumes:
   postgres_data_vol:

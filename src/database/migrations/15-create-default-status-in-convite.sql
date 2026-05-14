@@ -1,0 +1,1 @@
+ALTER TABLE espaco_convite ALTER COLUMN status SET DEFAULT 'PENDENTE';

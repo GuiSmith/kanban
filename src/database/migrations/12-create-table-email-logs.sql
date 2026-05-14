@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS email_log (
+    id SERIAL PRIMARY KEY,
+    id_usuario INT NOT NULL REFERENCES usuario(id),
+    email VARCHAR(100) NOT NULL,
+    assunto VARCHAR(100) NOT NULL,
+    corpo TEXT NOT NULL,
+    data_cadastro TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

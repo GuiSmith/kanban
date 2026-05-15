@@ -7,7 +7,6 @@ services:
     container_name: kanban-app
     networks:
      - kanban-shared-services
-     - kanban-network
     ports:
       - "3001:3000"
     environment:
@@ -28,7 +27,6 @@ services:
     container_name: kanban-app-dev
     networks:
      - kanban-shared-services
-     - kanban-network
     working_dir: /app
     ports:
       - "3002:3000"
@@ -54,7 +52,7 @@ services:
     image: postgres:18-alpine
     container_name: kanban-db
     networks:
-     - kanban-network
+     - kanban-shared-services
     restart: unless-stopped
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
@@ -76,7 +74,7 @@ services:
     container_name: kanban-rabbitmq
     restart: unless-stopped
     networks:
-     - kanban-network
+     - kanban-shared-services
     ports:
       - "${RABBITMQ_HOST_PORT}:${RABBITMQ_PORT}"
       - "${RABBITMQ_PANEL_PORT}:15672"
@@ -97,6 +95,3 @@ volumes:
 networks:
   kanban-shared-services:
     external: true
-  kanban-network:
-    driver: bridge
-  

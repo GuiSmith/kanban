@@ -65,7 +65,7 @@ export default function Table({
                     const renderAction = actionConfig?.action;
                     return (
                       <TableCell key={actionIndex}>
-                        {typeof renderAction === 'function' ? renderAction(actionValue) : null}
+                        {typeof renderAction === 'function' ? renderAction(actionValue, row) : null}
                       </TableCell>
                     );
                   })}

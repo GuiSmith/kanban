@@ -47,7 +47,7 @@ const ConvitesPage = ({ espaco }) => {
       </Typography>
 
       <ConviteFormulario mode="create" initialValues={{ id_espaco: espaco?.id }} onConviteCriado={fetchConvites} />
-      <Convites convites={convites} />
+      <Convites convites={convites} onConviteCancelado={fetchConvites} />
     </Stack>
   );
 };

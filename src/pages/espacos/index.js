@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 
 // MUI Icons
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import GroupIcon from '@mui/icons-material/Group';
 import WorkspacesIcon from '@mui/icons-material/Workspaces';
 
 // Componentes
@@ -21,6 +22,7 @@ import Loading from '@/components/Loading';
 
 // Paginas
 import TarefasPage from '@/pages/espacos/tarefas';
+import UsuariosPage from '@/pages/espacos/usuarios';
 
 // Uitls
 import authAxios from '@/utils/authAxios';
@@ -102,6 +104,7 @@ export default function EspacosPage() {
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="Abas da tela de espaços">
             <Tab icon={<WorkspacesIcon />} iconPosition="start" label="Espaço" {...getTabProps(0)} />
             <Tab icon={<DashboardIcon />} iconPosition="start" label="Quadro" {...getTabProps(1)} disabled={!space} />
+            <Tab icon={<GroupIcon />} iconPosition="start" label="Usuários" {...getTabProps(2)} disabled={!space} />
           </Tabs>
         </Box>
 
@@ -112,6 +115,13 @@ export default function EspacosPage() {
         <TabPanel value={activeTab} index={1}>
           {space
             ? <TarefasPage espaco={space} />
+            : <Typography variant="body1" color="text.secondary"> Salve o espaço para continuar  </Typography>
+          }
+        </TabPanel>
+
+        <TabPanel value={activeTab} index={2}>
+          {space
+            ? <UsuariosPage espaco={space} />
             : <Typography variant="body1" color="text.secondary"> Salve o espaço para continuar  </Typography>
           }
         </TabPanel>

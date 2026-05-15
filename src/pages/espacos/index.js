@@ -64,6 +64,7 @@ export default function EspacosPage() {
         const params = new URLSearchParams({ id });
         const res = await authAxios('get', `/api/espacos/selecionarEspaco?${params.toString()}`);
         setSpace(res.data.data);
+        setActiveTab(1);
       } catch (error) {
         console.log(error?.response || error);
         toast.error(error?.response?.data?.mensagem || 'Erro ao buscar espaço');

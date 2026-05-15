@@ -33,6 +33,7 @@ const messages = [
   "Espaço editado",
   "Perfil editado",
   "Imagem atualizada com sucesso",
+  "Convite criado",
   "Tarefa criada",
   "Tarefa editada",
   "Tarefa deletada",
@@ -96,9 +97,9 @@ export default function DocumentacaoPage() {
               <Stack spacing={1.5}>
                 <SectionTitle icon={<MenuBookIcon color="primary" />} title="Introdução" />
                 <Typography variant="body1">
-                  O sistema permite criar uma conta, fazer login, organizar tarefas por espaços e anexar arquivos às
-                  tarefas já cadastradas. Depois de entrar, você acessa a área de espaços para criar um espaço e
-                  gerenciar as tarefas dele pela aba Quadro.
+                  O sistema permite criar uma conta, fazer login, organizar tarefas por espaços, anexar arquivos às
+                  tarefas já cadastradas e gerenciar usuários e convites do espaço. Depois de entrar, você acessa a área
+                  de espaços para criar um espaço e gerenciar suas abas.
                 </Typography>
               </Stack>
             </CardContent>
@@ -216,6 +217,33 @@ export default function DocumentacaoPage() {
                 <Alert severity="info" sx={{ mt: 2 }}>
                   O menu lateral mostra a opção Espaços e, quando houver espaços ativos cadastrados, exibe atalhos para
                   eles.
+                </Alert>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <SectionTitle icon={<PersonAddIcon color="primary" />} title="Usuários e convites do espaço" />
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Ao abrir um espaço salvo, a aba Usuários fica disponível. Nela, você pode visualizar os usuários
+                  vinculados ao espaço e acompanhar os convites cadastrados.
+                </Typography>
+                <BulletList
+                  items={[
+                    "A lista de usuários mostra avatar, nome, username, e-mail e vínculo com o espaço.",
+                    "O proprietário aparece como Proprietário.",
+                    "Usuários adicionados ao espaço aparecem como Participante.",
+                    "A área de convites permite buscar uma pessoa por nome, username ou e-mail.",
+                    "Quando nenhum resultado é encontrado na busca, o sistema mostra Nenhum usuário encontrado.",
+                    "Antes de convidar, é possível escolher se o sistema deve enviar e-mail.",
+                    "Depois de criar um convite, a lista de convites é atualizada.",
+                  ]}
+                />
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  A busca de usuários para convite não lista o usuário atual, usuários já vinculados ao espaço, o
+                  proprietário do espaço ou usuários com convite pendente para o mesmo espaço.
                 </Alert>
               </AccordionDetails>
             </Accordion>
@@ -368,6 +396,7 @@ export default function DocumentacaoPage() {
                     "A página Sobre ainda é simples.",
                     "A tela de espaços não possui exclusão definitiva de espaço; espaços podem ser inativados.",
                     "A ação de copiar tarefa ainda não está implementada.",
+                    "A rota de listagem usada na busca de usuários para convite ainda concentra responsabilidades e precisa ser separada em fluxos menores.",
                   ]}
                 />
               </AccordionDetails>

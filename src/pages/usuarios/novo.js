@@ -26,12 +26,7 @@ const defaultValues = {
 export default function NovoUsuarioPage() {
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({ defaultValues });
+  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues });
 
   const onSubmit = async (data) => {
     try {
@@ -40,7 +35,7 @@ export default function NovoUsuarioPage() {
       const res = await axios.post("/api/usuarios/novo", data);
       console.log(res?.data);
       toast.success(res.data.mensagem);
-      // reset(defaultValues);
+      Router.push('/usuarios/login');
     } catch (error) {
       console.log(error.response || error);
       toast.error(error.response?.data?.mensagem || "Erro ao cadastrar usuário.");

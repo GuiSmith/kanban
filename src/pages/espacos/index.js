@@ -21,6 +21,7 @@ import EspacoFormulario from './EspacoFormulario';
 import Loading from '@/components/Loading';
 
 // Paginas
+import ConvitesPage from '@/pages/espacos/convites';
 import TarefasPage from '@/pages/espacos/tarefas';
 import UsuariosPage from '@/pages/espacos/usuarios';
 
@@ -121,7 +122,16 @@ export default function EspacosPage() {
 
         <TabPanel value={activeTab} index={2}>
           {space
-            ? <UsuariosPage espaco={space} />
+            ? (
+              <Stack spacing={3} >
+                <Box sx={{ flex: 1, width: '100%' }}>
+                  <UsuariosPage espaco={space} />
+                </Box>
+                <Box sx={{ flex: 1, width: '100%' }}>
+                  <ConvitesPage espaco={space} />
+                </Box>
+              </Stack>
+            )
             : <Typography variant="body1" color="text.secondary"> Salve o espaço para continuar  </Typography>
           }
         </TabPanel>

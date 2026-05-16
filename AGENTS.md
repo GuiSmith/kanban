@@ -49,6 +49,9 @@ Skill file naming convention:
 Examples:
 - `ATUALIZAR-DOCUMENTACAO.md`
 
+OBS: Do not use github:yeet skillset, use the local one.
+OBS-2: If you have conflict between a local skill and a skill that you already know, prefer the local one
+
 ### Important behavior rules
 
 Skills must NOT be executed automatically unless the user explicitly requests it.

@@ -12,10 +12,15 @@ const handler = async (req, res) => {
       return res.status(405).json(defaultResponse('Método não permitido'));
     }
 
-    const idConvite = Number(req.query?.id_convite);
+    const { id_convite, resposta } = req.body ?? {};
 
+    const idConvite = Number(id_convite);
     if (!Number.isInteger(idConvite) || idConvite <= 0) {
       return res.status(400).json(defaultResponse('ID inválido'));
+    }
+
+    if(typeof resposta !== 'boolean'){
+      return res.status(400).json(defaultResponse('Resposta deve ser um booleano'));
     }
 
     await client.query('BEGIN');
@@ -29,7 +34,7 @@ const handler = async (req, res) => {
 
     if (convite.status !== 'PENDENTE') {
       await client.query('ROLLBACK');
-      return res.status(409).json(defaultResponse('Apenas convites pendentes podem ser aceitos'));
+      return res.status(409).json(defaultResponse('Apenas convites pendentes podem ser respondidos'));
     }
 
     if (convite.expirado) {
@@ -49,10 +54,14 @@ const handler = async (req, res) => {
       values: [convite.id_espaco, req.user.id],
     });
 
-    if (vinculoExistente.rowCount > 0) {
+    if(vinculoExistente.rowCount > 0){
       await client.query('ROLLBACK');
       return res.status(409).json(defaultResponse('Usuário já pertence ao espaço'));
     }
+
+    const novoStatus = resposta === true ? 'ACEITO' : 'RECUSADO';
+    const colunaData = resposta === true ? 'data_aceite' : 'data_recusa';
+    const mensagem = resposta === true ? 'Convite aceito' : 'Convite recusado';
 
     const insertSql = buildInsert('espaco_usuario', {
       id_espaco: convite.id_espaco,
@@ -69,27 +78,26 @@ const handler = async (req, res) => {
       return res.status(500).json(defaultResponse('Usuário não vinculado ao espaço. Contate o suporte'));
     }
 
-    const aceiteResult = await client.query({
+    const conviteUpdateResult = await client.query({
       text: `
         UPDATE espaco_convite
-        SET status = 'ACEITO',
-          data_aceite = CURRENT_TIMESTAMP
-        WHERE id = $1
+        SET status = $1, ${colunaData} = CURRENT_TIMESTAMP
+        WHERE id = $2
         RETURNING id
       `,
-      values: [idConvite],
+      values: [novoStatus, idConvite],
     });
 
-    if (aceiteResult.rowCount !== 1) {
+    if (conviteUpdateResult.rowCount !== 1) {
       await client.query('ROLLBACK');
-      return res.status(500).json(defaultResponse('Convite não aceito. Contate o suporte'));
+      return res.status(500).json(defaultResponse('Convite não atualizado. Contate o suporte'));
     }
 
     await client.query('COMMIT');
 
-    const conviteAceito = await getConviteByIdAndUsuario(idConvite, req.user.id);
+    const conviteAtualizado = await getConviteByIdAndUsuario(idConvite, req.user.id);
 
-    return res.status(200).json(defaultResponse('Convite aceito', conviteAceito));
+    return res.status(200).json(defaultResponse('Convite respondido', conviteAtualizado));
   } catch (error) {
     console.log('Erro ao aceitar convite: ', error);
     await client.query('ROLLBACK');

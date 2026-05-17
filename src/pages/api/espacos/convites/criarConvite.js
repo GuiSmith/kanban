@@ -28,12 +28,9 @@ const emailBody = (data) => {
     return `
         <h1>Convite para espaço </h1>
         <p>Você foi convidado para participar do espaço <strong>${data.nomeEspaco}</strong></p>
-        <a href='${data.linkConvite}'>Ver convite</a>
+        <p>Acesse seu perfil na aba <strong>Convites</strong> para ver o convite:</p>
+        <a href="${getCurrentUrl()}/usuarios/perfil">Clique aqui</a> para acessar seu perfil</a>
     `;
-}
-
-const buildInviteLink = (id) => {
-    return `${getCurrentUrl()}/espacos/convites/aceitar?id=${id}`;
 }
 
 const handler = async (req, res) => {
@@ -170,8 +167,7 @@ const handler = async (req, res) => {
         const invite = inviteResult.rows[0];
 
         if(data.enviar_email === true){
-            const linkConvite = buildInviteLink(invite.id);
-            const body = emailBody({ nomeEspaco: space.nome, linkConvite });
+            const body = emailBody({ nomeEspaco: space.nome });
 
             const emailData = {
                 id_usuario: user.id,

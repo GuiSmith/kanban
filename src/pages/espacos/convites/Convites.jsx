@@ -19,6 +19,7 @@ import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import { formatDateTime } from '@/utils/formatDate';
 import getNameInitials from '@/utils/getNameInitials';
+import statusMap from '@/utils/InviteStatusMap';
 
 const Convites = ({ convites = [], onConviteCancelado }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,13 +36,6 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
       setPendingCancelInvite(null);
     };
   },[]);
-
-  const statusMap = {
-    PENDENTE: 'warning',
-    ACEITO: 'success',
-    RECUSADO: 'error',
-    EXPIRADO: 'secondary'
-  };
 
   const handleOpenCancelDialog = (convite) => {
     setPendingCancelInvite(convite);

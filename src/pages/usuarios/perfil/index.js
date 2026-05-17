@@ -13,7 +13,9 @@ import WorkspacesIcon from '@mui/icons-material/Workspaces';
 import Loading from '@/components/Loading';
 import authAxios from '@/utils/authAxios';
 import PerfilFormulario from './PerfilFormulario';
-import EspacosInativosLista from './EspacosInativos';
+
+import EspacosInativos from './EspacosInativos';
+import Convites from './Convites';
 
 import { useNavbar } from '@/contexts/NavbarContext';
 
@@ -67,6 +69,7 @@ export default function PerfilPage() {
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="Abas da tela de perfil">
             <Tab icon={<AccountCircleIcon />} iconPosition="start" label="Perfil" {...getTabProps(0)} />
             <Tab icon={<WorkspacesIcon />} iconPosition="start" label="Espaços inativos" {...getTabProps(1)} />
+            <Tab icon={<WorkspacesIcon />} iconPosition="start" label="Convites" {...getTabProps(2)} />
           </Tabs>
         </Box>
 
@@ -75,7 +78,11 @@ export default function PerfilPage() {
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>
-          <EspacosInativosLista />
+          <EspacosInativos />
+        </TabPanel>
+
+        <TabPanel value={activeTab} index={2}>
+          <Convites />
         </TabPanel>
       </Stack>
     </>

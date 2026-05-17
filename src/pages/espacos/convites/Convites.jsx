@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
@@ -8,17 +9,12 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Stack from '@mui/material/Stack';
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
 import { DataGrid } from '@mui/x-data-grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import Chip from '@mui/material/Chip';
 
-import { toast } from 'react-toastify';
-
-import Table from '@/components/Table';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import { formatDateTime } from '@/utils/formatDate';
@@ -28,6 +24,17 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [invite, setInvite] = useState(null);
   const [pendingCancelInvite, setPendingCancelInvite] = useState(null);
+
+  useEffect(() => {
+    
+    toast.info('Convites cancelados são filtrados por padrão');
+    
+    return () => {
+      setIsLoading(false);
+      setInvite(null);
+      setPendingCancelInvite(null);
+    };
+  },[]);
 
   const statusMap = {
     PENDENTE: 'warning',
@@ -153,10 +160,29 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
           rows={convites}
           columns={columns}
           autoHeight
-          hideFooter
+          // hideFooter
           pageSizeOptions={[convites.length || 5]}
           localeText={{ noRowsLabel: 'Nenhum registro' }}
           onRowClick={(params) => { handleInviteOpen(params.row) }}
+          initialState={{
+            filter: {
+              filterModel: {
+                items: [
+                  {
+                    field: 'status',
+                    operator: 'doesNotEqual',
+                    value: 'CANCELADO',
+                  },
+                ],
+              },
+            },
+          }}
+          sx={{
+            border: 0,
+            '& .MuiDataGrid-row': {
+              cursor: 'pointer',
+            },
+          }}
         />
       </Box>
 

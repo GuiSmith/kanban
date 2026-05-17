@@ -40,7 +40,7 @@ const run = async () => {
 
         for (const fileName of files) {
             if (applied.has(fileName)) {
-                console.log(`[skip] ${fileName}`);
+                console.log(`[SKIP] ${fileName}`);
                 continue;
             }
 
@@ -49,14 +49,14 @@ const run = async () => {
 
             await db.query('BEGIN');
             try {
-                console.log(`Executando ${fileName}`);
+                console.log(`[EXECUTING] ${fileName}`);
                 await db.query(sql);
                 await db.query(
                     `INSERT INTO ${TABLE_NAME} (nome_arquivo) VALUES ($1)`,
                     [fileName]
                 );
                 await db.query('COMMIT');
-                console.log(`[ok] ${fileName}`);
+                console.log(`[OK] ${fileName}`);
             } catch (error) {
                 await db.query('ROLLBACK');
                 throw error;

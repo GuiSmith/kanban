@@ -30,7 +30,7 @@ export default function App({ Component, pageProps }) {
     const auth = (url = window.location.pathname) => {
       const pathname = url.split('?')[0];
 
-      if(!hasRouteAccess(pathname)){
+      if (!hasRouteAccess(pathname)) {
         Router.replace('/');
       }
     };
@@ -41,7 +41,7 @@ export default function App({ Component, pageProps }) {
     return () => {
       Router.events.off('routeChangeComplete', auth);
     };
-  },[]);
+  }, []);
 
   const renderPage = () => {
     if (isLoading) return <Loading />;
@@ -61,7 +61,20 @@ export default function App({ Component, pageProps }) {
             </CardContent>
           </Card>
         ) : pageContent}
-        <ToastContainer position='bottom-right' />
+        {/* <ToastContainer position='bottom-right' /> */}
+        <ToastContainer
+          position='bottom-center'
+          toastStyle={{
+            width: 'fit-content',
+            // minWidth: '420px',
+            // maxWidth: '900px',
+            whiteSpace: 'nowrap',
+            borderRadius: '14px',
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        />
       </Box>
     </>);
   }

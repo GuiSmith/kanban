@@ -15,9 +15,9 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import axios from "axios";
-
 import { setToken } from '@/utils/token';
-import { useNavbar } from '@/contexts/NavbarContext';
+
+import { useAuth } from '@/contexts/AuthContext';
 
 const defaultValues = {
   login: "",
@@ -25,7 +25,9 @@ const defaultValues = {
 };
 
 export default function LoginUsuarioPage() {
-  const { refreshNavbarData } = useNavbar();
+
+  const { login } = useAuth();
+
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -45,14 +47,7 @@ export default function LoginUsuarioPage() {
         return;
       }
 
-      const tokenStored = setToken(token);
-      if(!tokenStored){
-        toast.error('Erro ao salvar token. Contate o suporte!');
-        return;
-      }
-
-      await refreshNavbarData();
-      toast.success(res.data?.mensagem || "Login realizado.");
+      await login(token);
 
       const params = new URLSearchParams(window.location.search);
       const redirectUrl = params.get("redirectUrl") || "/documentacao";

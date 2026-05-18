@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { useAuth } from '@/contexts/AuthContext';
+
 import authAxios from '@/utils/authAxios';
-import hasRouteAccess from '@/utils/hasRouteAccess';
 import catchAuthAxios from '@/utils/catchAxios';
 
 const NavbarContext = createContext({
@@ -9,13 +10,16 @@ const NavbarContext = createContext({
   profile: null,
   isNavbarLoading: false,
   isSpacesCollapsed: false,
-  setIsSpacesCollapsed: () => {},
-  refreshEspacos: async () => {},
-  refreshProfile: async () => {},
-  refreshNavbarData: async () => {},
+  setIsSpacesCollapsed: () => { },
+  refreshEspacos: async () => { },
+  refreshProfile: async () => { },
+  refreshNavbarData: async () => { },
 });
 
 export const NavbarProvider = ({ children }) => {
+
+  const { isAuthenticated, isAuthLoading } = useAuth();
+
   const [espacos, setEspacos] = useState([]);
   const [profile, setProfile] = useState(null);
   const [loadingCount, setLoadingCount] = useState(0);
@@ -33,7 +37,7 @@ export const NavbarProvider = ({ children }) => {
 
   const refreshEspacos = useCallback(async () => {
     return runWithNavbarLoading(async () => {
-      if (!hasRouteAccess('/espacos')) {
+      if (isAuthLoading || !isAuthenticated) {
         setEspacos([]);
         return [];
       }
@@ -52,11 +56,11 @@ export const NavbarProvider = ({ children }) => {
         return [];
       }
     });
-  }, [runWithNavbarLoading]);
+  }, [runWithNavbarLoading, isAuthLoading, isAuthenticated]);
 
   const refreshProfile = useCallback(async () => {
     return runWithNavbarLoading(async () => {
-      if (!hasRouteAccess('/usuarios/perfil')) {
+      if (isAuthLoading || !isAuthenticated) {
         setProfile(null);
         return null;
       }
@@ -74,7 +78,7 @@ export const NavbarProvider = ({ children }) => {
         return null;
       }
     });
-  }, [runWithNavbarLoading]);
+  }, [runWithNavbarLoading, isAuthLoading, isAuthenticated]);
 
   const refreshNavbarData = useCallback(async () => {
     await Promise.all([
@@ -84,8 +88,16 @@ export const NavbarProvider = ({ children }) => {
   }, [refreshEspacos, refreshProfile]);
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
+    if (!isAuthenticated) {
+      setProfile(null);
+      setEspacos([]);
+      return;
+    }
+
     refreshNavbarData();
-  }, [refreshNavbarData]);
+  }, [isAuthLoading, isAuthenticated, refreshNavbarData]);
 
   useEffect(() => {
     const handleProfileChange = () => {

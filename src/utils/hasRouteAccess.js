@@ -1,5 +1,3 @@
-import { getToken } from '@/utils/token';
-
 const routes = {
     public: [
         '/',
@@ -12,39 +10,19 @@ const routes = {
     ],
 };
 
-const hasRouteAccess = (route) => {
+const hasRouteAccess = (isAuthenticated, route) => {
     try {
-        const isLoggedIn = Boolean(getToken());
         const isPublicRoute = routes.public.includes(route);
         const isGuestRoute = routes.guest.includes(route);
-
-        // console.table({
-        //     route,
-        //     logged: isLoggedIn,
-        //     public: isPublicRoute,
-        //     guest: isGuestRoute,
-        //     final: (() => {
-        //         // Se é rota pública => sim
-        //         if (isPublicRoute) return true;
-
-        //         // Se tá logado e é rota de convidado => não
-        //         if (isLoggedIn && isGuestRoute) return false;
-
-        //         // Se não tá logado e não é rota de convidado => não
-        //         if (!isLoggedIn && !isGuestRoute) return false;
-
-        //         return true;
-        //     })()
-        // });
 
         // Se é rota pública => sim
         if (isPublicRoute) return true;
 
         // Se tá logado e é rota de convidado => não
-        if (isLoggedIn && isGuestRoute) return false;
+        if (isAuthenticated && isGuestRoute) return false;
 
         // Se não tá logado e não é rota de convidado => não
-        if(!isLoggedIn && !isGuestRoute) return false;
+        if(!isAuthenticated && !isGuestRoute) return false;
 
         return true;
 

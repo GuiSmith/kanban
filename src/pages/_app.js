@@ -10,7 +10,7 @@ import Toolbar from '@mui/material/Toolbar';
 // React / Next
 import { ToastContainer } from 'react-toastify';
 import dynamic from 'next/dynamic';
-import Router from 'next/router';
+import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 
 // Utils
@@ -19,37 +19,33 @@ import hasRouteAccess from "@/utils/hasRouteAccess";
 // Componentes
 const Navbar = dynamic(() => import('@/components/Navbar'), { ssr: false });
 import Loading from '@/components/Loading';
+
+// Contextos
 import { AppThemeProvider } from '@/contexts/ThemeContext';
 import { NavbarProvider } from '@/contexts/NavbarContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
-export default function App({ Component, pageProps }) {
-
-  const [isLoading, setIsLoading] = useState(false);
+const AppContent = ({ Component, pageProps }) => {
+  const { isAuthLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    const auth = (url = window.location.pathname) => {
-      const pathname = url.split('?')[0];
+    if (isAuthLoading) {
+      return;
+    }
 
-      if (!hasRouteAccess(pathname)) {
-        Router.replace('/');
-      }
-    };
+    if (!hasRouteAccess(isAuthenticated, router.pathname)) {
+      router.replace('/');
+    }
+  }, [router.pathname, isAuthLoading, isAuthenticated]);
 
-    auth();
-    Router.events.on('routeChangeComplete', auth);
+  if (isAuthLoading) return <Loading />;
 
-    return () => {
-      Router.events.off('routeChangeComplete', auth);
-    };
-  }, []);
+  const pageContent = <Component {...pageProps} />;
+  const shouldUseMainCard = Component.disableMainCard !== true;
 
-  const renderPage = () => {
-    if (isLoading) return <Loading />;
-
-    const pageContent = <Component {...pageProps} />;
-    const shouldUseMainCard = Component.disableMainCard !== true;
-
-    return (<>
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Navbar />
 
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
@@ -61,13 +57,11 @@ export default function App({ Component, pageProps }) {
             </CardContent>
           </Card>
         ) : pageContent}
-        {/* <ToastContainer position='bottom-right' /> */}
+
         <ToastContainer
           position='bottom-center'
           toastStyle={{
             width: 'fit-content',
-            // minWidth: '420px',
-            // maxWidth: '900px',
             whiteSpace: 'nowrap',
             borderRadius: '14px',
             padding: '14px 18px',
@@ -76,16 +70,18 @@ export default function App({ Component, pageProps }) {
           }}
         />
       </Box>
-    </>);
-  }
+    </Box>);
+}
+
+export default function App(props) {
 
   return (
     <AppThemeProvider>
-      <NavbarProvider>
-        <Box sx={{ display: "flex", minHeight: "100vh" }}>
-          {renderPage()}
-        </Box>
-      </NavbarProvider>
+      <AuthProvider >
+        <NavbarProvider>
+          <AppContent {...props} />
+        </NavbarProvider>
+      </AuthProvider>
     </AppThemeProvider>
   );
-}
+};

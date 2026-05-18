@@ -34,10 +34,13 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 // Utils
-import hasRouteAcess from '@/utils/hasRouteAccess';
+import hasRouteAccess from '@/utils/hasRouteAccess';
 import { useAppTheme } from "@/contexts/ThemeContext";
 import { useNavbar } from "@/contexts/NavbarContext";
 import { getEspacoIcon } from "@/utils/EspacosIcones";
+
+// Contexts
+import { useAuth } from "@/contexts/AuthContext";
 
 export const drawerWidth = 240;
 const collapsedDrawerWidth = 72;
@@ -70,6 +73,7 @@ const Navbar = () => {
     isSpacesCollapsed,
     setIsSpacesCollapsed,
   } = useNavbar();
+  const { isAuthLoading, isAuthenticated } = useAuth();
 
   const [espacosAtivos, setEspacosAtivos] = useState([]);
   const [collapsed, setCollapsed] = useState(getInitialCollapsed);
@@ -113,7 +117,7 @@ const Navbar = () => {
   const renderSpaceSubItems = () => {
     if (collapsed) return null;
 
-    if (isNavbarLoading) {
+    if (isNavbarLoading || isAuthLoading) {
       return (
         <ListItemButton sx={{ pl: 5, minHeight: 40 }} disabled>
           <ListItemIcon sx={{ minWidth: 32 }}>
@@ -269,7 +273,7 @@ const Navbar = () => {
         </IconButton>
       </Toolbar>
       <List sx={{ flexGrow: 1 }}>
-        {menuItems.filter(item => hasRouteAcess(item.href) === true).map((item) => (
+        {menuItems.filter(item => hasRouteAccess(isAuthenticated, item.href) === true).map((item) => (
           item.href === '/espacos' ? renderSpacesItem(item) : (
             <ListItemButton
               key={item.href}

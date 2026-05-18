@@ -4,20 +4,18 @@ import Router from 'next/router';
 import Loading from '@/components/Loading';
 import { toast } from 'react-toastify';
 
-import { removeToken } from '@/utils/token';
+import { useAuth } from '@/contexts/AuthContext';
 
 const errorMessage = 'Erro ao sair. Contate o suporte';
 
 const Logout = () => {
+
+  const { logout } = useAuth();
+
   useEffect(() => {
     try {
-      const tokenRemovido = removeToken();
-
-      if(!tokenRemovido){
-        throw new Error(errorMessage);
-      }
-      toast.success('Logout realizado');
-      Router.replace('/usuarios/login');
+      logout();
+      Router.push('/usuarios/login');
     } catch (error) {
       console.error(error);
       toast.error(errorMessage);

@@ -15,6 +15,9 @@ import Button from '@mui/material/Button';
 import authAxios from "@/utils/authAxios";
 import catchAuthAxios from "@/utils/catchAxios";
 
+// Components
+import Loading from '@/components/Loading';
+
 const PermissoesFormulario = ({ usuario, espaco }) => {
 
     const [permissoes, setPermissoes] = useState();
@@ -87,6 +90,7 @@ const PermissoesFormulario = ({ usuario, espaco }) => {
 
     return (
         <Box sx={{ width: '100%', mx: 'auto' }}>
+            {isLoading && <Loading />}
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={2.5}>
                     <Typography component="h3" variant="h4" align='center'>

@@ -29,7 +29,7 @@ import UsuariosPage from '@/pages/espacos/usuarios';
 import { useNavbar } from '@/contexts/NavbarContext';
 
 // Uitls
-import authAxios from '@/utils/authAxios';
+import { getEspacoIcon } from '../../utils/EspacosIcones';
 
 const TabPanel = ({ children, index, value }) => (
   <Box
@@ -60,14 +60,16 @@ export default function EspacosPage() {
   const [space, setSpace] = useState(null);
 
   useEffect(() => {
-    if(!id){
+    if(!id || !espacos){
       setSpace(null);
       setActiveTab(0);
       return;
     }
+
     setSpace(espacos.find(espaco => espaco.id == id));
   },[id, espacos]);
 
+  const SpaceIcon = getEspacoIcon(space?.icon) ?? WorkspacesIcon;
 
   const handleTabChange = (_, value) => {
     setActiveTab(value);
@@ -84,8 +86,13 @@ export default function EspacosPage() {
 
       <Stack spacing={3}>
         <Box>
-          <Typography component="h1" variant="h3" sx={{ mb: 1 }}>
-            {space ? space.nome : 'Criar espaço'}
+          <Typography component="h1" variant="h3" sx={{
+            mb: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }} >
+            <SpaceIcon sx={{ fontSize: 'inherit' }} /> {space ? space.nome : 'Criar espaço'}
           </Typography>
           <Typography variant="body1" color="text.secondary">
             Gerencie suas tarefas

@@ -41,6 +41,7 @@ const UsuariosPage = ({ espaco }) => {
         setUsuarios(res?.data?.data ?? []);
       } catch (error) {
         catchAuthAxios(error, 'Erro ao listar usuários');
+        setUsuarios([]);
       } finally {
         setIsLoading(false);
       }
@@ -65,7 +66,12 @@ const UsuariosPage = ({ espaco }) => {
       headerName: 'Nome',
       flex: 1.2,
       renderCell: (params) => (
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          sx={{ width: '100%', height: '100%' }}
+        >
           <Avatar
             src={params.row?.src || undefined}
             alt={params.value || 'Usuário'}
@@ -109,7 +115,7 @@ const UsuariosPage = ({ espaco }) => {
           rows={usuarios}
           columns={columns}
           autoHeight
-          // hideFooter
+          loading={isLoading}
           pageSizeOptions={[rows.length || 5]}
           onRowClick={(params) => { handleOpenUser(params.row) }}
           localeText={{

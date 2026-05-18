@@ -17,7 +17,7 @@ import Chip from '@mui/material/Chip';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import { formatDateTime } from '@/utils/formatDate';
-import { ESPACO_ICONES } from '@/utils/EspacosIcones';
+import { ESPACO_ICONES, getEspacoIcon } from '@/utils/EspacosIcones';
 import statusMap from '@/utils/InviteStatusMap';
 
 import Loading from '@/components/Loading';
@@ -47,7 +47,7 @@ const Convites = () => {
     const handleInviteOpen = (inviteData) => {
         if (!isLoading) {
             const inviteObj = inviteData;
-            inviteObj.icon = ESPACO_ICONES.find(icon => icon.value === inviteData.espaco_icon)?.Icon || null;
+            inviteObj.icon = getEspacoIcon(inviteData.espaco_icon);
             setInvite(inviteObj);
         }
     }
@@ -81,10 +81,15 @@ const Convites = () => {
             headerName: 'Espaço',
             flex: 1,
             renderCell: (params) => {
-                const Icon = ESPACO_ICONES.find(icon => icon.value === params.row.espaco_icon)?.Icon;
+                const Icon = getEspacoIcon(params.row.espaco_icon);
 
                 return (
-                    <Stack direction='row' spacing={1} alignItems='center'>
+                    <Stack
+                        direction='row'
+                        spacing={1}
+                        alignItems='center'
+                        sx={{ width: '100%', height: '100%' }}
+                    >
                         {Icon && <Icon color='action' />}
                         <Typography>{params.value}</Typography>
                     </Stack>

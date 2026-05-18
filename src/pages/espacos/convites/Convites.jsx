@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
 
 import Avatar from '@mui/material/Avatar';
@@ -25,17 +25,6 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [invite, setInvite] = useState(null);
   const [pendingCancelInvite, setPendingCancelInvite] = useState(null);
-
-  useEffect(() => {
-    
-    toast.info('Convites cancelados são filtrados por padrão');
-    
-    return () => {
-      setIsLoading(false);
-      setInvite(null);
-      setPendingCancelInvite(null);
-    };
-  },[]);
 
   const handleOpenCancelDialog = (convite) => {
     setPendingCancelInvite(convite);
@@ -93,7 +82,12 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
       headerName: 'Nome',
       flex: 1,
       renderCell: (params) => (
-        <Stack direction='row' spacing={1.5} align='center'>
+        <Stack
+          direction='row'
+          spacing={1.5}
+          alignItems='center'
+          sx={{ width: '100%', height: '100%' }}
+        >
           <Avatar
             src={params.row?.src || undefined}
             alt={params.value || 'Usuário'}
@@ -154,7 +148,7 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
           rows={convites}
           columns={columns}
           autoHeight
-          // hideFooter
+          loading={isLoading}
           pageSizeOptions={[convites.length || 5]}
           localeText={{ noRowsLabel: 'Nenhum registro' }}
           onRowClick={(params) => { handleInviteOpen(params.row) }}

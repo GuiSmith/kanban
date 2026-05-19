@@ -34,16 +34,21 @@ const messages = [
   "Perfil editado",
   "Imagem atualizada com sucesso",
   "Convite criado",
+  "Convite cancelado",
+  "Convite respondido com sucesso",
+  "Permissões alteradas com sucesso!",
   "Tarefa criada",
   "Tarefa editada",
   "Tarefa deletada",
   "Arquivo inserido",
   "Arquivo deletado com sucesso",
+  "Link copiado.",
   "Preencha todos os dados para continuar",
   "Espaço não encontrado!",
   "Tarefa não encontrada",
   "Delete os arquivos antes de deletar as tarefas",
   "Credenciais inválidas",
+  "Sessão expirada. Por favor, faça login novamente.",
   "Ainda não implementado",
 ];
 
@@ -123,8 +128,10 @@ export default function DocumentacaoPage() {
                   items={[
                     "O e-mail deve ter um formato válido.",
                     "O username deve conter apenas letras, números e underline.",
+                    "O username deve ter no máximo 15 caracteres.",
                     "O e-mail não pode estar duplicado.",
                     "O username não pode estar duplicado.",
+                    "Ao criar a conta, o sistema também cria um espaço pessoal padrão.",
                   ]}
                 />
               </AccordionDetails>
@@ -170,6 +177,11 @@ export default function DocumentacaoPage() {
                 <Typography variant="body1" sx={{ mb: 1 }}>
                   A aba Espaços inativos lista os espaços que foram desativados. Eles não aparecem na Navbar, mas podem
                   ser abertos pela lista para consulta ou edição.
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  A aba Convites mostra os convites recebidos para participar de espaços. Ao abrir um convite, você vê
+                  os dados do espaço, o status, as datas do convite e pode aceitar ou recusar convites pendentes.
                 </Typography>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="body1" sx={{ mb: 1 }}>
@@ -235,15 +247,23 @@ export default function DocumentacaoPage() {
                     "A lista de usuários mostra avatar, nome, username, e-mail e vínculo com o espaço.",
                     "O proprietário aparece como Proprietário.",
                     "Usuários adicionados ao espaço aparecem como Participante.",
+                    "Ao clicar em um usuário, é possível consultar e alterar permissões do espaço.",
+                    "As permissões disponíveis são Sem permissão, Apenas leitura e Escrita.",
+                    "As permissões do proprietário aparecem bloqueadas para edição.",
                     "A área de convites permite buscar uma pessoa por nome, username ou e-mail.",
                     "Quando nenhum resultado é encontrado na busca, o sistema mostra Nenhum usuário encontrado.",
                     "Antes de convidar, é possível escolher se o sistema deve enviar e-mail.",
                     "Depois de criar um convite, a lista de convites é atualizada.",
+                    "Convites pendentes podem ser cancelados pela tela de detalhes do convite.",
                   ]}
                 />
                 <Alert severity="info" sx={{ mt: 2 }}>
                   A busca de usuários para convite não lista o usuário atual, usuários já vinculados ao espaço, o
                   proprietário do espaço ou usuários com convite pendente para o mesmo espaço.
+                </Alert>
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  O envio de e-mails de convite possui limite de 5 e-mails em 24 horas por usuário convidado, e convites
+                  expiram em 3 dias.
                 </Alert>
               </AccordionDetails>
             </Accordion>
@@ -396,7 +416,8 @@ export default function DocumentacaoPage() {
                     "A página Sobre ainda é simples.",
                     "A tela de espaços não possui exclusão definitiva de espaço; espaços podem ser inativados.",
                     "A ação de copiar tarefa ainda não está implementada.",
-                    "A rota de listagem usada na busca de usuários para convite ainda concentra responsabilidades e precisa ser separada em fluxos menores.",
+                    "A ação de reenviar e-mail de convite ainda não está implementada.",
+                    "As permissões do espaço já podem ser configuradas na tela de usuários, mas nem todas as ações do espaço bloqueiam o usuário de acordo com essas permissões.",
                   ]}
                 />
               </AccordionDetails>

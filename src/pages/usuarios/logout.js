@@ -1,28 +1,22 @@
 import { useEffect } from 'react';
-import Router from 'next/router';
-
-import Loading from '@/components/Loading';
-import { toast } from 'react-toastify';
-
 import { useAuth } from '@/contexts/AuthContext';
-
-const errorMessage = 'Erro ao sair. Contate o suporte';
 
 const Logout = () => {
 
   const { logout } = useAuth();
 
   useEffect(() => {
-    try {
-      logout();
-      Router.push('/usuarios/login');
-    } catch (error) {
-      console.error(error);
-      toast.error(errorMessage);
+    const doLogout = async () => {
+      try {
+        await logout();
+      } catch (error) {
+        console.error('Erro ao realizar logout', error);
+      }
     }
+    doLogout();
   }, []);
 
-  return <Loading />;
+  return <p>Carregando...</p>;
 };
 
 export default Logout;

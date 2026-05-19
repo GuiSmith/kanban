@@ -15,11 +15,6 @@ const authAxios = async (method, url, body = {}, customHeaders = {}, contentType
         });
     } catch (error) {
         console.log('Erro ao realizar request', error);
-        if(error.response.status === 401 || error.response.status === 403){
-            window.location.href = `/login?redirectUrl=${window.location.pathname}`;
-        } else {
-            throw error;
-        }
     }
 };
 

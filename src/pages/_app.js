@@ -35,11 +35,9 @@ const AppContent = ({ Component, pageProps }) => {
     }
 
     if (!hasRouteAccess(isAuthenticated, router.pathname)) {
-      router.replace('/');
+      router.push('/');
     }
   }, [router.pathname, isAuthLoading, isAuthenticated]);
-
-  if (isAuthLoading) return <Loading />;
 
   const pageContent = <Component {...pageProps} />;
   const shouldUseMainCard = Component.disableMainCard !== true;
@@ -47,6 +45,7 @@ const AppContent = ({ Component, pageProps }) => {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Navbar />
+      {isAuthLoading ? <Loading /> : <></>}
 
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />

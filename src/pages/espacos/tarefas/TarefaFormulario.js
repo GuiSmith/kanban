@@ -87,7 +87,6 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
     ],
     'edit': [
       <Button key='editar tarefa' variant='contained' color='success' type='submit' >Salvar</Button>,
-      <Button key='copiar tarefa' variant='contained' color='dark' type='button' onClick={() => toast.info('Ainda não implementado')} >Copiar</Button>,
       <Button key='deletar tarefa' variant='contained' color='error' type='button' onClick={handleDeletarTarefa} >Deletar</Button>
     ]
   };

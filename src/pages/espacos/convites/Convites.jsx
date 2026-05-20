@@ -72,10 +72,6 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
     }
   }
 
-  const handleSendAgain = (inviteData) => {
-    toast.info('Ainda não implementado');
-  };
-
   const columns = [
     {
       field: 'nome',
@@ -275,9 +271,6 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
           </Button>
           <Button type='button' color='error' variant='contained' onClick={() => handleOpenCancelDialog(invite)} disabled={isLoading || invite?.status !== 'PENDENTE'} >
             Cancelar convite
-          </Button>
-          <Button type='button' color='success' variant='contained' onClick={() => handleSendAgain(invite)} disabled={isLoading || invite?.status !== 'PENDENTE'}>
-            Reenviar e-mail
           </Button>
         </DialogActions>
       </Dialog>

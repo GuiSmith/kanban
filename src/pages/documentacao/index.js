@@ -414,9 +414,6 @@ export default function DocumentacaoPage() {
                   items={[
                     "A página inicial ainda não possui conteúdo.",
                     "A página Sobre ainda é simples.",
-                    "A tela de espaços não possui exclusão definitiva de espaço; espaços podem ser inativados.",
-                    "A ação de copiar tarefa ainda não está implementada.",
-                    "A ação de reenviar e-mail de convite ainda não está implementada.",
                     "As permissões do espaço já podem ser configuradas na tela de usuários, mas nem todas as ações do espaço bloqueiam o usuário de acordo com essas permissões.",
                   ]}
                 />

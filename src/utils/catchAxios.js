@@ -6,20 +6,27 @@ import Router from 'next/router';
 const catchAuthAxios = (error, genericMessage = 'Ocorreu um erro inesperado' ) => {
     const status = error?.response?.status;
 
+    console.error('Erro na requisição:', error);
+
     const errorMessage = error?.response?.data?.mensagem ?? genericMessage;
 
     if (status === 401) {
-        toast.warning(errorMessage);
+        toast.warning(errorMessage);''
         removeToken();
         Router.replace('/usuarios/logout');
-        return;
+        return null;
+    }
+
+    if(status === 403) {
+        toast.warning(errorMessage);
+        return null;
     }
 
     const toasty = error?.response?.data?.mensagem ? toast.warning : toast.error;
 
     toasty(errorMessage);
 
-    console.log(errorMessage);
+    return null;
 };
 
 export default catchAuthAxios;

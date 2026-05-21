@@ -1,6 +1,6 @@
 // React / JS
 import Head from 'next/head';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 
@@ -30,6 +30,14 @@ import { useNavbar } from '@/contexts/NavbarContext';
 
 // Uitls
 import { getEspacoIcon } from '../../utils/EspacosIcones';
+import authAxios from '@/utils/authAxios';
+import catchAuthAxios from '@/utils/catchAxios';
+
+const tabs = [
+  { index: 0, label: 'Espaço', permission: 'ESPACO', icon: WorkspacesIcon },
+  { index: 1, label: 'Quadro', permission: 'QUADRO', icon: DashboardIcon },
+  { index: 2, label: 'Usuários', permission: 'USUARIOS', icon: GroupIcon },
+];
 
 const TabPanel = ({ children, index, value }) => (
   <Box
@@ -53,27 +61,83 @@ export default function EspacosPage() {
   const router = useRouter();
 
   const { id } = router.query;
-  
-  const { espacos, isNavbarLoading } = useNavbar();
+
+  const { espacos, isNavbarLoading, profile } = useNavbar();
 
   const [activeTab, setActiveTab] = useState(0);
-  const [space, setSpace] = useState(null);
+  const [permissions, setPermissions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const space = useMemo(() => {
+    if (!id || !espacos) return null;
+    return espacos.find(espaco => espaco.id == id);
+  },[id, espacos]);
 
   useEffect(() => {
-    if(!id || !espacos){
-      setSpace(null);
+    if (!id || !espacos) {
       setActiveTab(0);
       return;
     }
 
-    setSpace(espacos.find(espaco => espaco.id == id));
-  },[id, espacos]);
+    loadPermissions();
+  }, [id, espacos]);
+
+  const loadPermissions = async () => {
+    const localPermissions = await fetchPermissions(space);
+    checkAccess(localPermissions);
+  };
+
+  const fetchPermissions = async (localSpace) => {
+    try {
+      const params = new URLSearchParams({ id_espaco: localSpace.id, id_usuario: profile.id });
+      const res = await authAxios('GET', `/api/espacos/usuarios/listarPermissoes?${params.toString()}`);
+      setPermissions(res.data.data);
+      return res.data.data;
+    } catch (error) {
+      catchAuthAxios(error, 'Erro ao buscar permissões do usuário no espaço');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkAccess = (localPermissions) => {
+    if(!localPermissions) return;
+    const currentTab = tabs.find(tab => tab.index === activeTab);
+
+    if (!hasTabPermission(currentTab.permission, localPermissions)) {
+      const existingPermissions = localPermissions.filter(p => typeof p.escrita === 'boolean');
+      
+      if (existingPermissions.length > 0) {
+
+        for (const existingPermission of existingPermissions) {
+          const firstAcessibleTab = tabs.find(tab => existingPermission.nome === tab.permission);
+          
+          if (firstAcessibleTab) {
+            setActiveTab(firstAcessibleTab.index);
+            return;
+          }
+        }
+      }
+
+      router.push('/espacos');
+      return;
+    }
+  }
 
   const SpaceIcon = getEspacoIcon(space?.icon) ?? WorkspacesIcon;
 
   const handleTabChange = (_, value) => {
     setActiveTab(value);
   };
+
+  const hasTabPermission = (permissionName, permissionList = permissions) => {
+    const permission = permissionList.find(p => p.nome === permissionName);
+
+    if (typeof permission?.escrita !== 'boolean') return false;
+
+    return true;
+
+  }
 
   return (
     <>
@@ -82,7 +146,7 @@ export default function EspacosPage() {
         <meta name="description" content="Cadastro de espaços" />
       </Head>
 
-      {isNavbarLoading ? <Loading /> : <></>}
+      {isNavbarLoading || isLoading ? <Loading /> : <></>}
 
       <Stack spacing={3}>
         <Box>
@@ -101,9 +165,16 @@ export default function EspacosPage() {
 
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="Abas da tela de espaços">
-            <Tab icon={<WorkspacesIcon />} iconPosition="start" label="Espaço" {...getTabProps(0)} />
-            <Tab icon={<DashboardIcon />} iconPosition="start" label="Quadro" {...getTabProps(1)} disabled={!space} />
-            <Tab icon={<GroupIcon />} iconPosition="start" label="Usuários" {...getTabProps(2)} disabled={!space} />
+            {tabs.map(tab => (
+              <Tab
+                key={tab.index}
+                icon={<tab.icon />}
+                iconPosition="start"
+                label={tab.label}
+                {...getTabProps(tab.index)}
+                disabled={!id && tab.index == 0 ? false : !hasTabPermission(tab.permission) }
+              />
+            ))}
           </Tabs>
         </Box>
 

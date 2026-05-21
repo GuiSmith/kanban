@@ -17,12 +17,18 @@ import Chip from '@mui/material/Chip';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import { formatDateTime } from '@/utils/formatDate';
-import { ESPACO_ICONES, getEspacoIcon } from '@/utils/EspacosIcones';
+import { getEspacoIcon } from '@/utils/EspacosIcones';
 import statusMap from '@/utils/InviteStatusMap';
 
+// Componentes
 import Loading from '@/components/Loading';
 
+// Contextos
+import { useNavbar } from '@/contexts/NavbarContext';
+
 const Convites = () => {
+
+    const { refreshEspacos } = useNavbar();
 
     const [isLoading, setIsLoading] = useState(false);
     const [invites, setInvites] = useState(null);
@@ -68,6 +74,9 @@ const Convites = () => {
             toast.success(res?.data?.mensagem || 'Convite respondido com sucesso');
             handleInviteClose();
             fetchInvites();
+            if(answer === true){
+                refreshEspacos();
+            }
         } catch (error) {
             catchAuthAxios(error, 'Erro ao responder convite');
         } finally {

@@ -38,14 +38,21 @@ Esta skill não deve:
 
 1. Ler `git status --short` para entender o escopo atual.
 2. Inspecionar os arquivos modificados que entrarão no commit.
-3. Agrupar mentalmente as alterações em um único tema de commit.
+3. Agrupar mentalmente as alterações em temas de commit.
 4. Definir uma mensagem no padrão desta skill.
 5. Executar `git add` apenas dos arquivos que pertencem ao escopo do commit.
-6. Executar `git commit` com a mensagem final.
+6. Executar `git commit` com a mensagem do commit.
+7. Repetir os passos 4 a 6 quando houver outro tema independente ainda não commitado.
 
-Se houver alterações não relacionadas ao pedido do usuário, não inclua essas alterações no commit.
+Se houver alterações relacionadas a múltiplos temas independentes, faça mais de um commit na mesma execução. Não misture temas independentes em um único commit quando for possível separá-los com segurança.
 
-Se o working tree estiver misturado e não for seguro separar o escopo sem risco, pare e informe isso ao usuário.
+Crie um único commit apenas quando as alterações pertencerem ao mesmo tema ou quando a separação não for segura.
+
+Antes de cada commit, informe:
+- arquivos incluídos
+- mensagem usada
+
+Se não for seguro separar os escopos, pare e informe o usuário.
 
 ## Padrão de mensagem
 
@@ -91,7 +98,9 @@ tipo: resumo
 
 Quando esta skill for explicitamente solicitada, ela pode executar `git add` e `git commit` diretamente, sem pedir confirmação final extra.
 
-Mesmo assim, antes do commit, a resposta deve informar de forma objetiva:
+Se for necessário fazer mais de um commit, faça quantos commits forem necessários para manter escopos claros e independentes, sem pedir confirmação adicional.
+
+Mesmo assim, antes de cada commit, a resposta deve informar de forma objetiva:
 
 - quais arquivos entrarão no commit
 - qual mensagem será usada
@@ -119,6 +128,6 @@ Prefira adicionar caminhos específicos.
 
 Depois de executar a skill, informe:
 
-- a mensagem de commit usada
-- os arquivos incluídos
+- as mensagens de commit usadas
+- os arquivos incluídos em cada commit
 - se houve arquivos modificados deixados de fora por estarem fora de escopo

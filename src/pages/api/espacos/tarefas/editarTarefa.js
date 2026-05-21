@@ -1,6 +1,12 @@
 import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
+import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+
+const requiredPermission = {
+    name: 'QUADRO',
+    escrita: true,
+};
 
 const handler = async (req, res) => {
     try {
@@ -22,18 +28,34 @@ const handler = async (req, res) => {
             data[requiredKey] = dadosForm[requiredKey];
         }
 
+        const idEspaco = Number(data.id_espaco);
+        if(!Number.isInteger(Number(data.id)) || !Number.isInteger(idEspaco) || idEspaco <= 0){
+            return res.status(400).json(defaultResponse('ID inválido'));
+        }
+
         const tarefaExistente = await db.query({
             text: `
-                SELECT
+                SELECT t.id
                 FROM tarefa t
                 JOIN espaco e ON e.id = t.id_espaco
                 WHERE t.id = $1 AND e.id = $2
             `,
-            values: [data.id, data.id_espaco]
+            values: [data.id, idEspaco]
         });
 
         if(tarefaExistente.rowCount !== 1){
             return res.status(404).json(defaultResponse('Tarefa não encontrada'));
+        }
+
+        const hasPermission = await usuarioTemPermissao({
+            idUsuario: req.user.id,
+            idEspaco,
+            nomePermissao: requiredPermission.name,
+            escrita: requiredPermission.escrita,
+            dbClient: db
+        });
+        if(!hasPermission){
+            return res.status(403).json(defaultResponse('Você não tem permissão para editar tarefas neste espaço!'));
         }
 
         const sql = `

@@ -1,6 +1,12 @@
 import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
+import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+
+const requiredPermission = {
+  name: 'USUARIOS',
+  escrita: true,
+};
 
 const handler = async (req, res) => {
   if (req.method !== 'DELETE') {
@@ -19,7 +25,7 @@ const handler = async (req, res) => {
         SELECT
           ec.id,
           ec.status,
-          e.id_usuario AS id_proprietario
+          ec.id_espaco
         FROM espaco_convite ec
         JOIN espaco e ON e.id = ec.id_espaco
         WHERE ec.id = $1
@@ -33,10 +39,15 @@ const handler = async (req, res) => {
     }
 
     const convite = conviteResult.rows[0];
-    const isProprietario = Number(convite.id_proprietario) === Number(req.user.id);
-
-    if (!isProprietario) {
-      return res.status(404).json(defaultResponse('Convite não encontrado'));
+    const hasPermission = await usuarioTemPermissao({
+      idUsuario: req.user.id,
+      idEspaco: convite.id_espaco,
+      nomePermissao: requiredPermission.name,
+      escrita: requiredPermission.escrita,
+      dbClient: db
+    });
+    if (!hasPermission) {
+      return res.status(403).json(defaultResponse('Você não tem permissão para cancelar convites neste espaço!'));
     }
 
     if (convite.status !== 'PENDENTE') {

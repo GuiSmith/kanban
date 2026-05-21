@@ -4,7 +4,13 @@ import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import RabbitmqServer from '@/pages/api/config/rabbitmq';
 import buildInsert from '@/pages/api/utils/buildInsert';
 import getCurrentUrl from '@/pages/api/config/getCurrentUrl';
+import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
 import rules from './inviteRules';
+
+const requiredPermission = {
+    name: 'USUARIOS',
+    escrita: true,
+};
 
 const publishEmail = async (value) => {
     try {
@@ -78,11 +84,16 @@ const handler = async (req, res) => {
         }
 
         const space = spaceResult.rows[0];
-        const isOwner = Number(space.id_usuario) === Number(req.user.id);
-
-        if(!isOwner){
+        const hasPermission = await usuarioTemPermissao({
+            idUsuario: req.user.id,
+            idEspaco,
+            nomePermissao: requiredPermission.name,
+            escrita: requiredPermission.escrita,
+            dbClient: client
+        });
+        if(!hasPermission){
             await client.query('ROLLBACK');
-            return res.status(404).json(defaultResponse('Espaço não encontrado!'));
+            return res.status(403).json(defaultResponse('Você não tem permissão para criar convites neste espaço!'));
         }
 
         if(userResult.rowCount !== 1){

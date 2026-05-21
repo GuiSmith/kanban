@@ -3,6 +3,12 @@ import axios from 'axios';
 import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
+import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+
+const requiredPermission = {
+    name: 'QUADRO',
+    escrita: true,
+};
 
 const handler = async (req, res) => {
     if (req.method !== 'DELETE') {
@@ -23,7 +29,7 @@ const handler = async (req, res) => {
 
         const tarefaArquivo = await db.query({
             text: `
-                SELECT ta.*
+                SELECT ta.*, t.id_espaco
                 FROM tarefa_arquivo ta
                 JOIN tarefa t ON t.id = ta.id_tarefa
                 WHERE ta.id = $1
@@ -36,6 +42,17 @@ const handler = async (req, res) => {
         }
 
         const arquivo = tarefaArquivo.rows[0];
+
+        const hasPermission = await usuarioTemPermissao({
+            idUsuario: req.user.id,
+            idEspaco: arquivo.id_espaco,
+            nomePermissao: requiredPermission.name,
+            escrita: requiredPermission.escrita,
+            dbClient: db
+        });
+        if(!hasPermission){
+            return res.status(403).json(defaultResponse('Você não tem permissão para deletar arquivos desta tarefa!'));
+        }
 
         if (arquivo.id_opera) {
             try {

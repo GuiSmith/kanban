@@ -1,7 +1,6 @@
 import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
-import userBelongsToSpace from '@/pages/api/utils/userBelongsToSpace';
 
 const handler = async (req, res) => {
     if (req.method !== 'GET') {
@@ -25,20 +24,29 @@ const handler = async (req, res) => {
             data[requiredKey] = Number(data[requiredKey]);
         }
 
-        const currentUserBelongsToSpace = await userBelongsToSpace(data.id_espaco, req.user.id);
-        if(currentUserBelongsToSpace.belongs === false){
-            if(currentUserBelongsToSpace.error === true){
-                return res.status(500).json(defaultResponse('Erro ao checar pertencimento de usuário ao espaço. Contate o suporte!'));    
-            }
+        const spaceResult = await db.query({
+            text: 'SELECT id, id_usuario FROM espaco WHERE id = $1',
+            values: [data.id_espaco]
+        });
+        if(spaceResult.rowCount !== 1){
             return res.status(404).json(defaultResponse('Espaço não encontrado!'));
         }
 
         // Verificando pertencimento do usuário ao espaço
-        const belongsToSpace = await userBelongsToSpace(data.id_espaco, data.id_usuario);
-        if(belongsToSpace.belongs === false){
-            if(belongsToSpace.error === true){
-                return res.status(500).json(defaultResponse('Erro ao checar pertencimento de usuário ao espaço. Contate o suporte!'));    
-            }
+        const targetBelongsToSpace = Number(spaceResult.rows[0].id_usuario) === Number(data.id_usuario)
+            ? { rowCount: 1 }
+            : await db.query({
+                text: `
+                    SELECT id
+                    FROM espaco_usuario
+                    WHERE id_espaco = $1
+                        AND id_usuario = $2
+                        AND ativo = true
+                    LIMIT 1
+                `,
+                values: [data.id_espaco, data.id_usuario]
+            });
+        if(targetBelongsToSpace.rowCount !== 1){
             return res.status(404).json(defaultResponse('Permissões não encontradas!'));
         }
 

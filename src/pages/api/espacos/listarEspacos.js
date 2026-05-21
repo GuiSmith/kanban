@@ -16,7 +16,11 @@ const handler = async (req, res) => {
                 text: `
                     SELECT e.* FROM espaco e
                     JOIN espaco_usuario eu ON e.id = eu.id_espaco
+                    JOIN espaco_usuario_permissoes eup ON eup.id_espaco = e.id AND eup.id_usuario = eu.id_usuario
+                    JOIN espaco_permissoes ep ON ep.id = eup.id_permissao
                     WHERE eu.id_usuario = $1 AND e.id_usuario != $1
+                        AND eu.ativo = true
+                        AND ep.nome = 'ESPACO'
                     ORDER BY e.id ASC
                 `,
                 values: [req.user.id],

@@ -2,6 +2,12 @@ import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import getTableColumns from '@/pages/api/utils/getTableColumns';
+import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+
+const requiredPermission = {
+    name: 'ESPACO',
+    escrita: true,
+};
 
 const handler = async (req, res) => {
   if (req.method !== 'PUT') {
@@ -56,13 +62,24 @@ const handler = async (req, res) => {
       text: `
         SELECT id
         FROM espaco
-        WHERE id = $1 AND id_usuario = $2
+        WHERE id = $1
       `,
-      values: [id, user.id],
+      values: [id],
     });
 
     if (espacoExistente.rowCount !== 1) {
       return res.status(404).json(defaultResponse('Espaço não encontrado!'));
+    }
+
+    const hasPermission = await usuarioTemPermissao({
+      idUsuario: user.id,
+      idEspaco: id,
+      nomePermissao: requiredPermission.name,
+      escrita: requiredPermission.escrita,
+      dbClient: db
+    });
+    if (!hasPermission) {
+      return res.status(403).json(defaultResponse('Você não tem permissão para editar este espaço!'));
     }
 
     const sql = `
@@ -72,11 +89,11 @@ const handler = async (req, res) => {
         sigla = $3,
         icon = $4,
         ativo = $5
-      WHERE id = $6 AND id_usuario = $7
+      WHERE id = $6
       RETURNING *
     `;
 
-    const espaco = await db.query({ text: sql, values: [nome, descricao, sigla, icon, ativo, id, user.id] });
+    const espaco = await db.query({ text: sql, values: [nome, descricao, sigla, icon, ativo, id] });
 
     if (espaco.rowCount === 0) {
       return res.status(404).json(defaultResponse('Espaço não encontrado!'));

@@ -2,6 +2,12 @@ import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import buildImgSrc from '@/pages/api/utils/buildImgSrc';
+import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+
+const requiredPermission = {
+  name: 'USUARIOS',
+  escrita: false,
+};
 
 const handler = async (req, res) => {
   if (req.method !== 'GET') {
@@ -15,37 +21,28 @@ const handler = async (req, res) => {
       return res.status(400).json(defaultResponse('ID inválido'));
     }
 
-    const [espacoResult, vinculoResult] = await Promise.all([
-      db.query({
-        text: `
-          SELECT id, id_usuario
-          FROM espaco
-          WHERE id = $1
-        `,
-        values: [idEspaco],
-      }),
-      db.query({
-        text: `
-          SELECT id
-          FROM espaco_usuario
-          WHERE id_espaco = $1
-            AND id_usuario = $2
-            AND ativo = true
-          LIMIT 1
-        `,
-        values: [idEspaco, req.user.id],
-      }),
-    ]);
+    const espacoResult = await db.query({
+      text: `
+        SELECT id
+        FROM espaco
+        WHERE id = $1
+      `,
+      values: [idEspaco],
+    });
 
     if (espacoResult.rowCount !== 1) {
       return res.status(404).json(defaultResponse('Espaço não encontrado!'));
     }
 
-    const espaco = espacoResult.rows[0];
-    const isProprietario = Number(espaco.id_usuario) === Number(req.user.id);
-
-    if (!isProprietario && vinculoResult.rowCount !== 1) {
-      return res.status(404).json(defaultResponse('Espaço não encontrado!'));
+    const hasPermission = await usuarioTemPermissao({
+      idUsuario: req.user.id,
+      idEspaco,
+      nomePermissao: requiredPermission.name,
+      escrita: requiredPermission.escrita,
+      dbClient: db
+    });
+    if (!hasPermission) {
+      return res.status(403).json(defaultResponse('Você não tem permissão para visualizar convites deste espaço!'));
     }
 
     const convitesResult = await db.query({

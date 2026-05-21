@@ -25,7 +25,7 @@ const handler = async (req, res) => {
     try {
         const data = req.body ?? {};
 
-        client.query('BEGIN');
+        await client.query('BEGIN');
 
         // Verificando espaço
         if(!data.hasOwnProperty('id_espaco')){
@@ -48,12 +48,6 @@ const handler = async (req, res) => {
             await client.query('ROLLBACK');
             return res.status(404).json(defaultResponse('Usuário não encontrado!'));
         }
-
-        // Impedindo permissões do dono de serem alteradas
-        // if(spaceResult.rows[0].id_usuario === data.id_usuario){
-        //     await client.query('ROLLBACK');
-        //     return res.status(403).json(defaultResponse('Não é permitido alterar as permissões do dono do espaço!'));
-        // }
 
         // Verificando permissões
         for(const permission of data.permissions){

@@ -2,6 +2,12 @@ import db from '@/pages/api/config/connectDB';
 
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
+import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+
+const requiredPermission = {
+    name: 'QUADRO',
+    escrita: false,
+};
 
 const handler = async (req, res) => {
     try {
@@ -13,6 +19,17 @@ const handler = async (req, res) => {
         const spaceResult = await db.query({ text: 'SELECT id FROM espaco WHERE id = $1', values:[Number(id_espaco)]});
         if(spaceResult.rowCount !== 1){
             return res.status(404).json(defaultResponse('Espaço não encontrado!'));
+        }
+
+        const hasPermission = await usuarioTemPermissao({
+            idUsuario: req.user.id,
+            idEspaco: Number(id_espaco),
+            nomePermissao: requiredPermission.name,
+            escrita: requiredPermission.escrita,
+            dbClient: db
+        });
+        if(!hasPermission){
+            return res.status(403).json(defaultResponse('Você não tem permissão para visualizar as tarefas deste espaço!'));
         }
 
         const space = spaceResult.rows[0];

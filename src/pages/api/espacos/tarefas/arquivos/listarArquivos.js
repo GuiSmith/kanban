@@ -2,14 +2,18 @@ import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import buildImgSrc from '@/pages/api/utils/buildImgSrc';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
+import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+
+const requiredPermission = {
+    name: 'QUADRO',
+    escrita: false,
+};
 
 const handler = async (req, res) => {
     try {
         if (req.method !== 'GET') {
             return res.status(405).json(defaultResponse('Método não permitido'));
         }
-
-        const user = req.user;
 
         const idTarefaRaw = req.query?.id_tarefa;
         if (!idTarefaRaw) {
@@ -22,12 +26,23 @@ const handler = async (req, res) => {
         }
 
         const tarefa = await db.query({
-            text: 'SELECT id FROM tarefa WHERE id = $1',
+            text: 'SELECT id, id_espaco FROM tarefa WHERE id = $1',
             values: [idTarefa],
         });
 
         if (!tarefa || tarefa.rowCount === 0) {
             return res.status(404).json(defaultResponse('Tarefa não encontrada!'));
+        }
+
+        const hasPermission = await usuarioTemPermissao({
+            idUsuario: req.user.id,
+            idEspaco: tarefa.rows[0].id_espaco,
+            nomePermissao: requiredPermission.name,
+            escrita: requiredPermission.escrita,
+            dbClient: db
+        });
+        if(!hasPermission){
+            return res.status(403).json(defaultResponse('Você não tem permissão para visualizar arquivos desta tarefa!'));
         }
 
         const arquivos = await db.query({

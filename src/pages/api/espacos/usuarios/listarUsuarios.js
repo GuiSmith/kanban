@@ -2,7 +2,12 @@ import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import buildImgSrc from '@/pages/api/utils/buildImgSrc';
-import userBelongsToSpace from '@/pages/api/utils/userBelongsToSpace';
+import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+
+const requiredPermission = {
+  name: 'USUARIOS',
+  escrita: false,
+};
 
 const formatUsuario = (usuario, vinculo) => ({
   id: usuario.id,
@@ -26,21 +31,33 @@ const handler = async (req, res) => {
       return res.status(400).json(defaultResponse('ID inválido'));
     }
 
-    const belongsToSpace = await userBelongsToSpace(id_espaco, req.user.id);
+    const espacoResult = await db.query({
+      text: `
+        SELECT id, id_usuario
+        FROM espaco
+        WHERE id = $1
+      `,
+      values: [idEspaco],
+    });
 
-    // Erro
-    if(belongsToSpace.error === true){
-      return res.status(500).json(defaultResponse('Erro ao verificar pertencimento ao espaço. Contate o suporte'));
+    if (espacoResult.rowCount !== 1) {
+      return res.status(404).json(defaultResponse('Espaço não encontrado!'));
     }
 
-    // Espaço não existe OU usuário não pertence ao espaço
-    if(belongsToSpace.belongs === false){
-      return res.status(404).json(defaultResponse('Espaço não encontrado!'));
+    const hasPermission = await usuarioTemPermissao({
+      idUsuario: req.user.id,
+      idEspaco,
+      nomePermissao: requiredPermission.name,
+      escrita: requiredPermission.escrita,
+      dbClient: db
+    });
+    if (!hasPermission) {
+      return res.status(403).json(defaultResponse('Você não tem permissão para visualizar os usuários deste espaço!'));
     }
 
     const columns = ['id','nome','email','username','avatar_public_url'];
 
-    const espaco = belongsToSpace.espaco;
+    const espaco = espacoResult.rows[0];
     const isProprietario = Number(espaco.id_usuario) === Number(req.user.id);
 
     const participantesResult = await db.query({

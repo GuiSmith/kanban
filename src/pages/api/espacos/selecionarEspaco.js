@@ -2,21 +2,38 @@ import db from '@/pages/api/config/connectDB';
 
 import defaultResponse from '../config/defaultResponse';
 import authMiddleware from '../config/middlewares/authMiddleware';
+import usuarioTemPermissao from '../utils/usuarioTemPermissao';
+
+const requiredPermission = {
+    name: 'ESPACO',
+    escrita: false,
+};
 
 const handler = async (req, res) => {
     try {
         const user = req.user;
         const idRaw = req.query?.id;
-        const id = Number(idRaw);
+        const id = Number(idRaw);   
 
         if(isNaN(id)){
             return res.status(400).json(defaultResponse('ID inválido'));
         }
 
-        const sql = "SELECT * FROM espaco WHERE id_usuario = $1 AND id = $2 ORDER BY id ASC";
-        const spaceResult = await db.query({ text: sql, values:[user.id, id]});
+        const sql = "SELECT * FROM espaco WHERE id = $1 ORDER BY id ASC";
+        const spaceResult = await db.query({ text: sql, values:[id]});
 
         if(spaceResult.rowCount !== 1){
+            return res.status(404).json(defaultResponse('Espaço não encontrado!'));
+        }
+
+        const hasPermission = await usuarioTemPermissao({
+            idUsuario: user.id,
+            idEspaco: id,
+            nomePermissao: requiredPermission.name,
+            escrita: requiredPermission.escrita,
+            dbClient: db
+        });
+        if(!hasPermission){
             return res.status(404).json(defaultResponse('Espaço não encontrado!'));
         }
 

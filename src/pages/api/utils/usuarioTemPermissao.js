@@ -26,7 +26,10 @@ const usuarioTemPermissao = async ({ idUsuario, idEspaco, nomePermissao, escrita
                 SELECT 1
                 FROM espaco_usuario_permissoes eup
                 JOIN espaco_permissoes ep ON ep.id = eup.id_permissao
-                WHERE eup.id_usuario = $1 AND eup.id_espaco = $2 AND ep.nome = $3 AND eup.escrita = $4
+                WHERE eup.id_usuario = $1
+                    AND eup.id_espaco = $2
+                    AND ep.nome = $3
+                    AND (eup.escrita = true OR $4 = false)
             `,
             values: [id_usuario, id_espaco, nome_permissao, escrita],
         });

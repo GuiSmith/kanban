@@ -10,12 +10,12 @@ const handler = async (req, res) => {
     if(!connected){
       return res.status(400).json(defaultResponse('Erro de conexão com o banco de dados'));
     }
+
+    connected.release();
     res.status(200).json({ mensagem: "The API os ok :)" });
   } catch (error) {
     console.log(error);
     return res.status(500).json(defaultResponse());
-  } finally {
-    client.release();
   }
 }
 

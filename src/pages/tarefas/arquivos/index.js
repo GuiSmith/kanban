@@ -28,7 +28,7 @@ const TarefaArquivos = ({ tarefa }) => {
                     id_tarefa: tarefa?.id
                 };
                 const urlSearchParams = new URLSearchParams(params);
-                const url = `/api/espacos/tarefas/arquivos/listarArquivos?${urlSearchParams.toString()}`;
+                const url = `/api/tarefa_arquivos/listarArquivos?${urlSearchParams.toString()}`;
 
                 const resArquivos = await authAxios('get', url);
 

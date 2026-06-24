@@ -45,7 +45,7 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
       setIsLoading(true);
 
       const params = new URLSearchParams({ id_convite: pendingCancelInvite.id });
-      await authAxios('delete', `/api/espacos/convites/cancelarConvite?${params.toString()}`);
+      await authAxios('delete', `/api/convites/cancelarConvite?${params.toString()}`);
       toast.success('Convite cancelado');
       setPendingCancelInvite(null);
 

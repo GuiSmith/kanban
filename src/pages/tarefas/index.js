@@ -80,7 +80,7 @@ export default function TarefasPage({ espaco }) {
       try {
         setIsLoading(true);
         const urlParams = new URLSearchParams({ id_espaco: espaco.id });
-        const res = await authAxios('post',`/api/espacos/tarefas/listarTarefas?${urlParams.toString()}`);
+        const res = await authAxios('post',`/api/tarefas/listarTarefas?${urlParams.toString()}`);
         setTarefas(res.data.data);
       } catch (error) {
         catchAuthAxios(error, 'Erro ao listar tarefas');

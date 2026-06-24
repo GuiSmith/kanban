@@ -31,7 +31,7 @@ const TarefaArquivoFormulario = ({ tarefaId, isLoading, setIsLoading, onArquivoI
             form.append('arquivo', arquivo);
             form.append('id_tarefa', tarefaId);
 
-            const res = await authAxios('post','/api/espacos/tarefas/arquivos/inserirArquivo', form, {}, 'multipart/form-data');
+            const res = await authAxios('post','/api/tarefa_arquivos/inserirArquivo', form, {}, 'multipart/form-data');
 
             toast.success('Arquivo inserido');
             onArquivoInserido?.(res.data.data);

@@ -37,7 +37,7 @@ const UsuariosPage = ({ espaco }) => {
         setIsLoading(true);
 
         const params = new URLSearchParams({ id_espaco: espaco.id });
-        const res = await authAxios('get', `/api/espacos/usuarios/listarUsuarios?${params.toString()}`);
+        const res = await authAxios('get', `/api/espacos/listarUsuarios?${params.toString()}`);
         setUsuarios(res?.data?.data ?? []);
       } catch (error) {
         catchAuthAxios(error, 'Erro ao listar usuários');

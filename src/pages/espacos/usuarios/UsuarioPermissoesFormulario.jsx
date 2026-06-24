@@ -37,7 +37,7 @@ const PermissoesFormulario = ({ usuario, espaco }) => {
             try {
                 setIsLoading(true);
                 const params = new URLSearchParams({ id_espaco: espaco.id, id_usuario: usuario.id });
-                const res = await authAxios('GET', `/api/espacos/usuarios/listarPermissoes?${params.toString()}`);
+                const res = await authAxios('GET', `/api/espacos/listarPermissoes?${params.toString()}`);
                 const localPermissoes = res.data.data;
 
                 const formObj = {};
@@ -76,7 +76,7 @@ const PermissoesFormulario = ({ usuario, espaco }) => {
             }
             // console.log('payload:', payload);
 
-            const res = await authAxios('POST', '/api/espacos/usuarios/alterarPermissoes', payload);
+            const res = await authAxios('POST', '/api/espacos/alterarPermissoes', payload);
 
             toast.success(res.data.mensagem);
         } catch (error) {

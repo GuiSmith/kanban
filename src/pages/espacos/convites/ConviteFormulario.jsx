@@ -82,7 +82,7 @@ const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onC
     try {
       setIsLoading(true);
 
-      await authAxios('post', '/api/espacos/convites/criarConvite', {
+      await authAxios('post', '/api/convites/criarConvite', {
         id_espaco: data.id_espaco,
         id_usuario: data.usuario?.id,
         enviar_email: Boolean(data.enviar_email),

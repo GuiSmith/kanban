@@ -22,7 +22,7 @@ import Loading from '@/components/Loading';
 
 // Paginas
 import ConvitesPage from '@/pages/espacos/convites';
-import TarefasPage from '@/pages/espacos/tarefas';
+import TarefasPage from '@/pages/tarefas';
 import UsuariosPage from '@/pages/espacos/usuarios';
 
 // Contextos
@@ -90,7 +90,7 @@ export default function EspacosPage() {
   const fetchPermissions = async (localSpace) => {
     try {
       const params = new URLSearchParams({ id_espaco: localSpace.id, id_usuario: profile.id });
-      const res = await authAxios('GET', `/api/espacos/usuarios/listarPermissoes?${params.toString()}`);
+      const res = await authAxios('GET', `/api/espacos/listarPermissoes?${params.toString()}`);
       setPermissions(res.data.data);
       return res.data.data;
     } catch (error) {

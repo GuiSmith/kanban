@@ -2,7 +2,7 @@ import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import buildInsert from '@/pages/api/utils/buildInsert';
-import getConviteByIdAndUsuario from './utils/getConviteByIdAndUsuario';
+import getConviteByIdAndUsuario from '@/pages/api/utils/getConviteByIdAndUsuario';
 
 const handler = async (req, res) => {
   const client = await db.connect();

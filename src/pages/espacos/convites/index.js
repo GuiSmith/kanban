@@ -19,7 +19,7 @@ const ConvitesPage = ({ espaco }) => {
       setIsLoading(true);
 
       const params = new URLSearchParams({ id_espaco: espaco.id });
-      const res = await authAxios('get', `/api/espacos/convites/listarConvites?${params.toString()}`);
+      const res = await authAxios('get', `/api/convites/listarConvites?${params.toString()}`);
       setConvites(res?.data?.data ?? []);
     } catch (error) {
       catchAuthAxios(error, 'Erro ao listar convites');

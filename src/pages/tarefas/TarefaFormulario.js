@@ -36,7 +36,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
   const criarTarefa = async (data) => {
     try {
       setIsLoading(true);
-      const res = await authAxios('post','/api/espacos/tarefas/criarTarefa', data);
+      const res = await authAxios('post','/api/tarefas/criarTarefa', data);
       toast.success('Tarefa criada');
       return true;
     } catch (error) {
@@ -50,7 +50,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
   const editarTarefa = async (data) => {
     try {
       setIsLoading(true);
-      const res = await authAxios('put','/api/espacos/tarefas/editarTarefa', data);
+      const res = await authAxios('put','/api/tarefas/editarTarefa', data);
       toast.success('Tarefa editada');
       return true;
     } catch (error) {
@@ -69,7 +69,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
       if(!id) return;
       
       setIsLoading(true);
-      const res = await authAxios('delete',`/api/espacos/tarefas/deletarTarefa?id=${id}`);
+      const res = await authAxios('delete',`/api/tarefas/deletarTarefa?id=${id}`);
       toast.success('Tarefa deletada');
       onClose();
       return true;

@@ -1,6 +1,6 @@
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
-import getConviteByIdAndUsuario from './utils/getConviteByIdAndUsuario';
+import getConviteByIdAndUsuario from '@/pages/api/utils/getConviteByIdAndUsuario';
 
 const handler = async (req, res) => {
   if (req.method !== 'GET') {

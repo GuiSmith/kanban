@@ -48,7 +48,7 @@ As principais áreas implementadas são:
 
 ### Entidade: Arquivo de tarefa
 
-- **Onde aparece no código:** tabela `tarefa_arquivo` em `src/database/migrations/3-create-table-tarefa-arquivo.sql`; APIs em `src/pages/api/tarefas/arquivos`; componentes `src/pages/tarefas/arquivos/TarefaArquivoFormulario.js` e `src/pages/tarefas/arquivos/TarefaArquivosLista.js`.
+- **Onde aparece no código:** tabela `tarefa_arquivo` em `src/database/migrations/3-create-table-tarefa-arquivo.sql`; APIs em `src/pages/api/tarefa_arquivos`; componentes `src/pages/tarefas/arquivos/TarefaArquivoFormulario.js` e `src/pages/tarefas/arquivos/TarefaArquivosLista.js`.
 - **Campos principais:**
   - `id`: chave primária serial.
   - `id_tarefa`: inteiro, chave estrangeira para `tarefa(id)`.
@@ -238,8 +238,8 @@ As principais áreas implementadas são:
 
 - **Rota/página relacionada:** aparece dentro do modal de edição de tarefa em `/tarefas`.
 - **Arquivos dos componentes:** `src/pages/tarefas/arquivos/index.js`, `src/pages/tarefas/arquivos/TarefaArquivosLista.js`.
-- **API usada:** `GET /api/tarefas/arquivos/listarArquivos?id_tarefa=[id]`.
-- **Arquivo da API:** `src/pages/api/tarefas/arquivos/listarArquivos.js`.
+- **API usada:** `GET /api/tarefa_arquivos/listarArquivos?id_tarefa=[id]`.
+- **Arquivo da API:** `src/pages/api/tarefa_arquivos/listarArquivos.js`.
 - **O que o usuário consegue fazer:** visualizar tabela de arquivos vinculados à tarefa, com descrição, nome, data de cadastro e ações.
 - **Regras e validações existentes:**
   - A API aceita apenas `GET`.
@@ -263,8 +263,8 @@ As principais áreas implementadas são:
 
 - **Rota/página relacionada:** aparece dentro do modal de edição de tarefa em `/tarefas`.
 - **Arquivo do formulário:** `src/pages/tarefas/arquivos/TarefaArquivoFormulario.js`.
-- **API usada:** `POST /api/tarefas/arquivos/inserirArquivo`.
-- **Arquivo da API:** `src/pages/api/tarefas/arquivos/inserirArquivo.js`.
+- **API usada:** `POST /api/tarefa_arquivos/inserirArquivo`.
+- **Arquivo da API:** `src/pages/api/tarefa_arquivos/inserirArquivo.js`.
 - **O que o usuário consegue fazer:** anexar um arquivo com descrição a uma tarefa existente.
 - **Regras e validações existentes:**
   - O front-end exige seleção de um arquivo antes de enviar.
@@ -318,8 +318,8 @@ As principais áreas implementadas são:
 
 ### Exclusão de arquivo
 
-- **API usada:** `DELETE /api/tarefas/arquivos/deletarArquivo?id=[id]`.
-- **Arquivo da API:** `src/pages/api/tarefas/arquivos/deletarArquivo.js`.
+- **API usada:** `DELETE /api/tarefa_arquivos/deletarArquivo?id=[id]`.
+- **Arquivo da API:** `src/pages/api/tarefa_arquivos/deletarArquivo.js`.
 - **O que o usuário consegue fazer:** remover um arquivo vinculado a uma tarefa sua.
 - **Regras e validações existentes:**
   - A API aceita apenas `DELETE`.
@@ -484,7 +484,7 @@ As principais áreas implementadas são:
   8. Interface adiciona o novo arquivo na tabela.
 - **Fluxos alternativos:** sem arquivo, sem descrição, sem tarefa, arquivo grande, extensão não permitida, falha no serviço externo ou banco.
 - **Regras aplicadas:** máximo 22 MB; extensões `pdf`, `jpg`, `png`, `jpeg`; metadados em `tarefa_arquivo`.
-- **Arquivos envolvidos:** `src/pages/tarefas/arquivos/TarefaArquivoFormulario.js`, `src/pages/api/tarefas/arquivos/inserirArquivo.js`, `src/pages/api/utils/parseForm.js`, `src/pages/api/utils/readFileAsync.js`, `src/pages/api/utils/maxSize.js`, `src/pages/api/utils/buildImgSrc.js`.
+- **Arquivos envolvidos:** `src/pages/tarefas/arquivos/TarefaArquivoFormulario.js`, `src/pages/api/tarefa_arquivos/inserirArquivo.js`, `src/pages/api/utils/parseForm.js`, `src/pages/api/utils/readFileAsync.js`, `src/pages/api/utils/maxSize.js`, `src/pages/api/utils/buildImgSrc.js`.
 
 ### Caso de uso: Consultar arquivos de uma tarefa
 
@@ -493,14 +493,14 @@ As principais áreas implementadas são:
 - **Pré-condições:** abrir tarefa em modo edição.
 - **Fluxo principal:**
   1. Componente de arquivos recebe `tarefa.id`.
-  2. Chama `GET /api/tarefas/arquivos/listarArquivos?id_tarefa=[id]`.
+  2. Chama `GET /api/tarefa_arquivos/listarArquivos?id_tarefa=[id]`.
   3. API valida token e propriedade da tarefa.
   4. API busca arquivos.
   5. API monta `src` público para cada arquivo.
   6. Tabela renderiza os registros.
 - **Fluxos alternativos:** tarefa ausente, inválida ou não encontrada retorna erro.
 - **Regras aplicadas:** somente arquivos de tarefa própria devem ser listados.
-- **Arquivos envolvidos:** `src/pages/tarefas/arquivos/index.js`, `src/pages/tarefas/arquivos/TarefaArquivosLista.js`, `src/pages/api/tarefas/arquivos/listarArquivos.js`.
+- **Arquivos envolvidos:** `src/pages/tarefas/arquivos/index.js`, `src/pages/tarefas/arquivos/TarefaArquivosLista.js`, `src/pages/api/tarefa_arquivos/listarArquivos.js`.
 
 ### Caso de uso: Excluir arquivo
 
@@ -510,14 +510,14 @@ As principais áreas implementadas são:
 - **Fluxo principal:**
   1. Usuário clica no ícone de excluir na tabela.
   2. Confirma a exclusão.
-  3. Front-end chama `DELETE /api/tarefas/arquivos/deletarArquivo?id=[id]`.
+  3. Front-end chama `DELETE /api/tarefa_arquivos/deletarArquivo?id=[id]`.
   4. API valida token, id e propriedade.
   5. API tenta deletar o arquivo no Opera.
   6. API remove o registro do banco.
   7. Front-end remove o item da tabela.
 - **Fluxos alternativos:** cancelamento, id inválido, arquivo não encontrado, erro no banco.
 - **Regras aplicadas:** propriedade verificada por join entre `tarefa_arquivo` e `tarefa`.
-- **Arquivos envolvidos:** `src/pages/tarefas/arquivos/TarefaArquivosLista.js`, `src/pages/api/tarefas/arquivos/deletarArquivo.js`.
+- **Arquivos envolvidos:** `src/pages/tarefas/arquivos/TarefaArquivosLista.js`, `src/pages/api/tarefa_arquivos/deletarArquivo.js`.
 
 ## 5. Fluxos importantes
 
@@ -592,7 +592,7 @@ As principais áreas implementadas são:
 1. Usuário abre uma tarefa existente.
 2. A seção `Arquivos` é exibida.
 3. Usuário preenche descrição e seleciona arquivo.
-4. Front-end envia `multipart/form-data` para `/api/tarefas/arquivos/inserirArquivo`.
+4. Front-end envia `multipart/form-data` para `/api/tarefa_arquivos/inserirArquivo`.
 5. API usa `formidable` para ler campos e arquivo temporário.
 6. API valida arquivo, descrição, tarefa, tamanho e extensão.
 7. API lê o arquivo em buffer.
@@ -666,9 +666,9 @@ O middleware:
 - `/api/tarefas/criarTarefa`
 - `/api/tarefas/editarTarefa`
 - `/api/tarefas/deletarTarefa`
-- `/api/tarefas/arquivos/listarArquivos`
-- `/api/tarefas/arquivos/inserirArquivo`
-- `/api/tarefas/arquivos/deletarArquivo`
+- `/api/tarefa_arquivos/listarArquivos`
+- `/api/tarefa_arquivos/inserirArquivo`
+- `/api/tarefa_arquivos/deletarArquivo`
 
 ### APIs públicas ou sem middleware de autenticação
 
@@ -776,22 +776,22 @@ O middleware:
   - **Validações:** método; autenticação; id obrigatório; tarefa deve pertencer ao usuário; tarefa não pode ter arquivos.
 
 - **Método HTTP:** `GET`.
-  - **Endpoint:** `/api/tarefas/arquivos/listarArquivos?id_tarefa=[id]`
-  - **Arquivo:** `src/pages/api/tarefas/arquivos/listarArquivos.js`
+  - **Endpoint:** `/api/tarefa_arquivos/listarArquivos?id_tarefa=[id]`
+  - **Arquivo:** `src/pages/api/tarefa_arquivos/listarArquivos.js`
   - **Payload esperado:** query string com `id_tarefa`.
   - **Resposta esperada:** `{ mensagem: "Segue arquivos", data: arquivos }`.
   - **Validações:** método; autenticação; tarefa obrigatória; id inteiro positivo; tarefa deve pertencer ao usuário.
 
 - **Método HTTP:** não validado explicitamente; front-end usa `POST`.
-  - **Endpoint:** `/api/tarefas/arquivos/inserirArquivo`
-  - **Arquivo:** `src/pages/api/tarefas/arquivos/inserirArquivo.js`
+  - **Endpoint:** `/api/tarefa_arquivos/inserirArquivo`
+  - **Arquivo:** `src/pages/api/tarefa_arquivos/inserirArquivo.js`
   - **Payload esperado:** `multipart/form-data` com `descricao`, `arquivo`, `id_tarefa`.
   - **Resposta esperada:** `{ mensagem: "Arquivo registrado", data: arquivo }`.
   - **Validações:** autenticação; arquivo obrigatório; descrição obrigatória; tarefa obrigatória; tamanho máximo 22 MB; extensão permitida.
 
 - **Método HTTP:** `DELETE`.
-  - **Endpoint:** `/api/tarefas/arquivos/deletarArquivo?id=[id]`
-  - **Arquivo:** `src/pages/api/tarefas/arquivos/deletarArquivo.js`
+  - **Endpoint:** `/api/tarefa_arquivos/deletarArquivo?id=[id]`
+  - **Arquivo:** `src/pages/api/tarefa_arquivos/deletarArquivo.js`
   - **Payload esperado:** query string com `id`.
   - **Resposta esperada:** `{ mensagem: "Arquivo deletado com sucesso", data: arquivo }`.
   - **Validações:** método; autenticação; id obrigatório; id inteiro positivo; arquivo deve pertencer a tarefa do usuário.

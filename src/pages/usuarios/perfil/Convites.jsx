@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 
 import Button from '@mui/material/Button';
@@ -34,21 +34,22 @@ const Convites = () => {
     const [invites, setInvites] = useState(null);
     const [invite, setInvite] = useState(null);
 
-    useEffect(() => {
-        fetchInvites();
-    }, []);
-
-    const fetchInvites = async () => {
+    const fetchInvites = useCallback(async () => {
         try {
             setIsLoading(true);
-            const res = await authAxios('get', '/api/usuarios/convites/listarConvites');
+            const res = await authAxios('get', '/api/usuarios/listarConvites');
             setInvites(res?.data?.data || []);
         } catch (error) {
             catchAuthAxios(error, 'Erro ao buscar convites');
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        const timeoutId = setTimeout(fetchInvites, 0);
+        return () => clearTimeout(timeoutId);
+    }, [fetchInvites]);
 
     const handleInviteOpen = (inviteData) => {
         if (!isLoading) {
@@ -70,7 +71,7 @@ const Convites = () => {
         try {
             setIsLoading(true);
             const data = { id_convite: invite.id, resposta: answer };
-            const res = await authAxios('put', '/api/espacos/convites/responderConvite', data);
+            const res = await authAxios('put', '/api/convites/responderConvite', data);
             toast.success(res?.data?.mensagem || 'Convite respondido com sucesso');
             handleInviteClose();
             fetchInvites();

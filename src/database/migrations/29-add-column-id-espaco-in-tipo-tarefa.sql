@@ -1,0 +1,1 @@
+ALTER TABLE tipo_tarefa ADD COLUMN id_espaco INT REFERENCES espaco(id);

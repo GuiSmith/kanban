@@ -24,6 +24,7 @@ import Loading from '@/components/Loading';
 import { AppThemeProvider } from '@/contexts/ThemeContext';
 import { NavbarProvider } from '@/contexts/NavbarContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { SessionProvider } from 'next-auth/react';
 
 const AppContent = ({ Component, pageProps }) => {
   const { isAuthLoading, isAuthenticated } = useAuth();
@@ -35,7 +36,8 @@ const AppContent = ({ Component, pageProps }) => {
     }
 
     if (!hasRouteAccess(isAuthenticated, router.pathname)) {
-      router.push('/');
+      console.debug(hasRouteAccess(isAuthenticated),router.pathname);
+      //router.push('/');
     }
   }, [router.pathname, isAuthLoading, isAuthenticated]);
 
@@ -77,9 +79,11 @@ export default function App(props) {
   return (
     <AppThemeProvider>
       <AuthProvider >
+        <SessionProvider>
         <NavbarProvider>
           <AppContent {...props} />
         </NavbarProvider>
+        </SessionProvider>
       </AuthProvider>
     </AppThemeProvider>
   );

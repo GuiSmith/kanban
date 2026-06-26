@@ -13,9 +13,11 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import GoogleIcon from '@mui/icons-material/Google';
 
 import axios from "axios";
 
+import { signIn } from 'next-auth/react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const defaultValues = {
@@ -106,6 +108,9 @@ export default function LoginUsuarioPage() {
                   </Button>
                   <Button variant="outlined" type="button" disabled={isLoading} onClick={() => Router.back()}>
                     Voltar
+                  </Button>
+                  <Button endIcon={<GoogleIcon/>} type='button' disabled={isLoading} onClick={() => signIn('google', { callbackUrl: '/usuarios/login/google'})}>
+                    Entrar com Google
                   </Button>
                 </Stack>
               </Stack>

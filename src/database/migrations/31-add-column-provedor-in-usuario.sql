@@ -1,0 +1,1 @@
+ALTER TABLE usuario ADD COLUMN provedor VARCHAR(100) NOT NULL DEFAULT 'credentials';

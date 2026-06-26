@@ -14,13 +14,11 @@ const AuthProvider = ({ children}) => {
     const checkSession = async () => {
         try {
             setIsAuthLoading(true);
-            const res = await authAxios('GET', '/api/auth');
+            const res = await authAxios('GET', '/api/authCheck');
             setIsAuthenticated(true);
         } catch (error) {
             setIsAuthenticated(false);
-            if(error?.response?.status === 401) {
-                toast.error('Sessão expirada. Por favor, faça login novamente.');
-            } else {
+            if(error?.response?.status !== 401) {
                 console.log('Erro ao checar autenticação:', error);
                 toast.error('Erro ao checar autenticação. Contate o suporte.');
             }

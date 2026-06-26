@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import Router from 'next/router';
 
 const Logout = () => {
 
@@ -9,6 +10,7 @@ const Logout = () => {
     const doLogout = async () => {
       try {
         await logout();
+        Router.push('/usuarios/login');
       } catch (error) {
         console.error('Erro ao realizar logout', error);
       }

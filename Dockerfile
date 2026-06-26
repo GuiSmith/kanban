@@ -18,7 +18,7 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev", "--", "--webpack"]
+CMD ["npm", "run", "dev"]
 
 # =========================
 # BUILD

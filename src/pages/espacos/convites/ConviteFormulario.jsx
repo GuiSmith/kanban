@@ -110,6 +110,7 @@ const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onC
       spacing={1.5}
       alignItems={{ xs: 'stretch', md: 'center' }}
       onSubmit={handleSubmit(onSubmit)}
+      sx={{ minWidth: 0 }}
     >
       <Controller
         name="usuario"
@@ -120,7 +121,7 @@ const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onC
             {...field}
             loading={isSearching}
             options={usuarios}
-            sx={{ flex: '1 1 460px', minWidth: { xs: '100%', md: 420 } }}
+            sx={{ flex: '1 1 460px', minWidth: { xs: 0, md: 420 } }}
             getOptionLabel={getOptionLabel}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             noOptionsText="Nenhum usuário encontrado"

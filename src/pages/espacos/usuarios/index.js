@@ -107,10 +107,10 @@ const UsuariosPage = ({ espaco }) => {
   }));
 
   return (
-    <Stack spacing={2.5}>
+    <Stack spacing={2.5} sx={{ minWidth: 0 }}>
       {isLoading ? <Loading /> : null}
 
-      <Box sx={{ width: '100%' }}>
+      <Box sx={{ width: '100%', minWidth: 0, overflowX: 'auto' }}>
         <DataGrid
           rows={usuarios}
           columns={columns}

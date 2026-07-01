@@ -139,7 +139,7 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
 
   return (
     <>
-      <Box sx={{ width: '100%' }}>
+      <Box sx={{ width: '100%', minWidth: 0, overflowX: 'auto' }}>
         <DataGrid
           rows={convites}
           columns={columns}

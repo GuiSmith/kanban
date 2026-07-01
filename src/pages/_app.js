@@ -49,7 +49,7 @@ const AppContent = ({ Component, pageProps }) => {
       <Navbar />
       {isAuthLoading ? <Loading /> : <></>}
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: 3 }}>
         <Toolbar />
         {shouldUseMainCard ? (
           <Card sx={{ width: '100%', maxWidth: '100%', mx: 'auto' }}>

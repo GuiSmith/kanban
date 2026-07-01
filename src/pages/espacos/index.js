@@ -192,11 +192,11 @@ export default function EspacosPage() {
         <TabPanel value={activeTab} index={2}>
           {space
             ? (
-              <Stack spacing={3} >
-                <Box sx={{ flex: 1, width: '100%' }}>
+              <Stack spacing={3} sx={{ minWidth: 0 }}>
+                <Box sx={{ flex: 1, width: '100%', minWidth: 0 }}>
                   <UsuariosPage espaco={space} />
                 </Box>
-                <Box sx={{ flex: 1, width: '100%' }}>
+                <Box sx={{ flex: 1, width: '100%', minWidth: 0 }}>
                   <ConvitesPage espaco={space} />
                 </Box>
               </Stack>

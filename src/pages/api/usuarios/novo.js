@@ -5,6 +5,7 @@ import encryptPassword from '@/pages/api/utils/encryptPassword.js';
 import buildInsert from '@/pages/api/utils/buildInsert.js';
 import isEmailValid from '@/pages/api/utils/isEmailValid.js';
 import isUsernameValid from '@/pages/api/utils/isUsernameValid.js';
+import insertIndividualSpace from '@/pages/api/utils/insertIndividualSpace.js';
 
 const handler = async (req, res) => {
     if (req.method !== 'POST') {
@@ -75,17 +76,8 @@ const handler = async (req, res) => {
         const user = userResult.rows[0];
 
         try {
-            const espacoData = {
-                id_usuario: user.id,
-                nome: 'Espaço pessoal',
-                descricao: 'Espaço pessoal padrão. Criado ao criar conta',
-                sigla: 'EP',
-                icon: 'Folder',
-            };
 
-            const espacoInsert = buildInsert('espaco', espacoData);
-
-            const espacoResult = await db.query({ text: espacoInsert.text, values: espacoInsert.values });
+            const espacoResult = await insertIndividualSpace(user);
 
             if (espacoResult.rowCount !== 1){
                 console.log('Espaço pessoal não foi criado!');

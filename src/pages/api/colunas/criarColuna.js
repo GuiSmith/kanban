@@ -1,7 +1,6 @@
-import db from '@/pages/api/config/connectDB.js';
-import buildInsert from '@/pages/api/utils/buildInsert.js';
-
-import defaultResponse from '@/pages/api/config/defaultResponse.js';
+import db from '@/pages/api/config/connectDB';
+import buildInsert from '@/pages/api/utils/buildInsert';
+import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
 
@@ -10,10 +9,12 @@ const requiredPermission = {
     escrita: true,
 };
 
+const tiposValidos = ['A FAZER', 'FAZENDO', 'FEITO'];
+
 const handler = async (req, res) => {
     try {
         const dadosForm = req.body ?? {};
-        const dadosObrigatorios = ['titulo','descricao','id_espaco','id_coluna'];
+        const dadosObrigatorios = ['nome','tipo','id_espaco'];
         const dadosObrigatoriosPreenchidos = dadosObrigatorios.every(dado => dadosForm[dado]);
 
         if(!dadosObrigatoriosPreenchidos){
@@ -37,29 +38,22 @@ const handler = async (req, res) => {
             escrita: requiredPermission.escrita,
             dbClient: db
         });
-        if(!hasPermission){
-            return res.status(403).json(defaultResponse('Você não tem permissão para criar tarefas neste espaço!'));
+        if(!hasPermission){   
+            return res.status(403).json(defaultResponse('Você não tem permissão para criar colunas neste espaço!'));
         }
         dadosForm.id_espaco = idEspaco;
 
-        const idColuna = Number(dadosForm.id_coluna);
-        if(!Number.isInteger(idColuna) || idColuna <= 0){
-            return res.status(400).json(defaultResponse('ID inválido'));
+        if(!tiposValidos.includes(dadosForm.tipo)){
+            return res.status(400).json(defaultResponse('Tipo de coluna inválido'));
         }
-        const columnResult = await db.query({ text: 'SELECT id FROM coluna WHERE id = $1 AND id_espaco = $2', values:[idColuna, idEspaco] });
-        if(columnResult.rowCount !== 1){
-            return res.status(404).json(defaultResponse('Coluna não encontrada!'));
-        }
-        dadosForm.id_coluna = idColuna;
 
-        const ordemResult = await db.query({ text: 'SELECT MAX(ordem) AS max_ordem FROM tarefa WHERE id_coluna = $1', values:[idColuna] });
-        const maxOrdem = ordemResult.rows[0].max_ordem ?? 0;
-        dadosForm.ordem = maxOrdem + 1;
+        const ordemResult = await db.query({ text: 'SELECT COALESCE(MAX(ordem), 0) + 1 AS proxima_ordem FROM coluna WHERE id_espaco = $1', values:[idEspaco] });
+        dadosForm.ordem = ordemResult.rows[0].proxima_ordem;
 
-        const insert = buildInsert('tarefa', dadosForm);
-        const tarefa = await db.query({text: insert.text, values: insert.values });
+        const insert = buildInsert('coluna', dadosForm);
+        const coluna = await db.query({text: insert.text, values: insert.values });
 
-        return res.status(201).json(defaultResponse('Tarefa criada com sucesso', tarefa.rows[0]));
+        return res.status(201).json(defaultResponse('Coluna criada com sucesso', coluna.rows[0]));
 
     } catch (error) {
         console.log(error);

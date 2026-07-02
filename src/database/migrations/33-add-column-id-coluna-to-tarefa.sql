@@ -1,0 +1,1 @@
+ALTER TABLE tarefa ADD COLUMN id_coluna INT REFERENCES coluna(id) ON DELETE CASCADE;

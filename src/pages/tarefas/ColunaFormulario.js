@@ -10,6 +10,10 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from "@mui/material/Typography";
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
 // Componentes
 import Loading from '@/components/Loading';
@@ -17,6 +21,8 @@ import Loading from '@/components/Loading';
 // Utils
 import authAxios from "@/utils/authAxios";
 import catchAuthAxios from '@/utils/catchAxios';
+import columnType from "@/utils/columnType";
+import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 
 const defaultValues = {
     id: null,
@@ -125,6 +131,46 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
                                 message: 'Nome deve ter no máximo 50 caracteres.',
                             },
                         })}
+                    />
+
+                    {/* Tipo */}
+                    <Controller
+                        name='tipo'
+                        control={control}
+                        rules={{ required: 'Selecione um tipo' }}
+                        render={({ field }) => (
+                            <FormControl fullWidth required disabled={isLoading} >
+                                <InputLabel id='coluna-tipo-label'>Tipo</InputLabel>
+                                <Select
+                                    {...field}
+                                    labelId='coluna-tipo-label'
+                                    label="Tipo"
+                                    value={field.value || ''}
+                                    sx={{
+                                        backgroundColor: field.value ? `${columnType[field.value]}.main` : 'text.primary',
+                                        color: field.value ? `${columnType[field.value]}.contrastText` : 'text.primary'
+                                    }}
+                                >
+                                    {Object.keys(columnType).map(tipo => (
+                                        <MenuItem
+                                            key={tipo}
+                                            value={tipo}
+                                            sx={{
+                                                backgroundColor: `${columnType[tipo]}.main`,
+                                                color: `${columnType[tipo]}.contrastText`,
+                                                "&:hover": {
+                                                    backgroundColor: `${columnType[tipo]}.main`,
+                                                    opacity: 0.8,
+                                                }
+                                            }}
+                                        >
+                                            <span>{capitalizeFirstLetter(tipo)}</span>
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+
+                            </FormControl>
+                        )}
                     />
 
                 </Stack>

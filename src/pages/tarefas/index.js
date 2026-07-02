@@ -33,6 +33,7 @@ import { toast } from 'react-toastify';
 import authAxios from "@/utils/authAxios";
 import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
+import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 
 export default function TarefasPage({ espaco }) {
   const [tarefas, setTarefas] = useState([]);
@@ -249,7 +250,7 @@ export default function TarefasPage({ espaco }) {
           return (
             <Grid key={coluna.id} {...colunaGridProps(coluna)}>
             <Typography textAlign="center" variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-              {coluna.nome}
+              {capitalizeFirstLetter(coluna.nome)}
             </Typography>
             <Tooltip title={`Esta coluna tem ${tarefasDaColuna.length} tarefas`} sx={{ position: 'absolute', top: 1, left: 1 }}>
               <Chip label={tarefasDaColuna.length} size='small' />

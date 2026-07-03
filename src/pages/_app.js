@@ -36,8 +36,7 @@ const AppContent = ({ Component, pageProps }) => {
     }
 
     if (!hasRouteAccess(isAuthenticated, router.pathname)) {
-      console.debug(hasRouteAccess(isAuthenticated),router.pathname);
-      //router.push('/');
+      router.push('/');
     }
   }, [router.pathname, isAuthLoading, isAuthenticated]);
 

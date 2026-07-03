@@ -16,9 +16,10 @@ const handler = async (req, res) => {
             titulo: 'título',
             descricao: 'descrição',
             id_espaco: 'espaço',
+            id_coluna: 'coluna',
         };
         const data = {};
-        const { id, titulo, descricao, id_espaco } = dadosForm;
+        const { id, titulo, descricao, id_coluna } = dadosForm;
 
         for(const requiredKey in requiredData){
             if(!dadosForm[requiredKey]){
@@ -33,9 +34,9 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('ID inválido'));
         }
 
-        const tarefaExistente = await db.query({
+        const tarefaExistenteResult = await db.query({
             text: `
-                SELECT t.id
+                SELECT t.id, t.id_coluna
                 FROM tarefa t
                 JOIN espaco e ON e.id = t.id_espaco
                 WHERE t.id = $1 AND e.id = $2
@@ -43,9 +44,11 @@ const handler = async (req, res) => {
             values: [data.id, idEspaco]
         });
 
-        if(tarefaExistente.rowCount !== 1){
+        if(tarefaExistenteResult.rowCount !== 1){
             return res.status(404).json(defaultResponse('Tarefa não encontrada'));
         }
+
+        const tarefaExistente = tarefaExistenteResult.rows[0];
 
         const hasPermission = await usuarioTemPermissao({
             idUsuario: req.user.id,
@@ -58,16 +61,28 @@ const handler = async (req, res) => {
             return res.status(403).json(defaultResponse('Você não tem permissão para editar tarefas neste espaço!'));
         }
 
+        if(tarefaExistente.id_coluna != data.id_coluna){
+            const colunaExistenteResult = await db.query({ text: `SELECT id, nome, ativo FROM coluna WHERE id = $1`, values: [data.id_coluna]});
+            if(colunaExistenteResult.rowCount !== 1){
+                return res.status(404).json(defaultResponse('Coluna nova inexistente'));
+            }
+            const colunaExistente = colunaExistenteResult.rows[0];
+            if(colunaExistente.ativo === false){
+                return res.status(409).json(defaultResponse(`A coluna '${colunaExistente.nome}' está inativa, use outra`));
+            }
+        }
+
         const sql = `
             UPDATE tarefa
             SET titulo = $1,
                 descricao = $2,
+                id_coluna = $3,
                 data_atualizacao = CURRENT_TIMESTAMP
-            WHERE id = $3
+            WHERE id = $4
             RETURNING *
         `;
 
-        const tarefa = await db.query({ text: sql, values: [titulo, descricao, id] });
+        const tarefa = await db.query({ text: sql, values: [titulo, descricao, id_coluna, id] });
 
         if (tarefa.rowCount === 0) {
             return res.status(404).json(defaultResponse('Tarefa não encontrada!'));

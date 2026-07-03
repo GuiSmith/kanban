@@ -13,16 +13,16 @@ const buildTheme = (mode) => createTheme({
   palette: {
     mode,
     todo: {
-      main: '#44546F',        // cinza escuro
-      contrastText: '#FFFFFF',
+      main: '#707379',        // cinza escuro
+      contrastText: '#000',
     },
     doing: {
       main: '#579DFF',        // azul Jira
-      contrastText: '#172B4D', // quase preto/azul escuro
+      contrastText: '#000', // quase preto/azul escuro
     },
     done: {
       main: '#4BCE97',        // verde Jira
-      contrastText: '#172B4D',
+      contrastText: '#000',
     },
   },
 });

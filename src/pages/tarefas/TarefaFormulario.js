@@ -2,14 +2,20 @@
 import { useState, useEffect } from "react";
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 // MUI
+import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from "@mui/material/Typography";
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 // Componentes
 import Loading from '@/components/Loading';
@@ -18,12 +24,14 @@ import TarefaArquivos from "./arquivos";
 // Utils
 import authAxios from "@/utils/authAxios";
 import catchAuthAxios from '@/utils/catchAxios';
+import columnType from "@/utils/columnType";
+import { formatDateTime } from "@/utils/formatDate";
 
 const defaultValues = { titulo: '', descricao: '' }
 
-const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) => {
+const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colunas }) => {
 
-  const { reset, register, handleSubmit, getValues } = useForm({ defaultValues: initialValues });
+  const { control, reset, register, handleSubmit, getValues } = useForm({ defaultValues: initialValues });
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,12 +39,12 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
 
   useEffect(() => {
     reset(initialValues ? initialValues : defaultValues);
-  },[initialValues]);
+  }, [initialValues]);
 
   const criarTarefa = async (data) => {
     try {
       setIsLoading(true);
-      const res = await authAxios('post','/api/tarefas/criarTarefa', data);
+      const res = await authAxios('post', '/api/tarefas/criarTarefa', data);
       toast.success('Tarefa criada');
       return true;
     } catch (error) {
@@ -50,7 +58,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
   const editarTarefa = async (data) => {
     try {
       setIsLoading(true);
-      const res = await authAxios('put','/api/tarefas/editarTarefa', data);
+      const res = await authAxios('put', '/api/tarefas/editarTarefa', data);
       toast.success('Tarefa editada');
       return true;
     } catch (error) {
@@ -63,13 +71,13 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
 
   const handleDeletarTarefa = async () => {
     try {
-      if(!confirm("Deseja mesmo deletar a tarefa?")) return;
+      if (!confirm("Deseja mesmo deletar a tarefa?")) return;
 
       const id = getValues('id');
-      if(!id) return;
-      
+      if (!id) return;
+
       setIsLoading(true);
-      const res = await authAxios('delete',`/api/tarefas/deletarTarefa?id=${id}`);
+      const res = await authAxios('delete', `/api/tarefas/deletarTarefa?id=${id}`);
       toast.success('Tarefa deletada');
       onClose();
       return true;
@@ -92,65 +100,90 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
   };
 
   const onSubmit = async (data) => {
-    switch(mode) {
+    switch (mode) {
       case 'create':
         const createOk = await criarTarefa(data);
-        if(createOk) onClose();
+        if (createOk) onClose();
         break;
       case 'edit':
         const editOk = await editarTarefa(data);
-        if(editOk) onClose();
+        if (editOk) onClose();
         break;
       default:
-        toast.error('Modo inválido de formulário!');  
+        toast.error('Modo inválido de formulário!');
     }
   };
 
   const renderizarFormulario = () => {
     return (
       <Stack spacing={2.5}>
-
-        <Typography component="h1" variant="h4" align='center'>
-          {mode === 'edit' ? 'Editar tarefa' : 'Criar tarefa'}
-        </Typography>
-
+        {/* Botões */}
         <Stack direction='row' spacing={2} >
           {buttons[mode]}
         </Stack>
+        {/* Campos */}
+        <Grid container spacing={2.5}>
+          {/* Campos de texto */}
+          <Grid size={{ sx: 12, md: 9 }}>
+            <Stack spacing={2.5}>
+              {/* Título e coluna */}
+              <TextField
+                label="Título"
+                name="titulo"
+                {...register("titulo")}
+                fullWidth
+                required
+              />
+              {/* Descrição */}
+              <TextField
+                label="Descrição"
+                name="descricao"
+                {...register('descricao')}
+                fullWidth
+                required
+                multiline
+                minRows={4}
+              />
+              <Stack direction='row' alignItems='center' spacing={2.5}>
+                <TextField
+                  label="Cadastro"
+                  name="data_cadastro"
+                  value={getValues('data_cadastro') ? dayjs(getValues('data_cadastro')).format(dateFormat) : ''}
+                  fullWidth
+                  disabled
+                />
 
-        <TextField
-          label="Título"
-          name="titulo"
-          { ...register("titulo") }
-          fullWidth
-          required
-        />
-
-        <TextField
-          label="Descrição"
-          name="descricao"
-          { ...register('descricao') }
-          fullWidth
-          required
-          multiline
-          minRows={4}
-        />
-
-        <TextField
-          label="Cadastro"
-          name="data_cadastro"
-          value={getValues('data_cadastro') ? dayjs(getValues('data_cadastro')).format(dateFormat) : ''}
-          fullWidth
-          disabled
-        />
-
-        <TextField
-          label="Atualização"
-          name="data_atualizacao"
-          value={getValues('data_atualizacao') ? dayjs(getValues('data_atualizacao')).format(dateFormat) : ''}
-          fullWidth
-          disabled
-        />
+                <TextField
+                  label="Atualização"
+                  name="data_atualizacao"
+                  value={getValues('data_atualizacao') ? dayjs(getValues('data_atualizacao')).format(dateFormat) : ''}
+                  fullWidth
+                  disabled
+                />
+              </Stack>
+            </Stack>
+          </Grid>
+          {/* Campos personalizados */}
+          <Grid size={{ sx: 12, md: 3 }}>
+            <Controller
+              name='id_coluna'
+              control={control}
+              rules={{ required: 'Selecione uma coluna ' }}
+              render={({ field }) => (
+                <FormControl fullWidth required disabled={isLoading}>
+                  <InputLabel id='tarefa-id-coluna'>Coluna</InputLabel>
+                  <Select {...field} labelId='tarefa-id-coluna' label='Coluna' value={field.value || ''}>
+                    {colunas?.filter(coluna => coluna.ativo === true)?.map(coluna => (
+                      <MenuItem key={`coluna-${coluna.id}`} value={coluna.id}>
+                        <Button color={columnType[coluna.tipo]} type='button' variant='contained'>{coluna.nome}</Button>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+            />
+          </Grid>
+        </Grid>
       </Stack>
     );
   }
@@ -159,9 +192,12 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
     <Box sx={{ width: "100%", mx: "auto", }} >
       <Stack spacing={2.5}>
         <form onSubmit={handleSubmit(onSubmit)} >
+          <Typography component="h1" variant="h4" align='center'>
+            {mode === 'edit' ? 'Editar tarefa' : 'Criar tarefa'}
+          </Typography>
           {renderizarFormulario()}
         </form>
-        {mode !== 'create' ? <TarefaArquivos tarefa={ getValues() } /> : <></>}
+        {mode !== 'create' ? <TarefaArquivos tarefa={getValues()} /> : <></>}
         {isLoading ? <Loading /> : <></>}
       </Stack>
     </Box>

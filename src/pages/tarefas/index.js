@@ -27,7 +27,7 @@ import { io } from 'socket.io-client';
 // UI Personalizado
 import Loading from '@/components/Loading';
 import TarefaFormulario from "./TarefaFormulario";
-import { toast } from 'react-toastify';
+import ColunaFormulario from "./ColunaFormulario";
 
 // Utils
 import authAxios from "@/utils/authAxios";
@@ -39,8 +39,8 @@ export default function TarefasPage({ espaco }) {
   const [tarefas, setTarefas] = useState([]);
   const [colunas, setColunas] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [taskFormData, setTaskFormData] = useState({});
+  const [tarefaModal, setTarefaModal] = useState({ open: false, data: {} });
+  const [colunaModal, setColunaModal] = useState({ open: false, data: {} });
   const [menu, setMenu] = useState({ anchorEl: null, coluna: null });
 
   const handleMenuClick = (event, coluna) => {
@@ -65,7 +65,7 @@ export default function TarefasPage({ espaco }) {
     }
   };
 
-  const colunaGridProps = (coluna) => ({
+  const colunaBoxProps = (coluna) => ({
     size: { xs: 12, sm: 6, md: 2 },
     sx: {
       minWidth: '250px',
@@ -172,24 +172,67 @@ export default function TarefasPage({ espaco }) {
   }, [espaco]);
 
   const handleNovaTarefa = (id_coluna) => {
-    console.log({ id_coluna });
-    setTaskFormData({ mode: 'create', initialValues: { id_espaco: espaco.id, id_coluna } });
-    setIsModalOpen(true);
+    setTarefaModal({
+      open: true,
+      data: {
+        mode: 'create',
+        initialValues: {
+          id_espaco: espaco.id,
+          id_coluna
+        }
+      }
+    });
   };
 
   const handleEditarTarefa = (tarefa) => {
-    setTaskFormData({ mode: 'edit', initialValues: { ...tarefa } });
-    setIsModalOpen(true);
+    setTarefaModal({
+      open: true,
+      data: {
+        mode: 'edit',
+        initialValues: { ...tarefa }
+      }
+    });
   }
 
-  const handleFecharModal = () => {
-    setTaskFormData({});
-    setIsModalOpen(false);
+  const handleFecharTarefaModal = () => {
+    setTarefaModal({
+      open: false,
+      data: {}
+    });
+  }
+
+  const handleNovaColuna = () => {
+    setColunaModal({
+      open: true,
+      data: {
+        mode: 'create',
+        initialValues: {
+          id_espaco: espaco.id,
+        }
+      }
+    });
+  };
+
+  const handleEditarColuna = (coluna) => {
+    setColunaModal({
+      open: true,
+      data: {
+        mode: 'edit',
+        initialValues: { ...coluna }
+      }
+    });
+  };
+
+  const handleFecharColunaModal = () => {
+    setColunaModal({
+      open: false,
+      data: {}
+    });
   }
 
   const options = [
     { label: 'Adicionar tarefa', icon: AddIcon, handleClick: (coluna) => handleNovaTarefa(coluna.id) },
-    { label: 'Editar coluna', icon: EditIcon, handleClick: () => alert('Ainda não implementado') },
+    { label: 'Editar coluna', icon: EditIcon, handleClick: (coluna) => handleEditarColuna(coluna) },
   ];
 
   return (
@@ -199,24 +242,12 @@ export default function TarefasPage({ espaco }) {
         <meta name="description" content="Tela de tarefas" />
       </Head>
 
-      <Dialog
-        open={isModalOpen}
-        onClose={handleFecharModal}
-        maxWidth="lg"
-        fullWidth
-        slotProps={{
-          paper: {
-            sx: {
-              p: 3,
-            },
-          },
-        }}
-      >
-        <TarefaFormulario
-          mode={taskFormData?.mode}
-          initialValues={taskFormData?.initialValues}
-          onClose={handleFecharModal}
-        />
+      <Dialog open={tarefaModal.open} onClose={handleFecharTarefaModal} maxWidth="lg" fullWidth slotProps={{ paper: { sx: { p: 3 } } }} >
+        <TarefaFormulario mode={tarefaModal.data?.mode} initialValues={tarefaModal.data?.initialValues} onClose={handleFecharTarefaModal} colunas={colunas} />
+      </Dialog>
+
+      <Dialog open={colunaModal.open} onClose={handleFecharColunaModal} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { p: 3 } } }} >
+        <ColunaFormulario mode={colunaModal.data?.mode} initialValues={colunaModal.data?.initialValues} onClose={handleFecharColunaModal} />
       </Dialog>
 
       <Menu open={Boolean(menu.anchorEl)} onClose={handleClose} anchorEl={menu.anchorEl}>
@@ -234,61 +265,65 @@ export default function TarefasPage({ espaco }) {
         })}
       </Menu>
 
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          justifyContent: 'flex-start',
-          alignItems: 'stretch',
-        }}
-      >
+      <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', overflowY: 'hidden', justifyContent: 'flex-start', alignItems: 'flex-start', py: 1, }} >
         {colunas.length !== 0 && colunas.filter(coluna => coluna?.ativo === true)?.map(coluna => {
           const tarefasDaColuna = tarefas.filter(tarefa => tarefa?.id_coluna == coluna?.id) ?? [];
 
           return (
-            <Grid key={coluna.id} {...colunaGridProps(coluna)}>
-            <Typography textAlign="center" variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-              {capitalizeFirstLetter(coluna.nome)}
-            </Typography>
-            <Tooltip title={`Esta coluna tem ${tarefasDaColuna.length} tarefas`} sx={{ position: 'absolute', top: 1, left: 1 }}>
-              <Chip label={tarefasDaColuna.length} size='small' />
-            </Tooltip>
-            <IconButton size='small' onClick={(e) => handleMenuClick(e, coluna)} sx={{ position: 'absolute', right: 0, top: 0 }}>
-              <MoreVertIcon />
-            </IconButton>
-            <Stack direction='column' spacing={1} sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
-              {isLoading ? <Loading /> : tarefasDaColuna.map(tarefa => (
-                <Card {...tarefaCardProps} key={tarefa.id}>
-                  <CardContent onClick={() => handleEditarTarefa(tarefa)}>
-                    <Typography variant="h6" component="h2">
-                      {tarefa.titulo || "Sem titulo"}
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Typography variant="caption" display="block" color="text.secondary">
-                        {dayjs(tarefa.data_atualizacao || tarefa.data_cadastro).format(dateFormat)}
+            <Box key={coluna.id} {...colunaBoxProps(coluna)}>
+              <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  {capitalizeFirstLetter(coluna.nome)}
+                </Typography>
+                <Stack direction='row' spacing={0.1} alignItems='center' >
+                  <Tooltip title={`Esta coluna tem ${tarefasDaColuna.length} tarefas`}>
+                    <IconButton size='small'>
+                      {tarefasDaColuna.length}
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Ações da coluna'>
+                    <IconButton size='small' onClick={(e) => handleMenuClick(e, coluna)}>
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </Stack>
+              <Stack direction='column' spacing={1} sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+                {isLoading ? <Loading /> : tarefasDaColuna.map(tarefa => (
+                  <Card {...tarefaCardProps} key={tarefa.id}>
+                    <CardContent onClick={() => handleEditarTarefa(tarefa)}>
+                      <Typography variant="h6" component="h2">
+                        {tarefa.titulo || "Sem titulo"}
                       </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
-              <Card sx={{ textAlign: 'center' }} key='nova-tarefa' >
-                <CardContent>
-                  <Button onClick={() => handleNovaTarefa(coluna.id)} variant='outlined' startIcon={<AddIcon />} fullWidth>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          {dayjs(tarefa.data_atualizacao || tarefa.data_cadastro).format(dateFormat)}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+                <Card sx={{ textAlign: 'start' }} key='nova-tarefa' >
+                  <Button
+                    onClick={() => handleNovaTarefa(coluna.id)}
+                    variant='text'
+                    startIcon={<AddIcon />}
+                    size='small'
+                    sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+                    fullWidth
+                  >
                     Adicionar Tarefa
                   </Button>
-                </CardContent>
-              </Card>
-            </Stack>
-          </Grid>
+                </Card>
+              </Stack>
+            </Box>
           );
         })}
-        <Grid key='nova-coluna' {...colunaGridProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
-          <Button variant='outlined' startIcon={<AddIcon />} fullWidth>
+        <Box key='nova-coluna' {...colunaBoxProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
+          <Button variant='text' startIcon={<AddIcon />} fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }} onClick={handleNovaColuna}>
             Adicionar Coluna
           </Button>
-        </Grid>
+        </Box>
       </Stack>
     </>
   );

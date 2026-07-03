@@ -5,8 +5,9 @@ import Router from 'next/router';
 
 const catchAuthAxios = (error, genericMessage = 'Ocorreu um erro inesperado' ) => {
     const status = error?.response?.status;
+    const data = error?.response?.data?.data;
 
-    console.error('Erro na requisição:', error);
+    console.error('Erro na requisição:', error, data);
 
     const errorMessage = error?.response?.data?.mensagem ?? genericMessage;
 

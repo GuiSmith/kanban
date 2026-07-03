@@ -6,6 +6,8 @@ import { Controller, useForm } from 'react-hook-form';
 
 // MUI
 import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Switch from '@mui/material/Switch';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -14,6 +16,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 // Componentes
 import Loading from '@/components/Loading';
@@ -22,7 +25,6 @@ import Loading from '@/components/Loading';
 import authAxios from "@/utils/authAxios";
 import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
-import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 
 const defaultValues = {
     id: null,
@@ -37,8 +39,6 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
     const { control, reset, register, handleSubmit, getValues } = useForm({ defaultValues: initialValues });
 
     const [isLoading, setIsLoading] = useState(false);
-
-    const dateFormat = 'DD/MM/YYYY HH:mm:ss';
 
     useEffect(() => {
         reset(initialValues ? initialValues : defaultValues);
@@ -61,7 +61,7 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
     const editarColuna = async (data) => {
         try {
             setIsLoading(true);
-            const res = await authAxios('put', '/api/coluna/editarColuna', data);
+            const res = await authAxios('put', '/api/colunas/editarColuna', data);
             toast.success('Coluna editada');
             return true;
         } catch (error) {
@@ -76,9 +76,11 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
         switch (mode) {
             case 'create':
                 const createOk = await criarColuna(data);
+                if (createOk) onClose();
                 break;
             case 'edit':
                 const editOk = await editarColuna(data);
+                if (editOk) onClose();
                 break;
             default:
                 toast.error('Modo inválido de formulário!');
@@ -89,14 +91,10 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
         <Box sx={{ width: '100%', mx: 'auto' }}>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={2.5}>
+
                     <Typography component='h1' variant='h4' align='center'>
                         {mode === 'edit' ? 'Editar coluna' : 'Criar coluna'}
                     </Typography>
-
-                    <Button color='success' variant='contained' type='submit'>
-                        Salvar
-                    </Button>
-
                     {/* Ativo */}
                     {mode === 'edit' ? (
                         <Controller
@@ -146,25 +144,10 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
                                     labelId='coluna-tipo-label'
                                     label="Tipo"
                                     value={field.value || ''}
-                                    sx={{
-                                        backgroundColor: field.value ? `${columnType[field.value]}.main` : 'text.primary',
-                                        color: field.value ? `${columnType[field.value]}.contrastText` : 'text.primary'
-                                    }}
                                 >
                                     {Object.keys(columnType).map(tipo => (
-                                        <MenuItem
-                                            key={tipo}
-                                            value={tipo}
-                                            sx={{
-                                                backgroundColor: `${columnType[tipo]}.main`,
-                                                color: `${columnType[tipo]}.contrastText`,
-                                                "&:hover": {
-                                                    backgroundColor: `${columnType[tipo]}.main`,
-                                                    opacity: 0.8,
-                                                }
-                                            }}
-                                        >
-                                            <span>{capitalizeFirstLetter(tipo)}</span>
+                                        <MenuItem key={tipo} value={tipo}>
+                                            <Button color={columnType[tipo]} type='button' variant='contained'>{tipo}</Button>
                                         </MenuItem>
                                     ))}
                                 </Select>
@@ -172,6 +155,10 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
                             </FormControl>
                         )}
                     />
+
+                    <Button color='success' variant='contained' type='submit'>
+                        Salvar
+                    </Button>
 
                 </Stack>
             </form>

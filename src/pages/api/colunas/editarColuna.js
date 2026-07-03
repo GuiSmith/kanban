@@ -15,10 +15,10 @@ const handler = async (req, res) => {
     try {
         const dadosForm = req.body ?? {};
         const dadosObrigatorios = ['id','ativo','nome','tipo','ordem'];
-        const dadosObrigatoriosPreenchidos = dadosObrigatorios.every(dado => dadosForm[dado]);
+        const dadosObrigatoriosPreenchidos = dadosObrigatorios.every(dado => dado in dadosForm);
 
         if(!dadosObrigatoriosPreenchidos){
-            return res.status(400).json(defaultResponse('Preencha todos os dados para continuar'));
+            return res.status(400).json(defaultResponse('Preencha todos os dados para continuar', { body: dadosForm }));
         }
 
         const colunaResult = await db.query({ text: 'SELECT * FROM coluna WHERE id = $1', values:[dadosForm.id] });
@@ -39,6 +39,17 @@ const handler = async (req, res) => {
 
         if(!tiposValidos.includes(dadosForm.tipo)){
             return res.status(400).json(defaultResponse('Tipo de coluna inválido'));
+        }
+
+        if(dadosForm.ativo === false){
+            const tarefas = await db.query({
+                text: `SELECT id FROM tarefa WHERE id_coluna = $1 `,
+                values: [dadosForm.id]
+            });
+
+            if(tarefas.rowCount !== 0){
+                return res.status(409).json(defaultResponse('Mova as tarefas desta coluna antes de desativá-la'));
+            }
         }
 
         const updateResult = await db.query({

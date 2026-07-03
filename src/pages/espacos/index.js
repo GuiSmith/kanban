@@ -74,7 +74,7 @@ export default function EspacosPage() {
   },[id, espacos]);
 
   useEffect(() => {
-    if (!id || !espacos) {
+    if (!id || !space || !profile) {
       setActiveTab(0);
       return;
     }

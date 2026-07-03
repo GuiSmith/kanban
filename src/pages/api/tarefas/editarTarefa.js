@@ -1,4 +1,5 @@
 import db from '@/pages/api/config/connectDB';
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
@@ -10,85 +11,53 @@ const requiredPermission = {
 
 const handler = async (req, res) => {
     try {
-        const dadosForm = req.body ?? {};
-        const requiredData = {
-            id: 'ID',
-            titulo: 'título',
-            descricao: 'descrição',
-            id_espaco: 'espaço',
-            id_coluna: 'coluna',
-        };
-        const data = {};
-        const { id, titulo, descricao, id_coluna } = dadosForm;
+        const data = req.body ?? {};
+        const dadosPermitidos = ['id','titulo','descricao','id_coluna','ordem'];
+        const idInformado = 'id' in data;
+        const apenasDadosPermitidosInformados = Object.keys(data).every(key => dadosPermitidos.includes(key));
 
-        for(const requiredKey in requiredData){
-            if(!dadosForm[requiredKey]){
-                console.log('chave faltante: ', requiredKey);
-                return res.status(400).json(defaultResponse('Preencha todos os dados para continuar'));
-            }
-            data[requiredKey] = dadosForm[requiredKey];
+        if(!idInformado){
+            return res.status(400).json(defaultResponse('Informe o ID para continuar', { informados: data }));
         }
 
-        const idEspaco = Number(data.id_espaco);
-        if(!Number.isInteger(Number(data.id)) || !Number.isInteger(idEspaco) || idEspaco <= 0){
-            return res.status(400).json(defaultResponse('ID inválido'));
+        if(!apenasDadosPermitidosInformados){
+            return res.status(400).json(defaultResponse('Informe apenas dados permitidos', { informados: data, permitidos: dadosPermitidos }));
         }
 
-        const tarefaExistenteResult = await db.query({
-            text: `
-                SELECT t.id, t.id_coluna
-                FROM tarefa t
-                JOIN espaco e ON e.id = t.id_espaco
-                WHERE t.id = $1 AND e.id = $2
-            `,
-            values: [data.id, idEspaco]
-        });
+        const tarefa = await dbPrisma.tarefa.findUnique({ where: { id: data.id }});
 
-        if(tarefaExistenteResult.rowCount !== 1){
+        if(!tarefa){
             return res.status(404).json(defaultResponse('Tarefa não encontrada'));
         }
 
-        const tarefaExistente = tarefaExistenteResult.rows[0];
-
         const hasPermission = await usuarioTemPermissao({
             idUsuario: req.user.id,
-            idEspaco,
+            idEspaco: tarefa.id_espaco,
             nomePermissao: requiredPermission.name,
-            escrita: requiredPermission.escrita,
-            dbClient: db
+            escrita: requiredPermission.escrita
         });
         if(!hasPermission){
             return res.status(403).json(defaultResponse('Você não tem permissão para editar tarefas neste espaço!'));
         }
 
-        if(tarefaExistente.id_coluna != data.id_coluna){
-            const colunaExistenteResult = await db.query({ text: `SELECT id, nome, ativo FROM coluna WHERE id = $1`, values: [data.id_coluna]});
-            if(colunaExistenteResult.rowCount !== 1){
+        if(data?.id_coluna && tarefa.id_coluna != data.id_coluna){
+            const coluna = await dbPrisma.coluna.findUnique({ where: { id: data.id_coluna }});
+
+            if(!coluna){
                 return res.status(404).json(defaultResponse('Coluna nova inexistente'));
             }
-            const colunaExistente = colunaExistenteResult.rows[0];
-            if(colunaExistente.ativo === false){
+
+            if(coluna.ativo === false){
                 return res.status(409).json(defaultResponse(`A coluna '${colunaExistente.nome}' está inativa, use outra`));
             }
         }
 
-        const sql = `
-            UPDATE tarefa
-            SET titulo = $1,
-                descricao = $2,
-                id_coluna = $3,
-                data_atualizacao = CURRENT_TIMESTAMP
-            WHERE id = $4
-            RETURNING *
-        `;
+        const tarefaAtualizada = await dbPrisma.tarefa.update({
+            where: { id: data.id },
+            data
+        });
 
-        const tarefa = await db.query({ text: sql, values: [titulo, descricao, id_coluna, id] });
-
-        if (tarefa.rowCount === 0) {
-            return res.status(404).json(defaultResponse('Tarefa não encontrada!'));
-        }
-
-        return res.status(200).json(defaultResponse('Tarefa atualizada com sucesso', tarefa.rows[0]));
+        return res.status(200).json(defaultResponse('Tarefa atualizada com sucesso', tarefaAtualizada));
     } catch (error) {
         console.log(error);
         return res.status(500).json(defaultResponse());

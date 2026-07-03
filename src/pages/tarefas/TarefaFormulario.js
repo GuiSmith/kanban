@@ -1,7 +1,6 @@
 // React/JS
 import { useState, useEffect } from "react";
 import { toast } from 'react-toastify';
-import dayjs from 'dayjs';
 import { Controller, useForm } from 'react-hook-form';
 
 // MUI
@@ -15,7 +14,6 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 // Componentes
 import Loading from '@/components/Loading';
@@ -27,7 +25,13 @@ import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
 import { formatDateTime } from "@/utils/formatDate";
 
-const defaultValues = { titulo: '', descricao: '' }
+// const defaultValues = { titulo: '', descricao: '' };
+
+const defaultValues = {
+  create: ['titulo','descricao','id_coluna','id_espaco'],
+  edit: ['id','titulo', 'descricao','id_coluna','ordem']
+
+};
 
 const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colunas }) => {
 
@@ -35,11 +39,16 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const dateFormat = 'DD/MM/YYYY HH:mm:ss';
-
   useEffect(() => {
-    reset(initialValues ? initialValues : defaultValues);
-  }, [initialValues]);
+    const obj = {};
+
+    for(const key of defaultValues[mode]){
+      obj[key] = initialValues?.[key] ?? null;
+    }
+
+    reset(obj);
+
+  }, [initialValues, mode, reset]);
 
   const criarTarefa = async (data) => {
     try {
@@ -148,7 +157,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                 <TextField
                   label="Cadastro"
                   name="data_cadastro"
-                  value={getValues('data_cadastro') ? dayjs(getValues('data_cadastro')).format(dateFormat) : ''}
+                  value={formatDateTime(getValues('data_cadastro'))}
                   fullWidth
                   disabled
                 />
@@ -156,7 +165,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                 <TextField
                   label="Atualização"
                   name="data_atualizacao"
-                  value={getValues('data_atualizacao') ? dayjs(getValues('data_atualizacao')).format(dateFormat) : ''}
+                  value={formatDateTime(getValues('data_atualizacao'))}
                   fullWidth
                   disabled
                 />

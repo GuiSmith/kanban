@@ -1,4 +1,7 @@
-const usuarioTemPermissao = async ({ idUsuario, idEspaco, nomePermissao, escrita, dbClient }) => {
+import db from '@/pages/api/config/connectDB';
+
+const usuarioTemPermissao = async ({ idUsuario, idEspaco, nomePermissao, escrita, dbClient = null }) => {
+    dbClient = dbClient ? dbClient : await db.connect();
     try {
 
         // Verificando se idUsuario, idEspaco, nomePermissao e escrita são válidos

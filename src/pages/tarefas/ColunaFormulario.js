@@ -27,12 +27,8 @@ import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
 
 const defaultValues = {
-    id: null,
-    ativo: true,
-    nome: null,
-    tipo: 'A FAZER',
-    id_espaco: null,
-    ordem: null,
+    create: ['nome','tipo','id_espaco'],
+    edit: ['id','ativo','nome','tipo','ordem'],
 };
 
 const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) => {
@@ -41,8 +37,13 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        reset(initialValues ? initialValues : defaultValues);
-    }, [initialValues]);
+        const obj = {};
+
+        for(const key of defaultValues[mode]) {
+            obj[key] = initialValues?.[key] ?? null;
+        }
+        reset(obj);
+    }, [initialValues, mode, reset]);
 
     const criarColuna = async (data) => {
         try {

@@ -43,11 +43,11 @@ export default function TarefasPage({ espaco }) {
   const [colunaModal, setColunaModal] = useState({ open: false, data: {} });
   const [menu, setMenu] = useState({ anchorEl: null, coluna: null });
 
-  const handleMenuClick = (event, coluna) => {
+  const handleOpenMenu = (event, coluna) => {
     setMenu({ anchorEl: event.currentTarget, coluna });
   }
 
-  const handleClose = () => {
+  const handleCloseMenu = () => {
     setMenu({ anchorEl: null, coluna: null });
   };
 
@@ -230,6 +230,17 @@ export default function TarefasPage({ espaco }) {
     });
   }
 
+  const handleOptionClick = (option) => {
+    const coluna = menu.coluna;
+    
+    handleCloseMenu();
+
+    if(!coluna) return;
+
+    option.handleClick(coluna);
+
+  }
+
   const options = [
     { label: 'Adicionar tarefa', icon: AddIcon, handleClick: (coluna) => handleNovaTarefa(coluna.id) },
     { label: 'Editar coluna', icon: EditIcon, handleClick: (coluna) => handleEditarColuna(coluna) },
@@ -250,12 +261,12 @@ export default function TarefasPage({ espaco }) {
         <ColunaFormulario mode={colunaModal.data?.mode} initialValues={colunaModal.data?.initialValues} onClose={handleFecharColunaModal} />
       </Dialog>
 
-      <Menu open={Boolean(menu.anchorEl)} onClose={handleClose} anchorEl={menu.anchorEl}>
+      <Menu open={Boolean(menu.anchorEl)} onClose={handleCloseMenu} anchorEl={menu.anchorEl}>
         {options.map(option => {
           const Icon = option.icon;
 
           return (
-            <MenuItem key={option.label} onClick={() => option.handleClick(menu.coluna)} >
+            <MenuItem key={option.label} onClick={() => handleOptionClick(option)} >
               <Stack direction='row' spacing={2} justifyContent='start'>
                 <Icon />
                 <Typography>{option.label}</Typography>
@@ -282,7 +293,7 @@ export default function TarefasPage({ espaco }) {
                     </IconButton>
                   </Tooltip>
                   <Tooltip title='Ações da coluna'>
-                    <IconButton size='small' onClick={(e) => handleMenuClick(e, coluna)}>
+                    <IconButton size='small' onClick={(e) => handleOpenMenu(e, coluna)}>
                       <MoreVertIcon />
                     </IconButton>
                   </Tooltip>

@@ -1,5 +1,5 @@
 // React/JS
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from 'react-toastify';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -38,6 +38,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
   const { control, reset, register, handleSubmit, getValues } = useForm({ defaultValues: initialValues });
 
   const [isLoading, setIsLoading] = useState(false);
+  const valoresSalvos = useRef({});
 
   useEffect(() => {
     const obj = {};
@@ -47,6 +48,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
     }
 
     reset(obj);
+    valoresSalvos.current = obj;
 
   }, [initialValues, mode, reset]);
 
@@ -64,10 +66,21 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
     }
   };
 
-  const editarTarefa = async (data) => {
+  const salvarCampo = async (campo, valor) => {
+    if (mode !== 'edit') return;
+
+    const id = getValues('id');
+    if (!id) return;
+
+    if (valoresSalvos.current[campo] === valor) return;
+
     try {
       setIsLoading(true);
-      const res = await authAxios('put', '/api/tarefas/editarTarefa', data);
+      await authAxios('put', '/api/tarefas/editarTarefa', {
+        id,
+        [campo]: valor
+      });
+      valoresSalvos.current[campo] = valor;
       toast.success('Tarefa editada');
       return true;
     } catch (error) {
@@ -76,7 +89,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleDeletarTarefa = async () => {
     try {
@@ -103,7 +116,6 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
       <Button key='criar tarefa' variant='contained' color='success' type='submit' >Criar</Button>
     ],
     'edit': [
-      <Button key='editar tarefa' variant='contained' color='success' type='submit' >Salvar</Button>,
       <Button key='deletar tarefa' variant='contained' color='error' type='button' onClick={handleDeletarTarefa} >Deletar</Button>
     ]
   };
@@ -115,8 +127,6 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
         if (createOk) onClose();
         break;
       case 'edit':
-        const editOk = await editarTarefa(data);
-        if (editOk) onClose();
         break;
       default:
         toast.error('Modo inválido de formulário!');
@@ -124,6 +134,9 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
   };
 
   const renderizarFormulario = () => {
+    const tituloRegister = register("titulo");
+    const descricaoRegister = register('descricao');
+
     return (
       <Stack spacing={2.5}>
         {/* Botões */}
@@ -139,7 +152,11 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
               <TextField
                 label="Título"
                 name="titulo"
-                {...register("titulo")}
+                {...tituloRegister}
+                onBlur={(e) => {
+                  tituloRegister.onBlur(e);
+                  salvarCampo('titulo', e.target.value);
+                }}
                 fullWidth
                 required
               />
@@ -147,7 +164,11 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
               <TextField
                 label="Descrição"
                 name="descricao"
-                {...register('descricao')}
+                {...descricaoRegister}
+                onBlur={(e) => {
+                  descricaoRegister.onBlur(e);
+                  salvarCampo('descricao', e.target.value);
+                }}
                 fullWidth
                 required
                 multiline
@@ -181,7 +202,16 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
               render={({ field }) => (
                 <FormControl fullWidth required disabled={isLoading}>
                   <InputLabel id='tarefa-id-coluna'>Coluna</InputLabel>
-                  <Select {...field} labelId='tarefa-id-coluna' label='Coluna' value={field.value || ''}>
+                  <Select
+                    {...field}
+                    labelId='tarefa-id-coluna'
+                    label='Coluna'
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      salvarCampo('id_coluna', e.target.value);
+                    }}
+                  >
                     {colunas?.filter(coluna => coluna.ativo === true)?.map(coluna => (
                       <MenuItem key={`coluna-${coluna.id}`} value={coluna.id}>
                         <Button color={columnType[coluna.tipo]} type='button' variant='contained'>{coluna.nome}</Button>

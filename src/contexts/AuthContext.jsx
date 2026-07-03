@@ -38,8 +38,6 @@ const AuthProvider = ({ children}) => {
             await setToken(token);
             
             setIsAuthenticated(true);
-
-            toast.success('Login realizado');
         } catch (error) {
             console.log('Erro ao realizar login:', error);
             toast.error('Erro ao realizar login. Contate o suporte.');
@@ -54,9 +52,7 @@ const AuthProvider = ({ children}) => {
 
             await removeToken();
 
-            setIsAuthenticated(false);
-                        
-            toast.success('Logout realizado');
+            setIsAuthenticated(false); 
         } catch (error) {
             console.log('Erro ao desconectar:', error);
             toast.error('Erro ao desconectar. Contate o suporte.');

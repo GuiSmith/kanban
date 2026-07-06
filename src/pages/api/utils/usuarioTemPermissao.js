@@ -1,7 +1,8 @@
 import db from '@/pages/api/config/connectDB';
 
 const usuarioTemPermissao = async ({ idUsuario, idEspaco, nomePermissao, escrita, dbClient = null }) => {
-    dbClient = dbClient ? dbClient : await db.connect();
+    const queryClient = dbClient ?? db;
+
     try {
 
         // Verificando se idUsuario, idEspaco, nomePermissao e escrita são válidos
@@ -24,7 +25,7 @@ const usuarioTemPermissao = async ({ idUsuario, idEspaco, nomePermissao, escrita
             throw new Error('Valor de escrita inválido. Informe true, false ou null');
         }
 
-        const result = await dbClient.query({
+        const result = await queryClient.query({
             text: `
                 SELECT 1
                 FROM espaco_usuario_permissoes eup

@@ -48,13 +48,19 @@ const handler = async (req, res) => {
             }
 
             if(coluna.ativo === false){
-                return res.status(409).json(defaultResponse(`A coluna '${colunaExistente.nome}' está inativa, use outra`));
+                console.log('coluna inativa cara: ', coluna);
+                return res.status(409).json(defaultResponse(`A coluna '${coluna}' está inativa, use outra`));
             }
         }
 
+        const { id: _, ...safeData } = data;
+
+        console.log('data: ', data);
+        console.log('Atualização: ', safeData);
+
         const tarefaAtualizada = await dbPrisma.tarefa.update({
             where: { id: data.id },
-            data
+            data: safeData
         });
 
         return res.status(200).json(defaultResponse('Tarefa atualizada com sucesso', tarefaAtualizada));

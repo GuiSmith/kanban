@@ -336,11 +336,6 @@ export default function TarefasPage({ espaco }) {
   const handleDragEnd = (event) => {
     if(event.canceled) return;
 
-    console.log({
-      source: event.operation.source,
-      target: event.operation.target
-    });
-
     const id = Number(event.operation.source.id.split(':').pop());
     const id_coluna = Number((event.operation.target.type == 'column' ? event.operation.target.id : event.operation.target.group).split(':').pop());
     const ordem = Number(event.operation.target.index ?? 0);

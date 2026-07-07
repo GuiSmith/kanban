@@ -25,6 +25,7 @@ import { io } from 'socket.io-client';
 
 // UI Personalizado
 import Loading from '@/components/Loading';
+import ModalCloseButton from '@/components/ModalCloseButton';
 import TarefaFormulario from "./TarefaFormulario";
 import ColunaFormulario from "./ColunaFormulario";
 
@@ -373,7 +374,8 @@ export default function TarefasPage({ espaco, writePermission }) {
         <meta name="description" content="Tela de tarefas" />
       </Head>
 
-      <Dialog open={tarefaModal.open} onClose={handleFecharTarefaModal} maxWidth="lg" fullWidth slotProps={{ paper: { sx: { p: 3 } } }} >
+      <Dialog open={tarefaModal.open} onClose={handleFecharTarefaModal} maxWidth="lg" fullWidth slotProps={{ paper: { sx: { p: 3, position: 'relative' } } }} >
+        <ModalCloseButton onClick={handleFecharTarefaModal} />
         <TarefaFormulario
           mode={tarefaModal.data?.mode}
           initialValues={tarefaModal.data?.initialValues}
@@ -383,7 +385,8 @@ export default function TarefasPage({ espaco, writePermission }) {
         />
       </Dialog>
 
-      <Dialog open={colunaModal.open} onClose={handleFecharColunaModal} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { p: 3 } } }} >
+      <Dialog open={colunaModal.open} onClose={handleFecharColunaModal} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { p: 3, position: 'relative' } } }} >
+        <ModalCloseButton onClick={handleFecharColunaModal} />
         <ColunaFormulario
           mode={colunaModal.data?.mode}
           initialValues={colunaModal.data?.initialValues}

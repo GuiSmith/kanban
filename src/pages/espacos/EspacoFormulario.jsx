@@ -21,6 +21,7 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 
 import Loading from '@/components/Loading';
+import ModalCloseButton from '@/components/ModalCloseButton';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import { ESPACO_ICONES } from '../../utils/EspacosIcones';
@@ -231,8 +232,13 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues, writ
         />
       </Stack>
 
-      <Dialog open={Boolean(pendingSubmitData)} onClose={handleCancelarInativacao}>
-        <DialogTitle>Inativar espaço?</DialogTitle>
+      <Dialog
+        open={Boolean(pendingSubmitData)}
+        onClose={handleCancelarInativacao}
+        slotProps={{ paper: { sx: { position: 'relative' } } }}
+      >
+        <DialogTitle sx={{ pr: 6 }}>Inativar espaço?</DialogTitle>
+        <ModalCloseButton onClick={handleCancelarInativacao} disabled={isLoading || writePermission === false} />
         <DialogContent>
           <DialogContentText>
             Ao salvar este espaço como inativo, ele deixará de aparecer na Navbar. Você poderá encontrá-lo na aba de
@@ -240,9 +246,6 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues, writ
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button type="button" onClick={handleCancelarInativacao} disabled={isLoading || writePermission === false}>
-            Cancelar
-          </Button>
           <Button
             type="button"
             color="warning"

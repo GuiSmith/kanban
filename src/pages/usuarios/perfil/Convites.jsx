@@ -22,6 +22,7 @@ import statusMap from '@/utils/InviteStatusMap';
 
 // Componentes
 import Loading from '@/components/Loading';
+import ModalCloseButton from '@/components/ModalCloseButton';
 
 // Contextos
 import { useNavbar } from '@/contexts/NavbarContext';
@@ -189,8 +190,13 @@ const Convites = () => {
             </Box>
 
             {/* Visualizar convite */}
-            <Dialog open={Boolean(invite)} onClose={handleInviteClose}>
-                <DialogTitle>Detalhes do convite</DialogTitle>
+            <Dialog
+                open={Boolean(invite)}
+                onClose={handleInviteClose}
+                slotProps={{ paper: { sx: { position: 'relative' } } }}
+            >
+                <DialogTitle sx={{ pr: 6 }}>Detalhes do convite</DialogTitle>
+                <ModalCloseButton onClick={handleInviteClose} disabled={isLoading} />
                 <DialogContent>
                     <Stack spacing={3} sx={{ pt: 1, minWidth: 420 }}>
                         <Stack direction='row' spacing={2} alignItems='center'>
@@ -279,9 +285,6 @@ const Convites = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions>
-                    <Button type='button' onClick={handleInviteClose} disabled={isLoading}>
-                        Voltar
-                    </Button>
                     <Button type='button' color='error' variant='contained' onClick={() => handleAnswerInvite(false)} disabled={isLoading || invite?.status !== 'PENDENTE'} >
                         Recusar
                     </Button>

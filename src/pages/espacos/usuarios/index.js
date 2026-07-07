@@ -11,13 +11,12 @@ import Divider from '@mui/material/Divider';
 
 // MUI Dialog
 import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 // Componentes
 import Loading from '@/components/Loading';
+import ModalCloseButton from '@/components/ModalCloseButton';
 import UsuarioPermissoesFormulario from '@/pages/espacos/usuarios/UsuarioPermissoesFormulario';
 
 // Utils
@@ -128,8 +127,13 @@ const UsuariosPage = ({ espaco, writePermission }) => {
         />
       </Box>
 
-      <Dialog open={Boolean(usuario)} onClose={handleCloseUser}>
-        <DialogTitle>{usuario?.nome}</DialogTitle>
+      <Dialog
+        open={Boolean(usuario)}
+        onClose={handleCloseUser}
+        slotProps={{ paper: { sx: { position: 'relative' } } }}
+      >
+        <DialogTitle sx={{ pr: 6 }}>{usuario?.nome}</DialogTitle>
+        <ModalCloseButton onClick={handleCloseUser} />
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 1, minWidth: 420 }}>
             <Stack direction='row' spacing={2} alignItems='center'>

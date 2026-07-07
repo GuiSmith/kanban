@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import Chip from '@mui/material/Chip';
 
+import ModalCloseButton from '@/components/ModalCloseButton';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import { formatDateTime } from '@/utils/formatDate';
@@ -171,8 +172,13 @@ const Convites = ({ convites = [], onConviteCancelado, writePermission }) => {
       </Box>
 
       {/* Visualizar convite */}
-      <Dialog open={Boolean(invite)} onClose={handleInviteClose}>
-        <DialogTitle>Detalhes do convite</DialogTitle>
+      <Dialog
+        open={Boolean(invite)}
+        onClose={handleInviteClose}
+        slotProps={{ paper: { sx: { position: 'relative' } } }}
+      >
+        <DialogTitle sx={{ pr: 6 }}>Detalhes do convite</DialogTitle>
+        <ModalCloseButton onClick={handleInviteClose} disabled={isLoading} />
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 1, minWidth: 420 }}>
             <Stack direction='row' spacing={2} alignItems='center'>
@@ -266,9 +272,6 @@ const Convites = ({ convites = [], onConviteCancelado, writePermission }) => {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button type='button' onClick={handleInviteClose} disabled={isLoading}>
-            Voltar
-          </Button>
           <Button
             type='button'
             color='error'
@@ -282,17 +285,19 @@ const Convites = ({ convites = [], onConviteCancelado, writePermission }) => {
       </Dialog>
 
       {/* Cancelar convite */}
-      <Dialog open={Boolean(pendingCancelInvite)} onClose={handleCloseCancelDialog}>
-        <DialogTitle>Cancelar convite?</DialogTitle>
+      <Dialog
+        open={Boolean(pendingCancelInvite)}
+        onClose={handleCloseCancelDialog}
+        slotProps={{ paper: { sx: { position: 'relative' } } }}
+      >
+        <DialogTitle sx={{ pr: 6 }}>Cancelar convite?</DialogTitle>
+        <ModalCloseButton onClick={handleCloseCancelDialog} disabled={isLoading} />
         <DialogContent>
           <DialogContentText>
             Tem certeza que deseja cancelar o convite de {pendingCancelInvite?.nome}?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button type="button" onClick={handleCloseCancelDialog} disabled={isLoading}>
-            Voltar
-          </Button>
           <Button type="button" color="error" variant="contained" onClick={handleCancelInvite} disabled={isLoading}>
             Cancelar convite
           </Button>

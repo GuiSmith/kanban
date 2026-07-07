@@ -1,16 +1,13 @@
 // Next
 import Head from "next/head";
-import dayjs from 'dayjs';
 import { useDroppable, DragDropProvider } from "@dnd-kit/react";
 import { useSortable } from '@dnd-kit/react/sortable';
-import { toast } from 'react-toastify';
 
 // MUI
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -20,7 +17,6 @@ import IconButton from '@mui/material/IconButton';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import Chip from '@mui/material/Chip';
 import Tooltip from '@mui/material/Tooltip';
 
 // React
@@ -37,6 +33,123 @@ import authAxios from "@/utils/authAxios";
 import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
 import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
+import { formatDate } from "@/utils/formatDate";
+
+const colunaBoxProps = (coluna, isDropTarget) => ({
+  size: { xs: 12, sm: 6, md: 2 },
+  sx: {
+    minWidth: '250px',
+    maxWidth: '250px',
+    overflow: 'hidden',
+    position: 'relative',
+    mb: 3,
+    border: 1,
+    borderColor: `${columnType[coluna.tipo] ?? 'default'}.main`,
+    p: 1,
+    borderRadius: 1,
+    opacity: isDropTarget ? 0.7 : 1,
+  }
+});
+
+const tarefaCardProps = {
+  elevation: 4,
+  sx: {
+    cursor: "pointer",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    "&:hover": {
+      transform: "translateY(-4px)",
+      boxShadow: 8,
+    },
+  }
+};
+
+const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, handleEditarTarefa }) => {
+
+  const { ref, isDropTarget } = useDroppable({
+    id: `coluna:${coluna.id}`,
+    type: 'column',
+    accept: 'item',
+  });
+
+  const tarefasDaColuna = tarefas
+    .filter(tarefa => tarefa.id_coluna == coluna.id)
+    .sort((a, b) => a.ordem - b.ordem);
+
+  return (
+    <Box ref={ref} {...colunaBoxProps(coluna, isDropTarget)} >
+      {/* Header */}
+      <Stack direction='row' justifyContent='space-between' alignItems='center'>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          {capitalizeFirstLetter(coluna.nome)}
+        </Typography>
+        <Stack direction='row' spacing={0.1} alignItems='center' >
+          <Tooltip title={`Esta coluna tem ${tarefasDaColuna.length} tarefas`}>
+            <IconButton size='small'>
+              {tarefasDaColuna.length}
+            </IconButton>
+          </Tooltip>
+          <Tooltip title='Ações da coluna'>
+            <IconButton size='small' onClick={(e) => handleOpenMenu(e, coluna)}>
+              <MoreVertIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      </Stack>
+      {/* Tarefas */}
+      <Stack direction='column' spacing={1} sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+        {tarefasDaColuna.map(tarefa => (
+          <TarefaCard
+            espaco={espaco}
+            coluna={coluna}
+            tarefa={tarefa}
+            key={`tarefa:${tarefa.id}`}
+            handleEditarTarefa={handleEditarTarefa}
+          />
+        ))}
+        <Card sx={{ textAlign: 'start' }} key='nova-tarefa' >
+          <Button
+            onClick={() => handleNovaTarefa(coluna.id)}
+            variant='text'
+            startIcon={<AddIcon />}
+            size='small'
+            sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+            fullWidth
+          >
+            Adicionar Tarefa
+          </Button>
+        </Card>
+      </Stack>
+    </Box>
+  );
+
+};
+
+const TarefaCard = ({ espaco, tarefa, coluna, handleEditarTarefa }) => {
+
+  const { ref } = useSortable({
+    id: `tarefa:${tarefa.id}`,
+    index: tarefa.ordem,
+    type: 'item',
+    accept: 'item',
+    group: `coluna:${coluna.id}`
+  });
+
+  return (
+    <Card ref={ref} {...tarefaCardProps} >
+      <CardContent onClick={() => handleEditarTarefa(tarefa)}>
+        <Typography color='info'>{espaco.sigla}-{tarefa.id}</Typography>
+        <Typography variant="h6" component="h2">
+          {tarefa.titulo || "Sem titulo"}
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography variant="caption" display="block" color="text.secondary">
+            {formatDate(tarefa.data_atualizacao || tarefa.data_cadastro)}
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function TarefasPage({ espaco }) {
   const [tarefas, setTarefas] = useState([]);
@@ -53,36 +166,6 @@ export default function TarefasPage({ espaco }) {
   const handleCloseMenu = () => {
     setMenu({ anchorEl: null, coluna: null });
   };
-
-  const dateFormat = 'DD/MM/YYYY HH:mm:ss';
-
-  const tarefaCardProps = {
-    elevation: 4,
-    sx: {
-      cursor: "pointer",
-      transition: "transform 0.2s ease, box-shadow 0.2s ease",
-      "&:hover": {
-        transform: "translateY(-4px)",
-        boxShadow: 8,
-      },
-    }
-  };
-
-  const colunaBoxProps = (coluna, isDropTarget) => ({
-    size: { xs: 12, sm: 6, md: 2 },
-    sx: {
-      minWidth: '250px',
-      maxWidth: '250px',
-      overflow: 'hidden',
-      position: 'relative',
-      mb: 3,
-      border: 1,
-      borderColor: `${columnType[coluna.tipo] ?? 'default'}.main`,
-      p: 1,
-      borderRadius: 1,
-      opacity: isDropTarget ? 0.7 : 1,
-    }
-  });
 
   // Socket
   useEffect(() => {
@@ -250,112 +333,29 @@ export default function TarefasPage({ espaco }) {
     { label: 'Editar coluna', icon: EditIcon, handleClick: (coluna) => handleEditarColuna(coluna) },
   ];
 
-  const Coluna = ({ coluna }) => {
-
-    const { ref, isDropTarget } = useDroppable({
-      id: `coluna:${coluna.id}`,
-      type: 'column',
-      accept: 'item',
-    });
-
-    const tarefasDaColuna = tarefas
-      .filter(tarefa => tarefa.id_coluna == coluna.id)
-      .sort((a,b) => a.ordem - b.ordem);
-
-    return (
-      <Box ref={ref} {...colunaBoxProps(coluna, isDropTarget)} >
-        {/* Header */}
-        <Stack direction='row' justifyContent='space-between' alignItems='center'>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            {capitalizeFirstLetter(coluna.nome)}
-          </Typography>
-          <Stack direction='row' spacing={0.1} alignItems='center' >
-            <Tooltip title={`Esta coluna tem ${tarefasDaColuna.length} tarefas`}>
-              <IconButton size='small'>
-                {tarefasDaColuna.length}
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='Ações da coluna'>
-              <IconButton size='small' onClick={(e) => handleOpenMenu(e, coluna)}>
-                <MoreVertIcon />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-        </Stack>
-        {/* Tarefas */}
-        <Stack direction='column' spacing={1} sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
-          {tarefasDaColuna.map(tarefa => (
-            <TarefaCard coluna={coluna} tarefa={tarefa} key={`tarefa:${tarefa.id}`} />
-          ))}
-          <Card sx={{ textAlign: 'start' }} key='nova-tarefa' >
-            <Button
-              onClick={() => handleNovaTarefa(coluna.id)}
-              variant='text'
-              startIcon={<AddIcon />}
-              size='small'
-              sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
-              fullWidth
-            >
-              Adicionar Tarefa
-            </Button>
-          </Card>
-        </Stack>
-      </Box>
-    );
-
-  };
-
-  const TarefaCard = ({ tarefa, coluna }) => {
-    // const { ref } = useDraggable({ id: `tarefa:${tarefa.id}` });
-
-    const { ref } = useSortable({
-      id: `tarefa:${tarefa.id}`,
-      index: tarefa.ordem,
-      type: 'item',
-      accept: 'item',
-      group: `coluna:${coluna.id}`
-    });
-
-    return (
-      <Card ref={ref} {...tarefaCardProps} >
-        <CardContent onClick={() => handleEditarTarefa(tarefa)}>
-          <Typography color='info'>{espaco.sigla}-{tarefa.id}</Typography>
-          <Typography variant="h6" component="h2">
-            {tarefa.titulo || "Sem titulo"}
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography variant="caption" display="block" color="text.secondary">
-              {dayjs(tarefa.data_atualizacao || tarefa.data_cadastro).format(dateFormat)}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    );
-  };
-
   const handleDragEnd = (event) => {
-    if(event.canceled) return;
+    if (event.canceled) return;
 
     const id = Number(event.operation.source.id.split(':').pop());
     const id_coluna = Number((event.operation.target.type == 'column' ? event.operation.target.id : event.operation.target.group).split(':').pop());
     const ordem = Number(event.operation.target.index ?? 0);
     const tarefa = tarefas.find(tarefa => tarefa.id == id);
 
-    if(tarefa.ordem == ordem && tarefa.id_coluna == id_coluna){
+    if (tarefa.ordem == ordem && tarefa.id_coluna == id_coluna) {
       return;
     }
 
     const data = { id };
 
-    if(tarefa.ordem != ordem) data.ordem = ordem;
-    if(tarefa.id_coluna != id_coluna) data.id_coluna = id_coluna;
-    
+    if (tarefa.ordem != ordem) data.ordem = ordem;
+    if (tarefa.id_coluna != id_coluna) data.id_coluna = id_coluna;
+
     // const coluna = colunas.find(coluna => coluna.id == event.operation.target.id.split(':').pop());
-    
+
     try {
       setIsLoading(true);
       const res = authAxios('put', '/api/tarefas/editarTarefa', data);
-    } catch(error) {
+    } catch (error) {
       catchAuthAxios(error, 'Erro ao mover tarefa');
     } finally {
       setIsLoading(false);
@@ -394,8 +394,16 @@ export default function TarefasPage({ espaco }) {
 
       <DragDropProvider onDragEnd={handleDragEnd}>
         <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', overflowY: 'hidden', justifyContent: 'flex-start', alignItems: 'flex-start', py: 1, }} >
-          {colunas.length !== 0 && colunas.filter(coluna => coluna?.ativo === true)?.map(coluna => (
-            <Coluna coluna={coluna} key={`coluna:${coluna.id}`} />
+          {isLoading ? <Loading /> : colunas.length !== 0 && colunas.filter(coluna => coluna?.ativo === true)?.map(coluna => (
+            <Coluna
+              espaco={espaco}
+              coluna={coluna}
+              key={`coluna:${coluna.id}`}
+              tarefas={tarefas}
+              handleOpenMenu={handleOpenMenu}
+              handleNovaTarefa={handleNovaTarefa}
+              handleEditarTarefa={handleEditarTarefa}
+            />
           ))}
           <Box key='nova-coluna' {...colunaBoxProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
             <Button variant='text' startIcon={<AddIcon />} fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }} onClick={handleNovaColuna}>

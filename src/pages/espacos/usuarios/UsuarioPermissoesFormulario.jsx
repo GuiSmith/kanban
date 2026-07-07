@@ -32,7 +32,7 @@ const PermissoesFormulario = ({ usuario, espaco }) => {
     ];
 
     useEffect(() => {
-        if(!usuario || !espaco) return;
+        if (!usuario || !espaco) return;
         const fetchPermissoes = async () => {
             try {
                 setIsLoading(true);
@@ -41,7 +41,7 @@ const PermissoesFormulario = ({ usuario, espaco }) => {
                 const localPermissoes = res.data.data;
 
                 const formObj = {};
-                for(const permissao of localPermissoes){
+                for (const permissao of localPermissoes) {
                     formObj[permissao.id] = options.find(option => option.data === permissao.escrita).value;
                 }
 
@@ -61,14 +61,12 @@ const PermissoesFormulario = ({ usuario, espaco }) => {
     const onSubmit = async (data) => {
         try {
             setIsLoading(true);
-        
-            // console.log('dados:', data);
 
             const payload = {};
             payload.id_usuario = usuario.id;
             payload.id_espaco = espaco.id;
             payload.permissions = [];
-            for(const idPermissao in data){
+            for (const idPermissao in data) {
                 payload.permissions.push({
                     id_permissao: Number(idPermissao),
                     escrita: data[idPermissao]
@@ -111,11 +109,17 @@ const PermissoesFormulario = ({ usuario, espaco }) => {
                                     helperText={permissao.descricao}
                                     disabled={isLoading || usuario?.vinculo === 'Proprietário'}
                                 >
-                                    {options.map(option => (
-                                        <MenuItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </MenuItem>
-                                    ))}
+                                    {options.map(option => {
+                                        if (permissao.nome === 'ESPACO' && option.value === 'NONE') {
+                                            return <></>;
+                                        }
+
+                                        return (
+                                            <MenuItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </MenuItem>
+                                        )
+                                    })}
                                 </TextField>
                             )}
                         />

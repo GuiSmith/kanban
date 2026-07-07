@@ -56,7 +56,6 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
     try {
       setIsLoading(true);
       const res = await authAxios('post', '/api/tarefas/criarTarefa', data);
-      toast.success('Tarefa criada');
       return true;
     } catch (error) {
       catchAuthAxios(error, 'Erro ao inserir tarefa');
@@ -81,7 +80,6 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
         [campo]: valor
       });
       valoresSalvos.current[campo] = valor;
-      toast.success('Tarefa editada');
       return true;
     } catch (error) {
       catchAuthAxios(error, 'Erro ao editar tarefa');
@@ -100,7 +98,6 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
 
       setIsLoading(true);
       const res = await authAxios('delete', `/api/tarefas/deletarTarefa?id=${id}`);
-      toast.success('Tarefa deletada');
       onClose();
       return true;
     } catch (error) {

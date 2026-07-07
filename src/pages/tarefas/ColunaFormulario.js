@@ -49,7 +49,6 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
         try {
             setIsLoading(true);
             const res = await authAxios('post', '/api/colunas/criarColuna', data);
-            toast.success('Coluna criada');
             return true;
         } catch (error) {
             catchAuthAxios(error, 'Erro ao criar coluna');
@@ -63,7 +62,6 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
         try {
             setIsLoading(true);
             const res = await authAxios('put', '/api/colunas/editarColuna', data);
-            toast.success('Coluna editada');
             return true;
         } catch (error) {
             catchAuthAxios(error, 'Erro ao editar coluna');

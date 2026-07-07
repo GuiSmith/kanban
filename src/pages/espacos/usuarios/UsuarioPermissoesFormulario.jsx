@@ -18,7 +18,7 @@ import catchAuthAxios from "@/utils/catchAxios";
 // Components
 import Loading from '@/components/Loading';
 
-const PermissoesFormulario = ({ usuario, espaco }) => {
+const PermissoesFormulario = ({ usuario, espaco, readonly }) => {
 
     const [permissoes, setPermissoes] = useState();
     const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +72,6 @@ const PermissoesFormulario = ({ usuario, espaco }) => {
                     escrita: data[idPermissao]
                 });
             }
-            // console.log('payload:', payload);
 
             const res = await authAxios('POST', '/api/espacos/alterarPermissoes', payload);
 
@@ -103,15 +102,16 @@ const PermissoesFormulario = ({ usuario, espaco }) => {
                                 <TextField
                                     {...field}
                                     id={`permissao-${permissao.id}`}
+                                    key={`permissao-${permissao.id}`}
                                     select
                                     defaultValue="NONE"
                                     label={permissao.nome}
                                     helperText={permissao.descricao}
-                                    disabled={isLoading || usuario?.vinculo === 'Proprietário'}
+                                    disabled={isLoading || readonly}
                                 >
                                     {options.map(option => {
                                         if (permissao.nome === 'ESPACO' && option.value === 'NONE') {
-                                            return <></>;
+                                            return null;
                                         }
 
                                         return (

@@ -34,7 +34,7 @@ const defaultValues = {
   ativo: true,
 };
 
-const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues }) => {
+const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues, writePermission }) => {
 
   const router = useRouter();
   const { refreshEspacos } = useNavbar();
@@ -129,7 +129,7 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues }) =>
     <Box sx={{ width: '100%', mx: 'auto' }}>
       <Stack component="form" spacing={2.5} onSubmit={handleSubmit(onSubmit)}>
         <Stack direction="row" spacing={2}>
-          <Button variant="contained" color="success" type="submit" disabled={isLoading}>
+          <Button variant="contained" color="success" type="submit" disabled={isLoading || writePermission === false}>
             Salvar
           </Button>
         </Stack>
@@ -144,7 +144,7 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues }) =>
                   <Switch
                     checked={field.value !== false}
                     onChange={(event) => field.onChange(event.target.checked)}
-                    disabled={isLoading}
+                    disabled={isLoading || writePermission === false}
                   />
                 }
                 label="Ativo"
@@ -158,7 +158,7 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues }) =>
           control={control}
           rules={{ required: 'Selecione um ícone' }}
           render={({ field }) => (
-            <FormControl fullWidth required disabled={isLoading} error={!!errors.icon}>
+            <FormControl fullWidth required disabled={isLoading || writePermission === false} error={!!errors.icon}>
               <InputLabel id="espaco-icon-label">Ícone</InputLabel>
               <Select
                 {...field}
@@ -184,7 +184,7 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues }) =>
           label="Nome"
           fullWidth
           required
-          disabled={isLoading}
+          disabled={isLoading || writePermission === false}
           error={!!errors.nome}
           helperText={errors.nome?.message}
           slotProps={{ inputLabel: { shrink: true } }}
@@ -201,7 +201,7 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues }) =>
           label="Sigla"
           fullWidth
           required
-          disabled={isLoading}
+          disabled={isLoading || writePermission === false}
           error={!!errors.sigla}
           helperText={errors.sigla?.message}
           slotProps={{ inputLabel: { shrink: true } }}
@@ -217,7 +217,7 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues }) =>
           required
           multiline
           minRows={3}
-          disabled={isLoading}
+          disabled={isLoading || writePermission === false}
           error={!!errors.descricao}
           helperText={errors.descricao?.message}
           slotProps={{ inputLabel: { shrink: true } }}
@@ -240,7 +240,7 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues }) =>
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button type="button" onClick={handleCancelarInativacao} disabled={isLoading}>
+          <Button type="button" onClick={handleCancelarInativacao} disabled={isLoading || writePermission === false}>
             Cancelar
           </Button>
           <Button

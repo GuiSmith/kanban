@@ -111,6 +111,16 @@ export default function EspacosPage() {
     return typeof permissao?.escrita == 'boolean';
   }
 
+  const getWritePermission = (permissionName) => {
+    if(permissoes.length === 0){
+      return false;
+    }
+
+    const permissao = permissoes.find(p => p.nome == permissionName);
+
+    return permissao?.escrita === true;
+  }
+
   return (
     <>
       <Head>
@@ -151,12 +161,16 @@ export default function EspacosPage() {
         </Box>
 
         <TabPanel value={activeTab} index={0}>
-          <EspacoFormulario modo={space ? 'edit' : 'create'} initialValues={space} permissoes={permissoes} />
+          <EspacoFormulario
+            modo={space ? 'edit' : 'create'}
+            initialValues={space}
+            writePermission={getWritePermission('ESPACO')}
+            />
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>
           {space
-            ? <TarefasPage espaco={space} permissoes={permissoes} />
+            ? <TarefasPage espaco={space} writePermission={getWritePermission('QUADRO')} />
             : <Typography variant="body1" color="text.secondary"> Salve o espaço para continuar  </Typography>
           }
         </TabPanel>
@@ -166,10 +180,10 @@ export default function EspacosPage() {
             ? (
               <Stack spacing={3} sx={{ minWidth: 0 }}>
                 <Box sx={{ flex: 1, width: '100%', minWidth: 0 }}>
-                  <UsuariosPage espaco={space} />
+                  <UsuariosPage espaco={space} writePermission={getWritePermission('USUARIOS')} />
                 </Box>
                 <Box sx={{ flex: 1, width: '100%', minWidth: 0 }}>
-                  <ConvitesPage espaco={space} />
+                  <ConvitesPage espaco={space} writePermission={getWritePermission('USUARIOS')} />
                 </Box>
               </Stack>
             )

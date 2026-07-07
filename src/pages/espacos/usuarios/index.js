@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 
 // MUI
@@ -24,9 +24,8 @@ import UsuarioPermissoesFormulario from '@/pages/espacos/usuarios/UsuarioPermiss
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import getNameInitials from '@/utils/getNameInitials';
-import { formatDateTime } from '@/utils/formatDate';
 
-const UsuariosPage = ({ espaco }) => {
+const UsuariosPage = ({ espaco, writePermission }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [usuario, setUsuario] = useState(null);
@@ -35,7 +34,6 @@ const UsuariosPage = ({ espaco }) => {
     const fetchUsuarios = async () => {
       try {
         setIsLoading(true);
-
         const params = new URLSearchParams({ id_espaco: espaco.id });
         const res = await authAxios('get', `/api/espacos/listarUsuarios?${params.toString()}`);
         setUsuarios(res?.data?.data ?? []);
@@ -159,7 +157,7 @@ const UsuariosPage = ({ espaco }) => {
 
             <Divider />
 
-            <UsuarioPermissoesFormulario usuario={usuario} espaco={espaco} />
+            <UsuarioPermissoesFormulario usuario={usuario} espaco={espaco} readonly={usuario?.vinculo === 'Proprietário' || writePermission === false} />
 
           </Stack>
         </DialogContent>

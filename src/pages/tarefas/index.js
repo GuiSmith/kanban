@@ -63,7 +63,7 @@ const tarefaCardProps = {
   }
 };
 
-const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, handleEditarTarefa }) => {
+const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, handleEditarTarefa, writePermission }) => {
 
   const { ref, isDropTarget } = useDroppable({
     id: `coluna:${coluna.id}`,
@@ -89,7 +89,7 @@ const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, han
             </IconButton>
           </Tooltip>
           <Tooltip title='Ações da coluna'>
-            <IconButton size='small' onClick={(e) => handleOpenMenu(e, coluna)}>
+            <IconButton size='small' onClick={(e) => handleOpenMenu(e, coluna)} disabled={writePermission === false}>
               <MoreVertIcon />
             </IconButton>
           </Tooltip>
@@ -114,6 +114,7 @@ const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, han
             size='small'
             sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
             fullWidth
+            disabled={writePermission === false}
           >
             Adicionar Tarefa
           </Button>
@@ -151,7 +152,7 @@ const TarefaCard = ({ espaco, tarefa, coluna, handleEditarTarefa }) => {
   );
 };
 
-export default function TarefasPage({ espaco }) {
+export default function TarefasPage({ espaco, writePermission }) {
   const [tarefas, setTarefas] = useState([]);
   const [colunas, setColunas] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -382,7 +383,7 @@ export default function TarefasPage({ espaco }) {
           const Icon = option.icon;
 
           return (
-            <MenuItem key={option.label} onClick={() => handleOptionClick(option)} >
+            <MenuItem key={option.label} onClick={() => handleOptionClick(option)} disabled={writePermission === false} >
               <Stack direction='row' spacing={2} justifyContent='start'>
                 <Icon />
                 <Typography>{option.label}</Typography>
@@ -403,10 +404,18 @@ export default function TarefasPage({ espaco }) {
               handleOpenMenu={handleOpenMenu}
               handleNovaTarefa={handleNovaTarefa}
               handleEditarTarefa={handleEditarTarefa}
+              writePermission={writePermission}
             />
           ))}
           <Box key='nova-coluna' {...colunaBoxProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
-            <Button variant='text' startIcon={<AddIcon />} fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }} onClick={handleNovaColuna}>
+            <Button
+              variant='text'
+              startIcon={<AddIcon />}
+              fullWidth
+              sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+              onClick={handleNovaColuna}
+              disabled={writePermission === false}
+            >
               Adicionar Coluna
             </Button>
           </Box>

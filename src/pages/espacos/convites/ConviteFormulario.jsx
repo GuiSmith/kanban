@@ -31,7 +31,7 @@ const getOptionLabel = (option) => {
   return [option.nome, username, option.email].filter(Boolean).join(' - ');
 };
 
-const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onConviteCriado }) => {
+const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onConviteCriado, writePermission }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -126,6 +126,7 @@ const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onC
             isOptionEqualToValue={(option, value) => option.id === value.id}
             noOptionsText="Nenhum usuário encontrado"
             onChange={(_, value) => field.onChange(value)}
+            disabled={isLoading || writePermission === false}
             onInputChange={(_, value, reason) => {
               if (reason === 'input') {
                 setSearchTerm(value);
@@ -158,7 +159,7 @@ const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onC
         name="enviar_email"
         control={control}
         render={({ field }) => (
-          <FormControl sx={{ flex: { xs: '1 1 auto', md: '0 0 170px' }, minWidth: 170 }} disabled={isLoading}>
+          <FormControl sx={{ flex: { xs: '1 1 auto', md: '0 0 170px' }, minWidth: 170 }} disabled={isLoading || writePermission === false}>
             <InputLabel id="convite-enviar-email-label">Enviar e-mail</InputLabel>
             <Select
               labelId="convite-enviar-email-label"
@@ -177,7 +178,7 @@ const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onC
         type="submit"
         variant="contained"
         startIcon={<PersonAddAltIcon />}
-        disabled={isLoading}
+        disabled={isLoading || writePermission === false}
         sx={{ flex: { xs: '1 1 auto', md: '0 0 auto' }, minWidth: 130, height: 56 }}
       >
         Convidar

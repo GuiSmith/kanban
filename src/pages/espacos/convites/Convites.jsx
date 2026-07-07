@@ -21,7 +21,7 @@ import { formatDateTime } from '@/utils/formatDate';
 import getNameInitials from '@/utils/getNameInitials';
 import statusMap from '@/utils/InviteStatusMap';
 
-const Convites = ({ convites = [], onConviteCancelado }) => {
+const Convites = ({ convites = [], onConviteCancelado, writePermission }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [invite, setInvite] = useState(null);
   const [pendingCancelInvite, setPendingCancelInvite] = useState(null);
@@ -269,7 +269,13 @@ const Convites = ({ convites = [], onConviteCancelado }) => {
           <Button type='button' onClick={handleInviteClose} disabled={isLoading}>
             Voltar
           </Button>
-          <Button type='button' color='error' variant='contained' onClick={() => handleOpenCancelDialog(invite)} disabled={isLoading || invite?.status !== 'PENDENTE'} >
+          <Button
+            type='button'
+            color='error'
+            variant='contained'
+            onClick={() => handleOpenCancelDialog(invite)}
+            disabled={isLoading || invite?.status !== 'PENDENTE' || writePermission === false}
+          >
             Cancelar convite
           </Button>
         </DialogActions>

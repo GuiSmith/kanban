@@ -10,7 +10,7 @@ import catchAuthAxios from '@/utils/catchAxios';
 import ConviteFormulario from './ConviteFormulario';
 import Convites from './Convites';
 
-const ConvitesPage = ({ espaco }) => {
+const ConvitesPage = ({ espaco, writePermission }) => {
   const [convites, setConvites] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -46,8 +46,18 @@ const ConvitesPage = ({ espaco }) => {
         Convites
       </Typography>
 
-      <ConviteFormulario mode="create" initialValues={{ id_espaco: espaco?.id }} onConviteCriado={fetchConvites} />
-      <Convites convites={convites} onConviteCancelado={fetchConvites} />
+      <ConviteFormulario
+        mode="create"
+        initialValues={{ id_espaco: espaco?.id }}
+        onConviteCriado={fetchConvites}
+        writePermission={writePermission}
+      />
+      
+      <Convites
+        convites={convites}
+        onConviteCancelado={fetchConvites}
+        writePermission={writePermission}
+      />
     </Stack>
   );
 };

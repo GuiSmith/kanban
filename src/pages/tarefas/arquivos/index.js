@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 
-const TarefaArquivos = ({ tarefa }) => {
+const TarefaArquivos = ({ tarefa, writePermission }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [arquivos, setArquivos] = useState([]);
 
@@ -62,9 +62,14 @@ const TarefaArquivos = ({ tarefa }) => {
                 isLoading={isLoading}
                 setIsLoading={setIsLoading}
                 onArquivoInserido={handleArquivoInserido}
+                writePermission={writePermission}
             />
 
-            {!isLoading && <TarefaArquivosLista arquivos={arquivos} setArquivos={setArquivos} />}
+            <TarefaArquivosLista
+                arquivos={arquivos}
+                setArquivos={setArquivos}
+                writePermission={writePermission}
+            />
         </Stack>
     )
 }
@@ -72,5 +77,5 @@ const TarefaArquivos = ({ tarefa }) => {
 export default TarefaArquivos;
 
 export const getServerSideProps = async () => ({
-  notFound: true,
+    notFound: true,
 });

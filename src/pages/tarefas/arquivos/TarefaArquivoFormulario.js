@@ -10,7 +10,7 @@ import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import { toast } from 'react-toastify';
 
-const TarefaArquivoFormulario = ({ tarefaId, isLoading, setIsLoading, onArquivoInserido }) => {
+const TarefaArquivoFormulario = ({ tarefaId, isLoading, setIsLoading, onArquivoInserido, writePermission }) => {
     const defaultValues = { descricao: '' };
     const { register, handleSubmit, reset, watch } = useForm({ defaultValues });
 
@@ -46,10 +46,10 @@ const TarefaArquivoFormulario = ({ tarefaId, isLoading, setIsLoading, onArquivoI
     return (
         <Stack spacing={2} component='form' onSubmit={handleSubmit(onSubmit)}>
             <Stack direction='row' spacing={2}>
-                <Button variant="contained" color="primary" type="button" onClick={handleNew} disabled={isLoading}>
+                <Button variant="contained" color="primary" type="button" onClick={handleNew} disabled={isLoading || writePermission === false}>
                     Novo
                 </Button>
-                <Button variant='contained' color='success' type='submit' disabled={isLoading}>
+                <Button variant='contained' color='success' type='submit' disabled={isLoading || writePermission === false}>
                     Enviar
                 </Button>
             </Stack>
@@ -71,7 +71,7 @@ const TarefaArquivoFormulario = ({ tarefaId, isLoading, setIsLoading, onArquivoI
                         width: 56,
                         height: 56,
                     }}
-                    disabled={isLoading}
+                    disabled={isLoading || writePermission === false}
                 >
                     <FileUploadIcon />
                     <input hidden type="file" {...register('arquivo')} />

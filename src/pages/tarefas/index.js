@@ -69,6 +69,7 @@ const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, han
     id: `coluna:${coluna.id}`,
     type: 'column',
     accept: 'item',
+    disabled: writePermission === false
   });
 
   const tarefasDaColuna = tarefas
@@ -104,6 +105,7 @@ const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, han
             tarefa={tarefa}
             key={`tarefa:${tarefa.id}`}
             handleEditarTarefa={handleEditarTarefa}
+            writePermission={writePermission}
           />
         ))}
         <Card sx={{ textAlign: 'start' }} key='nova-tarefa' >
@@ -125,14 +127,15 @@ const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, han
 
 };
 
-const TarefaCard = ({ espaco, tarefa, coluna, handleEditarTarefa }) => {
+const TarefaCard = ({ espaco, tarefa, coluna, handleEditarTarefa, writePermission }) => {
 
   const { ref } = useSortable({
     id: `tarefa:${tarefa.id}`,
     index: tarefa.ordem,
     type: 'item',
     accept: 'item',
-    group: `coluna:${coluna.id}`
+    group: `coluna:${coluna.id}`,
+    disabled: writePermission === false
   });
 
   return (
@@ -371,11 +374,22 @@ export default function TarefasPage({ espaco, writePermission }) {
       </Head>
 
       <Dialog open={tarefaModal.open} onClose={handleFecharTarefaModal} maxWidth="lg" fullWidth slotProps={{ paper: { sx: { p: 3 } } }} >
-        <TarefaFormulario mode={tarefaModal.data?.mode} initialValues={tarefaModal.data?.initialValues} onClose={handleFecharTarefaModal} colunas={colunas} />
+        <TarefaFormulario
+          mode={tarefaModal.data?.mode}
+          initialValues={tarefaModal.data?.initialValues}
+          onClose={handleFecharTarefaModal}
+          colunas={colunas}
+          writePermission={writePermission}
+        />
       </Dialog>
 
       <Dialog open={colunaModal.open} onClose={handleFecharColunaModal} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { p: 3 } } }} >
-        <ColunaFormulario mode={colunaModal.data?.mode} initialValues={colunaModal.data?.initialValues} onClose={handleFecharColunaModal} />
+        <ColunaFormulario
+          mode={colunaModal.data?.mode}
+          initialValues={colunaModal.data?.initialValues}
+          onClose={handleFecharColunaModal}
+          writePermission={writePermission}
+        />
       </Dialog>
 
       <Menu open={Boolean(menu.anchorEl)} onClose={handleCloseMenu} anchorEl={menu.anchorEl}>
@@ -383,7 +397,7 @@ export default function TarefasPage({ espaco, writePermission }) {
           const Icon = option.icon;
 
           return (
-            <MenuItem key={option.label} onClick={() => handleOptionClick(option)} disabled={writePermission === false} >
+            <MenuItem key={option.label} onClick={() => handleOptionClick(option)} >
               <Stack direction='row' spacing={2} justifyContent='start'>
                 <Icon />
                 <Typography>{option.label}</Typography>

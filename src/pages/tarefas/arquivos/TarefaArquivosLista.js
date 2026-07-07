@@ -20,7 +20,7 @@ import { toast } from 'react-toastify';
 import { useState } from 'react';
 
 
-const TarefaArquivosLista = ({ arquivos, setArquivos }) => {
+const TarefaArquivosLista = ({ arquivos, setArquivos, writePermission }) => {
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -87,6 +87,7 @@ const TarefaArquivosLista = ({ arquivos, setArquivos }) => {
                             target='_blank'
                             rel="noopener noreferrer"
                             color='info'
+                            disabled={isLoading}
                         >
                             <OpenInNewIcon />
                         </IconButton>
@@ -97,7 +98,11 @@ const TarefaArquivosLista = ({ arquivos, setArquivos }) => {
                 key: 'src',
                 action: (src) => (
                     <ToolTip title='Copiar link'>
-                        <IconButton color='secondary' onClick={() => handleCopy(src)}>
+                        <IconButton
+                            color='secondary'
+                            onClick={() => handleCopy(src)}
+                            disabled={isLoading}
+                        >
                             <ContentCopyIcon />
                         </IconButton>
                     </ToolTip>
@@ -107,7 +112,11 @@ const TarefaArquivosLista = ({ arquivos, setArquivos }) => {
                 key: 'id',
                 action: (id) => (
                     <ToolTip title='Deletar arquivo'>
-                        <IconButton color='error' onClick={() => handleDelete(id)}>
+                        <IconButton
+                            color='error'
+                            onClick={() => handleDelete(id)}
+                            disabled={isLoading || writePermission === false}
+                        >
                             <DeleteIcon />
                         </IconButton>
                     </ToolTip>

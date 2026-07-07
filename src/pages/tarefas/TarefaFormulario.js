@@ -33,7 +33,7 @@ const defaultValues = {
 
 };
 
-const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colunas }) => {
+const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colunas, writePermission }) => {
 
   const { control, reset, register, handleSubmit, getValues } = useForm({ defaultValues: initialValues });
 
@@ -113,7 +113,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
       <Button key='criar tarefa' variant='contained' color='success' type='submit' >Criar</Button>
     ],
     'edit': [
-      <Button key='deletar tarefa' variant='contained' color='error' type='button' onClick={handleDeletarTarefa} >Deletar</Button>
+      <Button key='deletar tarefa' variant='contained' color='error' type='button' onClick={handleDeletarTarefa} disabled={isLoading || writePermission === false} >Deletar</Button>
     ]
   };
 
@@ -149,6 +149,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
               <TextField
                 label="Título"
                 name="titulo"
+                disabled={isLoading || writePermission === false}
                 {...tituloRegister}
                 onBlur={(e) => {
                   tituloRegister.onBlur(e);
@@ -161,6 +162,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
               <TextField
                 label="Descrição"
                 name="descricao"
+                disabled={isLoading || writePermission === false}
                 {...descricaoRegister}
                 onBlur={(e) => {
                   descricaoRegister.onBlur(e);
@@ -197,7 +199,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
               control={control}
               rules={{ required: 'Selecione uma coluna ' }}
               render={({ field }) => (
-                <FormControl fullWidth required disabled={isLoading}>
+                <FormControl fullWidth required disabled={isLoading || writePermission === false}>
                   <InputLabel id='tarefa-id-coluna'>Coluna</InputLabel>
                   <Select
                     {...field}
@@ -211,7 +213,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                   >
                     {colunas?.filter(coluna => coluna.ativo === true)?.map(coluna => (
                       <MenuItem key={`coluna-${coluna.id}`} value={coluna.id}>
-                        <Button color={columnType[coluna.tipo]} type='button' variant='contained'>{coluna.nome}</Button>
+                        <Button color={columnType[coluna.tipo]} type='button' variant='contained' >{coluna.nome}</Button>
                       </MenuItem>
                     ))}
                   </Select>
@@ -233,7 +235,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
           </Typography>
           {renderizarFormulario()}
         </form>
-        {mode !== 'create' ? <TarefaArquivos tarefa={getValues()} /> : <></>}
+        {mode !== 'create' ? <TarefaArquivos tarefa={getValues()} writePermission={writePermission} /> : <></>}
         {isLoading ? <Loading /> : <></>}
       </Stack>
     </Box>

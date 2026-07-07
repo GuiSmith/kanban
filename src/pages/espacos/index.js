@@ -65,64 +65,35 @@ export default function EspacosPage() {
   const { espacos, isNavbarLoading, profile } = useNavbar();
 
   const [activeTab, setActiveTab] = useState(0);
-  const [permissions, setPermissions] = useState([]);
+  const [permissoes, setPermissoes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const space = useMemo(() => {
     if (!id || !espacos) return null;
     return espacos.find(espaco => espaco.id == id);
-  },[id, espacos]);
+  }, [id, espacos]);
 
+  // Buscando permissões
   useEffect(() => {
-    if (!id || !space || !profile) {
+    if (!id || !space || isNavbarLoading) {
       setActiveTab(0);
       return;
     }
 
-    loadPermissions();
-  }, [id, espacos]);
-
-  const loadPermissions = async () => {
-    const localPermissions = await fetchPermissions(space);
-    checkAccess(localPermissions);
-  };
-
-  const fetchPermissions = async (localSpace) => {
-    try {
-      const params = new URLSearchParams({ id_espaco: localSpace.id, id_usuario: profile.id });
-      const res = await authAxios('GET', `/api/espacos/listarPermissoes?${params.toString()}`);
-      setPermissions(res.data.data);
-      return res.data.data;
-    } catch (error) {
-      catchAuthAxios(error, 'Erro ao buscar permissões do usuário no espaço');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const checkAccess = (localPermissions) => {
-    if(!localPermissions) return;
-    const currentTab = tabs.find(tab => tab.index === activeTab);
-
-    if (!hasTabPermission(currentTab.permission, localPermissions)) {
-      const existingPermissions = localPermissions.filter(p => typeof p.escrita === 'boolean');
-      
-      if (existingPermissions.length > 0) {
-
-        for (const existingPermission of existingPermissions) {
-          const firstAcessibleTab = tabs.find(tab => existingPermission.nome === tab.permission);
-          
-          if (firstAcessibleTab) {
-            setActiveTab(firstAcessibleTab.index);
-            return;
-          }
-        }
+    const buscarPermissoes = async () => {
+      try {
+        const params = new URLSearchParams({ id_espaco: space.id, id_usuario: profile.id });
+        const res = await authAxios('GET', `/api/espacos/listarPermissoes?${params.toString()}`);
+        setPermissoes(res.data.data);
+      } catch (error) {
+        catchAuthAxios(error, 'Erro ao buscar permissões do usuário no espaço');
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      router.push('/espacos');
-      return;
-    }
-  }
+    buscarPermissoes();
+  }, [space, id]);
 
   const SpaceIcon = getEspacoIcon(space?.icon) ?? WorkspacesIcon;
 
@@ -130,13 +101,14 @@ export default function EspacosPage() {
     setActiveTab(value);
   };
 
-  const hasTabPermission = (permissionName, permissionList = permissions) => {
-    const permission = permissionList.find(p => p.nome === permissionName);
+  const hasTabPermission = (permissionName) => {
+    if (permissoes.length === 0) {
+      return false;
+    }
 
-    if (typeof permission?.escrita !== 'boolean') return false;
+    const permissao = permissoes.find(p => p.nome == permissionName);
 
-    return true;
-
+    return typeof permissao?.escrita == 'boolean';
   }
 
   return (
@@ -166,25 +138,25 @@ export default function EspacosPage() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="Abas da tela de espaços">
             {tabs.map(tab => (
-              <Tab
-                key={tab.index}
-                icon={<tab.icon />}
-                iconPosition="start"
-                label={tab.label}
-                {...getTabProps(tab.index)}
-                disabled={!id && tab.index == 0 ? false : !hasTabPermission(tab.permission) }
-              />
-            ))}
+                <Tab
+                  key={tab.index}
+                  icon={<tab.icon />}
+                  iconPosition="start"
+                  label={tab.label}
+                  {...getTabProps(tab.index)}
+                  disabled={tab.index === 0 ? false : !hasTabPermission(tab.permission)}
+                />
+              ))}
           </Tabs>
         </Box>
 
         <TabPanel value={activeTab} index={0}>
-          <EspacoFormulario modo={space ? 'edit' : 'create'} initialValues={space} />
+          <EspacoFormulario modo={space ? 'edit' : 'create'} initialValues={space} permissoes={permissoes} />
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>
           {space
-            ? <TarefasPage espaco={space} />
+            ? <TarefasPage espaco={space} permissoes={permissoes} />
             : <Typography variant="body1" color="text.secondary"> Salve o espaço para continuar  </Typography>
           }
         </TabPanel>

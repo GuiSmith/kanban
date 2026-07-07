@@ -9,7 +9,7 @@ const useAuth = () => useContext(AuthContext);
 
 const AuthProvider = ({ children}) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isAuthLoading, setIsAuthLoading] = useState(false);
+    const [isAuthLoading, setIsAuthLoading] = useState(true);
 
     const checkSession = async () => {
         try {

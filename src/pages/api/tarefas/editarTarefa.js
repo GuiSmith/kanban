@@ -55,12 +55,33 @@ const handler = async (req, res) => {
 
         const { id: _, ...safeData } = data;
 
-        console.log('data: ', data);
-        console.log('Atualização: ', safeData);
+        const tarefaAtualizada = await dbPrisma.$transaction(async tx => {
 
-        const tarefaAtualizada = await dbPrisma.tarefa.update({
-            where: { id: data.id },
-            data: safeData
+            if(safeData.ordem != null && safeData.ordem != undefined){
+                const localColuna = safeData?.id_coluna ?? tarefa.id_coluna;
+                const localWhere = {
+                    id_coluna: localColuna,
+                    id: { not: tarefa.id }
+                };
+                const localData = {};
+
+                if(tarefa.id_coluna !== localColuna || tarefa.ordem > safeData.ordem){
+                    localWhere.ordem = { gte: safeData.ordem };
+                    localData.ordem = { increment: 1 };
+                } else {
+                    localWhere.ordem = { lte: safeData.ordem };
+                    localData.ordem = { decrement: 1 };
+                }
+
+                await tx.tarefa.updateMany({ where: localWhere, data: localData });
+            }
+
+            const tarefaAtualizada = await tx.tarefa.update({
+                where: { id: data.id },
+                data: safeData
+            });
+            
+            return tarefaAtualizada;
         });
 
         return res.status(200).json(defaultResponse('Tarefa atualizada com sucesso', tarefaAtualizada));

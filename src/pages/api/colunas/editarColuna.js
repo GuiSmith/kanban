@@ -1,4 +1,3 @@
-import db from '@/pages/api/config/connectDB';
 import dbPrisma from '@/pages/api/config/connectDbPrisma';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
@@ -42,7 +41,7 @@ const handler = async (req, res) => {
             return res.status(403).json(defaultResponse('Você não tem permissão para criar colunas neste espaço!'));
         }
 
-        if(!tiposValidos.includes(data.tipo)){
+        if(data.tipo != null && !tiposValidos.includes(data.tipo)){
             return res.status(400).json(defaultResponse('Tipo de coluna inválido'));
         }
 
@@ -56,9 +55,34 @@ const handler = async (req, res) => {
             }
         }
 
-        const colunaAtualizada = await dbPrisma.coluna.update({
-            where: { id: coluna.id },
-            data
+        const { id: _, ...safeData } = data;
+
+        const colunaAtualizada = await dbPrisma.$transaction(async tx => {
+
+            if(safeData.ordem != null && safeData.ordem != undefined){
+                const localWhere = {
+                    id_espaco: coluna.id_espaco,
+                    id: { not: coluna.id }
+                };
+                const localData = {};
+
+                if(coluna.ordem > safeData.ordem){
+                    localWhere.ordem = { gte: safeData.ordem, lt: coluna.ordem };
+                    localData.ordem = { increment: 1 };
+                } else {
+                    localWhere.ordem = { gt: coluna.ordem, lte: safeData.ordem };
+                    localData.ordem = { decrement: 1 };
+                }
+
+                await tx.coluna.updateMany({ where: localWhere, data: localData });
+            }
+
+            const colunaAtualizada = await tx.coluna.update({
+                where: { id: coluna.id },
+                data: safeData
+            });
+
+            return colunaAtualizada;
         });
 
         return res.status(200).json(defaultResponse('Coluna atualizada com sucesso', colunaAtualizada));

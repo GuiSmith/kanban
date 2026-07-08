@@ -20,7 +20,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
 
 // React
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { io } from 'socket.io-client';
 
 // UI Personalizado
@@ -64,30 +64,40 @@ const tarefaCardProps = {
   }
 };
 
-const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, handleEditarTarefa, writePermission }) => {
+const Coluna = memo(({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, handleEditarTarefa, writePermission }) => {
 
-  const { ref, isDropTarget } = useDroppable({
-    id: `coluna:${coluna.id}`,
-    type: 'column',
+  const { ref: droppableRef, isDropTarget } = useDroppable({
+    id: `coluna-drop:${coluna.id}`,
+    type: 'task-column',
     accept: 'item',
     disabled: writePermission === false
   });
 
-  const tarefasDaColuna = tarefas
-    .filter(tarefa => tarefa.id_coluna == coluna.id)
-    .sort((a, b) => a.ordem - b.ordem);
+  const { ref: sortableRef } = useSortable({
+    id: `coluna-sort:${coluna.id}`,
+    index: coluna.ordem,
+    type: 'column',
+    group: 'colunas',
+    accept: 'column',
+    disabled: writePermission === false
+  });
+
+  const setRef = (node) => {
+    droppableRef(node);
+    sortableRef(node);
+  };
 
   return (
-    <Box ref={ref} {...colunaBoxProps(coluna, isDropTarget)} >
+    <Box ref={setRef} {...colunaBoxProps(coluna, isDropTarget)} >
       {/* Header */}
       <Stack direction='row' justifyContent='space-between' alignItems='center'>
         <Typography variant="h6" sx={{ mb: 1 }}>
           {capitalizeFirstLetter(coluna.nome)}
         </Typography>
         <Stack direction='row' spacing={0.1} alignItems='center' >
-          <Tooltip title={`Esta coluna tem ${tarefasDaColuna.length} tarefas`}>
+          <Tooltip title={`Esta coluna tem ${tarefas.length} tarefas`}>
             <IconButton size='small'>
-              {tarefasDaColuna.length}
+              {tarefas.length}
             </IconButton>
           </Tooltip>
           <Tooltip title='Ações da coluna'>
@@ -99,7 +109,7 @@ const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, han
       </Stack>
       {/* Tarefas */}
       <Stack direction='column' spacing={1} sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
-        {tarefasDaColuna.map(tarefa => (
+        {tarefas.map(tarefa => (
           <TarefaCard
             espaco={espaco}
             coluna={coluna}
@@ -126,16 +136,16 @@ const Coluna = ({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, han
     </Box>
   );
 
-};
+});
 
-const TarefaCard = ({ espaco, tarefa, coluna, handleEditarTarefa, writePermission }) => {
+const TarefaCard = memo(({ espaco, tarefa, coluna, handleEditarTarefa, writePermission }) => {
 
   const { ref } = useSortable({
     id: `tarefa:${tarefa.id}`,
     index: tarefa.ordem,
     type: 'item',
     accept: 'item',
-    group: `coluna:${coluna.id}`,
+    group: `coluna-drop:${coluna.id}`,
     disabled: writePermission === false
   });
 
@@ -154,7 +164,7 @@ const TarefaCard = ({ espaco, tarefa, coluna, handleEditarTarefa, writePermissio
       </CardContent>
     </Card>
   );
-};
+});
 
 export default function TarefasPage({ espaco, writePermission }) {
   const [tarefas, setTarefas] = useState([]);
@@ -163,14 +173,6 @@ export default function TarefasPage({ espaco, writePermission }) {
   const [tarefaModal, setTarefaModal] = useState({ open: false, data: {} });
   const [colunaModal, setColunaModal] = useState({ open: false, data: {} });
   const [menu, setMenu] = useState({ anchorEl: null, coluna: null });
-
-  const handleOpenMenu = (event, coluna) => {
-    setMenu({ anchorEl: event.currentTarget, coluna });
-  }
-
-  const handleCloseMenu = () => {
-    setMenu({ anchorEl: null, coluna: null });
-  };
 
   // Socket
   useEffect(() => {
@@ -231,7 +233,7 @@ export default function TarefasPage({ espaco, writePermission }) {
     }
   }, []);
 
-  // Buscar tarefas
+  // Buscar tarefas e colunas
   useEffect(() => {
     const fetchTarefas = async () => {
       try {
@@ -263,7 +265,15 @@ export default function TarefasPage({ espaco, writePermission }) {
     fetchTarefas();
   }, [espaco]);
 
-  const handleNovaTarefa = (id_coluna) => {
+  const handleOpenMenu = useCallback((event, coluna) => {
+    setMenu({ anchorEl: event.currentTarget, coluna });
+  },[]);
+
+  const handleCloseMenu = useCallback(() => {
+    setMenu({ anchorEl: null, coluna: null });
+  },[]);
+
+  const handleNovaTarefa = useCallback((id_coluna) => {
     setTarefaModal({
       open: true,
       data: {
@@ -274,9 +284,9 @@ export default function TarefasPage({ espaco, writePermission }) {
         }
       }
     });
-  };
+  },[espaco]);
 
-  const handleEditarTarefa = (tarefa) => {
+  const handleEditarTarefa = useCallback((tarefa) => {
     setTarefaModal({
       open: true,
       data: {
@@ -284,16 +294,16 @@ export default function TarefasPage({ espaco, writePermission }) {
         initialValues: { ...tarefa }
       }
     });
-  }
+  },[]);
 
-  const handleFecharTarefaModal = () => {
+  const handleFecharTarefaModal = useCallback(() => {
     setTarefaModal({
       open: false,
       data: {}
     });
-  }
+  },[]);
 
-  const handleNovaColuna = () => {
+  const handleNovaColuna = useCallback(() => {
     setColunaModal({
       open: true,
       data: {
@@ -303,9 +313,9 @@ export default function TarefasPage({ espaco, writePermission }) {
         }
       }
     });
-  };
+  },[espaco]);
 
-  const handleEditarColuna = (coluna) => {
+  const handleEditarColuna = useCallback((coluna) => {
     setColunaModal({
       open: true,
       data: {
@@ -313,16 +323,16 @@ export default function TarefasPage({ espaco, writePermission }) {
         initialValues: { ...coluna }
       }
     });
-  };
+  },[]);
 
-  const handleFecharColunaModal = () => {
+  const handleFecharColunaModal = useCallback(() => {
     setColunaModal({
       open: false,
       data: {}
     });
-  }
+  },[]);
 
-  const handleOptionClick = (option) => {
+  const handleOptionClick = useCallback((option) => {
     const coluna = menu.coluna;
 
     handleCloseMenu();
@@ -331,41 +341,79 @@ export default function TarefasPage({ espaco, writePermission }) {
 
     option.handleClick(coluna);
 
-  }
+  },[menu, handleCloseMenu]);
 
-  const options = [
-    { label: 'Adicionar tarefa', icon: AddIcon, handleClick: (coluna) => handleNovaTarefa(coluna.id) },
-    { label: 'Editar coluna', icon: EditIcon, handleClick: (coluna) => handleEditarColuna(coluna) },
-  ];
-
-  const handleDragEnd = (event) => {
+  const handleDragEnd = useCallback(async (event) => {
     if (event.canceled) return;
-
-    const id = Number(event.operation.source.id.split(':').pop());
-    const id_coluna = Number((event.operation.target.type == 'column' ? event.operation.target.id : event.operation.target.group).split(':').pop());
-    const ordem = Number(event.operation.target.index ?? 0);
-    const tarefa = tarefas.find(tarefa => tarefa.id == id);
-
-    if (tarefa.ordem == ordem && tarefa.id_coluna == id_coluna) {
-      return;
-    }
-
-    const data = { id };
-
-    if (tarefa.ordem != ordem) data.ordem = ordem;
-    if (tarefa.id_coluna != id_coluna) data.id_coluna = id_coluna;
-
-    // const coluna = colunas.find(coluna => coluna.id == event.operation.target.id.split(':').pop());
 
     try {
       setIsLoading(true);
-      const res = authAxios('put', '/api/tarefas/editarTarefa', data);
+
+      if (event.operation.source.type === 'column') {
+
+        const id = Number(event.operation.source.id.split(':').pop());
+        const ordem = Number(event.operation.target.index ?? 0);
+        const coluna = colunas.find(coluna => coluna.id == id);
+
+        if (!coluna || coluna.ordem == ordem) {
+          return;
+        }
+
+        const res = await authAxios('put', '/api/colunas/editarColuna', { id, ordem });
+        return;
+      }
+
+      const id = Number(event.operation.source.id.split(':').pop());
+      const id_coluna = Number((event.operation.target.type == 'task-column' ? event.operation.target.id : event.operation.target.group).split(':').pop());
+      const ordem = Number(event.operation.target.index ?? 0);
+      const tarefa = tarefas.find(tarefa => tarefa.id == id);
+
+      if (!tarefa || (tarefa.ordem == ordem && tarefa.id_coluna == id_coluna)) {
+        return;
+      }
+
+      const data = { id };
+
+      if (tarefa.ordem != ordem) data.ordem = ordem;
+      if (tarefa.id_coluna != id_coluna) data.id_coluna = id_coluna;
+
+      await authAxios('put', '/api/tarefas/editarTarefa', data);
     } catch (error) {
-      catchAuthAxios(error, 'Erro ao mover tarefa');
+      catchAuthAxios(error, 'Erro ao mover item');
     } finally {
       setIsLoading(false);
     }
-  }
+  },[colunas,tarefas]);
+
+  const menuOptions = useMemo(() => [
+    { label: 'Adicionar tarefa', icon: AddIcon, handleClick: (coluna) => handleNovaTarefa(coluna.id) },
+    { label: 'Editar coluna', icon: EditIcon, handleClick: (coluna) => handleEditarColuna(coluna) },
+  ],[handleNovaTarefa, handleNovaColuna]);
+
+  const colunasOrdenadas = useMemo(() => {
+    return colunas
+      .filter(col => col?.ativo === true)
+      .sort((a, b) => a.ordem - b.ordem);
+  }, [colunas]);
+
+  const tarefasPorColuna = useMemo(() => {
+    const map = {};
+
+    for (const tarefa of tarefas) {
+      if (!map[tarefa.id_coluna]) {
+        map[tarefa.id_coluna] = [];
+      }
+
+      map[tarefa.id_coluna].push(tarefa);
+    }
+
+    for (const idColuna in map) {
+      map[idColuna].sort((a, b) => a.ordem - b.ordem);
+    }
+
+    return map;
+
+  }, [tarefas]);
 
   return (
     <>
@@ -373,6 +421,8 @@ export default function TarefasPage({ espaco, writePermission }) {
         <title>Tarefas</title>
         <meta name="description" content="Tela de tarefas" />
       </Head>
+
+      {isLoading ? <Loading /> : null}
 
       <Dialog open={tarefaModal.open} onClose={handleFecharTarefaModal} maxWidth="lg" fullWidth slotProps={{ paper: { sx: { p: 3, position: 'relative' } } }} >
         <ModalCloseButton onClick={handleFecharTarefaModal} />
@@ -396,7 +446,7 @@ export default function TarefasPage({ espaco, writePermission }) {
       </Dialog>
 
       <Menu open={Boolean(menu.anchorEl)} onClose={handleCloseMenu} anchorEl={menu.anchorEl}>
-        {options.map(option => {
+        {menuOptions.map(option => {
           const Icon = option.icon;
 
           return (
@@ -412,30 +462,32 @@ export default function TarefasPage({ espaco, writePermission }) {
 
       <DragDropProvider onDragEnd={handleDragEnd}>
         <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', overflowY: 'hidden', justifyContent: 'flex-start', alignItems: 'flex-start', py: 1, }} >
-          {isLoading ? <Loading /> : colunas.length !== 0 && colunas.filter(coluna => coluna?.ativo === true)?.map(coluna => (
+          {colunasOrdenadas?.map(coluna => (
             <Coluna
               espaco={espaco}
               coluna={coluna}
               key={`coluna:${coluna.id}`}
-              tarefas={tarefas}
+              tarefas={tarefasPorColuna[coluna.id] ?? []}
               handleOpenMenu={handleOpenMenu}
               handleNovaTarefa={handleNovaTarefa}
               handleEditarTarefa={handleEditarTarefa}
               writePermission={writePermission}
             />
           ))}
-          <Box key='nova-coluna' {...colunaBoxProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
-            <Button
-              variant='text'
-              startIcon={<AddIcon />}
-              fullWidth
-              sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
-              onClick={handleNovaColuna}
-              disabled={writePermission === false}
-            >
-              Adicionar Coluna
-            </Button>
-          </Box>
+          {colunasOrdenadas?.length == 0 ? null : (
+            <Box key='nova-coluna' {...colunaBoxProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
+              <Button
+                variant='text'
+                startIcon={<AddIcon />}
+                fullWidth
+                sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+                onClick={handleNovaColuna}
+                disabled={writePermission === false}
+              >
+                Adicionar Coluna
+              </Button>
+            </Box>
+          )}
         </Stack>
       </DragDropProvider>
 

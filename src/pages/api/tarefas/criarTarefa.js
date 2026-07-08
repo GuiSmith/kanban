@@ -1,6 +1,6 @@
 import db from '@/pages/api/config/connectDB.js';
 import buildInsert from '@/pages/api/utils/buildInsert.js';
-
+import isDatabaseDate from '@/pages/api/utils/isDatabaseDate';
 import defaultResponse from '@/pages/api/config/defaultResponse.js';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
@@ -15,7 +15,7 @@ const handler = async (req, res) => {
     try {
         const dadosForm = req.body ?? {};
         const dadosObrigatorios = ['titulo','descricao','id_espaco','id_coluna'];
-        const dadosPermitidos = [...dadosObrigatorios, 'id_responsavel'];
+        const dadosPermitidos = [...dadosObrigatorios, 'id_responsavel','data_prevista','data_limite'];
         const dadosObrigatoriosPreenchidos = dadosObrigatorios.every(dado => dadosForm[dado]);
         const somenteDadosPermitidosPreenchidos = Object.keys(dadosForm).every(key => dadosPermitidos.includes(key));
 
@@ -74,6 +74,14 @@ const handler = async (req, res) => {
             if(responsavelPertenceAoEspaco.belongs === false){
                 return res.status(403).json(defaultResponse('Usuário não pertence a este espaço!'));
             }
+        }
+
+        if(dadosForm?.data_prevista && !isDatabaseDate(dadosForm.data_prevista)){
+            return res.status(400).json(defaultResponse('Tipo de data inválida'));
+        }
+
+        if(dadosForm?.data_limite && !isDatabaseDate(dadosForm.data_limite)){
+            return res.status(400).json(defaultResponse('Tipo de data inválida'));
         }
 
         const ordemResult = await db.query({ text: 'SELECT MAX(ordem) AS max_ordem FROM tarefa WHERE id_coluna = $1', values:[idColuna] });

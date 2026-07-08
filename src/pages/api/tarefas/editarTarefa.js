@@ -4,6 +4,8 @@ import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
 import userBelongsToSpace from '@/pages/api/utils/userBelongsToSpace';
+import isDatabaseDate from '@/pages/api/utils/isDatabaseDate';
+import databaseDateToPrisma from '@/pages/api/utils/databaseDateToPrisma';
 
 const requiredPermission = {
     name: 'QUADRO',
@@ -13,7 +15,7 @@ const requiredPermission = {
 const handler = async (req, res) => {
     try {
         const data = req.body ?? {};
-        const dadosPermitidos = ['id','titulo','descricao','id_coluna','ordem','id_responsavel'];
+        const dadosPermitidos = ['id','titulo','descricao','id_coluna','ordem','id_responsavel','data_prevista','data_limite'];
         const idInformado = 'id' in data;
         const apenasDadosPermitidosInformados = Object.keys(data).every(key => dadosPermitidos.includes(key));
 
@@ -69,6 +71,21 @@ const handler = async (req, res) => {
             if(responsavelPertenceAoEspaco.belongs === false){
                 return res.status(403).json(defaultResponse('Usuário não pertence a este espaço!'));
             }
+        }
+
+        
+        if(data?.data_prevista){
+            if(!isDatabaseDate(data.data_prevista)){
+                return res.status(400).json(defaultResponse('Tipo de data inválida'));
+            }
+            data.data_prevista = databaseDateToPrisma(data.data_prevista);
+        }
+
+        if(data?.data_limite){
+            if(!isDatabaseDate(data.data_limite)){
+                return res.status(400).json(defaultResponse('Tipo de data inválida'));
+            }
+            data.data_limite = databaseDateToPrisma(data.data_limite);
         }
 
         const { id: _, ...safeData } = data;

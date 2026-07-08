@@ -31,9 +31,16 @@ import Tooltip from "@mui/material/Tooltip";
 // const defaultValues = { titulo: '', descricao: '' };
 
 const defaultValues = {
-  create: ['titulo', 'descricao', 'id_coluna', 'id_espaco'],
-  edit: ['id', 'titulo', 'descricao', 'id_coluna', 'ordem']
+  create: ['titulo', 'descricao', 'id_coluna', 'id_espaco', 'id_responsavel', 'data_prevista', 'data_limite'],
+  edit: ['id', 'titulo', 'descricao', 'id_coluna', 'ordem', 'id_responsavel', 'data_prevista', 'data_limite']
 
+};
+
+const toDateInputValue = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') return value.split('T')[0];
+
+  return value.toISOString().split('T')[0];
 };
 
 const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colunas, writePermission, usuarios }) => {
@@ -231,7 +238,6 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
               <Controller
                 name='id_responsavel'
                 control={control}
-                rules={{ required: 'Selecione um responsável' }}
                 render={({ field }) => (
                   <FormControl fullWidth disabled={isLoading || writePermission === false}>
                     <InputLabel id='tarefa-id-responsavel'>Responsável</InputLabel>
@@ -257,6 +263,40 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                       ))}
                     </Select>
                   </FormControl>
+                )}
+              />
+              <Controller
+                name='data_prevista'
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label='Data prevista'
+                    type='date'
+                    value={toDateInputValue(field.value)}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                    onBlur={(e) => salvarCampo('data_prevista', e.target.value || null)}
+                    disabled={isLoading || writePermission === false}
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    fullWidth
+                  />
+                )}
+              />
+              <Controller
+                name='data_limite'
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label='Data limite'
+                    type='date'
+                    value={toDateInputValue(field.value)}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                    onBlur={(e) => salvarCampo('data_limite', e.target.value || null)}
+                    disabled={isLoading || writePermission === false}
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    fullWidth
+                  />
                 )}
               />
             </Stack>

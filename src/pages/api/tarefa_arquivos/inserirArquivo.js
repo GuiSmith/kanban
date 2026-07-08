@@ -34,15 +34,11 @@ const handler = async (req, res) => {
         // Extraindo dados
         const { fields, files } = await parseForm(req);
         const arquivo = Array.isArray(files?.arquivo) ? files.arquivo[0] : files?.arquivo;
-        const descricao = Array.isArray(fields?.descricao) ? fields.descricao[0] : fields?.descricao;
         const idTarefa = Array.isArray(fields?.id_tarefa) ? fields.id_tarefa[0] : fields?.id_tarefa;
 
         // Validando dados
         if (!arquivo) {
             return res.status(400).json(defaultResponse('Nenhum arquivo foi enviado'));
-        }
-        if (!descricao) {
-            return res.status(400).json(defaultResponse('Informe a descrição do arquivo'));
         }
         if (!idTarefa){
             return res.status(400).json(defaultResponse('Informe a tarefa!'));
@@ -99,7 +95,6 @@ const handler = async (req, res) => {
         const tarefaArquivoData = {
             id_tarefa: idTarefa,
             id_opera: response.data.content.id,
-            descricao,
             nome: arquivo.originalFilename,
             public_url: response.data.content.public_url
         };

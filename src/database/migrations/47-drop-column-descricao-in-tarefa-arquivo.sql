@@ -1,0 +1,1 @@
+ALTER TABLE tarefa_arquivo DROP COLUMN descricao;

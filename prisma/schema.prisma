@@ -139,7 +139,6 @@ model tarefa_arquivo {
   id            Int      @id @default(autoincrement())
   id_tarefa     Int?
   id_opera      Int?
-  descricao     String   @db.VarChar(255)
   nome          String   @db.VarChar(255)
   data_cadastro DateTime @default(now()) @db.Timestamptz(6)
   public_url    String?

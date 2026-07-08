@@ -60,10 +60,6 @@ const TarefaArquivosLista = ({ arquivos, setArquivos, writePermission }) => {
     };
 
     const tableColumns = {
-        descricao: {
-            display: 'Descrição',
-            format: (value) => <ToolTip title={value}>{truncateString(value, tableMaxStringLength)}</ToolTip>,
-        },
         nome: {
             display: 'Arquivo',
             format: (value) => <ToolTip title={value}>{truncateString(value, tableMaxStringLength)}</ToolTip>,

@@ -32,7 +32,7 @@ import Tooltip from "@mui/material/Tooltip";
 
 const defaultValues = {
   create: ['titulo', 'descricao', 'id_coluna', 'id_espaco', 'id_responsavel', 'data_prevista', 'data_limite'],
-  edit: ['id', 'titulo', 'descricao', 'id_coluna', 'ordem', 'id_responsavel', 'data_prevista', 'data_limite']
+  edit: ['id', 'titulo', 'descricao', 'id_coluna', 'ordem', 'id_responsavel', 'data_cadastro','data_atualizacao', 'data_prevista', 'data_limite']
 
 };
 

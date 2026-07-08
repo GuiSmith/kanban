@@ -21,6 +21,7 @@ import catchAuthAxios from '@/utils/catchAxios';
 import { formatDateTime } from '@/utils/formatDate';
 import getNameInitials from '@/utils/getNameInitials';
 import statusMap from '@/utils/InviteStatusMap';
+import ProfilePicture from '@/components/ProfilePicture';
 
 const Convites = ({ convites = [], onConviteCancelado, writePermission }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -85,13 +86,7 @@ const Convites = ({ convites = [], onConviteCancelado, writePermission }) => {
           alignItems='center'
           sx={{ width: '100%', height: '100%' }}
         >
-          <Avatar
-            src={params.row?.src || undefined}
-            alt={params.value || 'Usuário'}
-            sx={{ width: 32, height: 32 }}
-          >
-            {params.value ? getNameInitials(params.value) : '?'}
-          </Avatar>
+          <ProfilePicture user={params.row} />
           <Typography variant='body2'>{params.value}</Typography>
         </Stack>
       ),
@@ -182,13 +177,7 @@ const Convites = ({ convites = [], onConviteCancelado, writePermission }) => {
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 1, minWidth: 420 }}>
             <Stack direction='row' spacing={2} alignItems='center'>
-              <Avatar
-                src={invite?.avatar_public_url || undefined}
-                sx={{ width: 64, height: 64 }}
-              >
-                {getNameInitials(invite?.nome)}
-              </Avatar>
-
+              <ProfilePicture size='medium' user={invite} />
               <Box>
                 <Typography variant='h6'>
                   {invite?.nome}

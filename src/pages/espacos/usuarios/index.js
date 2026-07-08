@@ -23,6 +23,7 @@ import UsuarioPermissoesFormulario from '@/pages/espacos/usuarios/UsuarioPermiss
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import getNameInitials from '@/utils/getNameInitials';
+import ProfilePicture from '@/components/ProfilePicture';
 
 const UsuariosPage = ({ espaco, writePermission }) => {
   const [usuarios, setUsuarios] = useState([]);
@@ -69,13 +70,7 @@ const UsuariosPage = ({ espaco, writePermission }) => {
           alignItems="center"
           sx={{ width: '100%', height: '100%' }}
         >
-          <Avatar
-            src={params.row?.src || undefined}
-            alt={params.value || 'Usuário'}
-            sx={{ width: 32, height: 32 }}
-          >
-            {params.value ? getNameInitials(params.value) : '?'}
-          </Avatar>
+          <ProfilePicture user={params.row} />
           <Typography variant="body2">{params.value}</Typography>
         </Stack>
       ),
@@ -137,12 +132,7 @@ const UsuariosPage = ({ espaco, writePermission }) => {
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 1, minWidth: 420 }}>
             <Stack direction='row' spacing={2} alignItems='center'>
-              <Avatar
-                src={usuario?.avatar_public_url || undefined}
-                sx={{ width: 64, height: 64 }}
-              >
-                {getNameInitials(usuario?.nome)}
-              </Avatar>
+              <ProfilePicture size='medium' user={usuario} />
 
               <Box>
                 <Typography variant='h6'>

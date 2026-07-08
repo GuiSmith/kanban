@@ -135,9 +135,7 @@ const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onC
             renderOption={(props, option) => (
               <li {...props} key={option.id}>
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Avatar src={option.src || undefined} alt={option.nome} sx={{ width: 28, height: 28 }}>
-                    {option.nome ? getNameInitials(option.nome) : '?'}
-                  </Avatar>
+                  <ProfilePicture user={option} />
                   <span>{getOptionLabel(option)}</span>
                 </Stack>
               </li>

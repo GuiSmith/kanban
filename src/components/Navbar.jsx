@@ -41,6 +41,7 @@ import { getEspacoIcon } from "@/utils/EspacosIcones";
 
 // Contexts
 import { useAuth } from "@/contexts/AuthContext";
+import ProfilePicture from "./ProfilePicture";
 
 export const drawerWidth = 240;
 const collapsedDrawerWidth = 72;
@@ -98,21 +99,7 @@ const Navbar = () => {
     setEspacosAtivos(espacos.filter(e => e.ativo !== false));
   }, [espacos]);
 
-  const renderProfileIcon = () => {
-    if (profile?.src) {
-      return (
-        <Avatar
-          src={profile.src}
-          alt={profile.nome || 'Perfil'}
-          sx={{ width: 28, height: 28 }}
-        />
-      );
-    }
-
-    return <AccountCircleIcon />;
-  };
-
-  const renderMenuIcon = (item) => item.icon === 'profile' ? renderProfileIcon() : item.icon;
+  const renderMenuIcon = (item) => item.icon === 'profile' ? <ProfilePicture user={profile} /> : item.icon;
 
   const renderSpaceSubItems = () => {
     if (collapsed) return null;

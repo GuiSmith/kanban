@@ -4,6 +4,7 @@ import buildInsert from '@/pages/api/utils/buildInsert.js';
 import defaultResponse from '@/pages/api/config/defaultResponse.js';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+import userBelongsToSpace from '../utils/userBelongsToSpace';
 
 const requiredPermission = {
     name: 'QUADRO',
@@ -14,10 +15,16 @@ const handler = async (req, res) => {
     try {
         const dadosForm = req.body ?? {};
         const dadosObrigatorios = ['titulo','descricao','id_espaco','id_coluna'];
+        const dadosPermitidos = [...dadosObrigatorios, 'id_responsavel'];
         const dadosObrigatoriosPreenchidos = dadosObrigatorios.every(dado => dadosForm[dado]);
+        const somenteDadosPermitidosPreenchidos = Object.keys(dadosForm).every(key => dadosPermitidos.includes(key));
 
         if(!dadosObrigatoriosPreenchidos){
-            return res.status(400).json(defaultResponse('Preencha todos os dados para continuar'));
+            return res.status(400).json(defaultResponse('Preencha todos os dados para continuar', { obrigatorios: dadosObrigatorios} ));
+        }
+
+        if(!somenteDadosPermitidosPreenchidos){
+            return res.status(400).json(defaultResponse('Preencha apenas os dados permitidos para continuar', { obrigatorios: dadosObrigatorios} ));
         }
 
         const idEspaco = Number(dadosForm.id_espaco);
@@ -51,6 +58,23 @@ const handler = async (req, res) => {
             return res.status(404).json(defaultResponse('Coluna não encontrada!'));
         }
         dadosForm.id_coluna = idColuna;
+
+        if(dadosForm?.id_responsavel){
+            const responsavelResult = await db.query({
+                text: `SELECT * FROM usuario WHERE id = $1`,
+                values:[dadosForm.id_responsavel]
+            });
+
+            if(responsavelResult.rowCount !== 1){
+                return res.status(404).json(defaultResponse('Responsável não encontrado!'));
+            }
+
+            const responsavelPertenceAoEspaco = userBelongsToSpace(dadosForm.id_espaco, dadosForm.id_responsavel);
+
+            if(responsavelPertenceAoEspaco.belongs === false){
+                return res.status(403).json(defaultResponse('Usuário não pertence a este espaço!'));
+            }
+        }
 
         const ordemResult = await db.query({ text: 'SELECT MAX(ordem) AS max_ordem FROM tarefa WHERE id_coluna = $1', values:[idColuna] });
         const maxOrdem = ordemResult.rows[0].max_ordem ?? 0;

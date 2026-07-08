@@ -3,6 +3,7 @@ import dbPrisma from '@/pages/api/config/connectDbPrisma';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
+import userBelongsToSpace from '@/pages/api/utils/userBelongsToSpace';
 
 const requiredPermission = {
     name: 'QUADRO',
@@ -12,7 +13,7 @@ const requiredPermission = {
 const handler = async (req, res) => {
     try {
         const data = req.body ?? {};
-        const dadosPermitidos = ['id','titulo','descricao','id_coluna','ordem'];
+        const dadosPermitidos = ['id','titulo','descricao','id_coluna','ordem','id_responsavel'];
         const idInformado = 'id' in data;
         const apenasDadosPermitidosInformados = Object.keys(data).every(key => dadosPermitidos.includes(key));
 
@@ -50,6 +51,23 @@ const handler = async (req, res) => {
             if(coluna.ativo === false){
                 console.log('coluna inativa cara: ', coluna);
                 return res.status(409).json(defaultResponse(`A coluna '${coluna}' está inativa, use outra`));
+            }
+        }
+
+        if(data?.id_responsavel){
+            const responsavelResult = await db.query({
+                text: `SELECT * FROM usuario WHERE id = $1`,
+                values:[data.id_responsavel]
+            });
+
+            if(responsavelResult.rowCount !== 1){
+                return res.status(404).json(defaultResponse('Responsável não encontrado!'));
+            }
+
+            const responsavelPertenceAoEspaco = userBelongsToSpace(tarefa.id_espaco, data.id_responsavel);
+
+            if(responsavelPertenceAoEspaco.belongs === false){
+                return res.status(403).json(defaultResponse('Usuário não pertence a este espaço!'));
             }
         }
 

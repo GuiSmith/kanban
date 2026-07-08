@@ -169,6 +169,7 @@ const TarefaCard = memo(({ espaco, tarefa, coluna, handleEditarTarefa, writePerm
 export default function TarefasPage({ espaco, writePermission }) {
   const [tarefas, setTarefas] = useState([]);
   const [colunas, setColunas] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [tarefaModal, setTarefaModal] = useState({ open: false, data: {} });
   const [colunaModal, setColunaModal] = useState({ open: false, data: {} });
@@ -233,7 +234,7 @@ export default function TarefasPage({ espaco, writePermission }) {
     }
   }, []);
 
-  // Buscar tarefas e colunas
+  // Buscar tarefas, colunas e usuários
   useEffect(() => {
     const fetchTarefas = async () => {
       try {
@@ -261,8 +262,22 @@ export default function TarefasPage({ espaco, writePermission }) {
       }
     };
 
+    const fetchUsuarios = async () => {
+      try {
+        setIsLoading(true);
+        const urlParams = new URLSearchParams({ id_espaco: espaco.id });
+        const res = await authAxios('get', `/api/espacos/listarUsuarios?${urlParams.toString()}`);
+        setUsuarios(res.data.data);
+      } catch (error) {
+        catchAuthAxios(error, 'Erro ao listar colunas');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
     fetchColunas();
     fetchTarefas();
+    fetchUsuarios();
   }, [espaco]);
 
   const handleOpenMenu = useCallback((event, coluna) => {
@@ -432,6 +447,7 @@ export default function TarefasPage({ espaco, writePermission }) {
           onClose={handleFecharTarefaModal}
           colunas={colunas}
           writePermission={writePermission}
+          usuarios={usuarios}
         />
       </Dialog>
 

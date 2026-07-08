@@ -1,5 +1,5 @@
 // React/JS
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from 'react-toastify';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -24,16 +24,19 @@ import authAxios from "@/utils/authAxios";
 import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
 import { formatDateTime } from "@/utils/formatDate";
+import ProfilePicture from "@/components/ProfilePicture";
+import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
+import Tooltip from "@mui/material/Tooltip";
 
 // const defaultValues = { titulo: '', descricao: '' };
 
 const defaultValues = {
-  create: ['titulo','descricao','id_coluna','id_espaco'],
-  edit: ['id','titulo', 'descricao','id_coluna','ordem']
+  create: ['titulo', 'descricao', 'id_coluna', 'id_espaco'],
+  edit: ['id', 'titulo', 'descricao', 'id_coluna', 'ordem']
 
 };
 
-const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colunas, writePermission }) => {
+const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colunas, writePermission, usuarios }) => {
 
   const { control, reset, register, handleSubmit, getValues } = useForm({ defaultValues: initialValues });
 
@@ -43,7 +46,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
   useEffect(() => {
     const obj = {};
 
-    for(const key of defaultValues[mode]){
+    for (const key of defaultValues[mode]) {
       obj[key] = initialValues?.[key] ?? null;
     }
 
@@ -107,6 +110,10 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
       setIsLoading(false);
     }
   }
+
+  const colunasAtivas = useMemo(() => {
+    return colunas.filter(col => col?.ativo === true) ?? [];
+  }, [colunas]);
 
   const buttons = {
     'create': [
@@ -194,32 +201,65 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
           </Grid>
           {/* Campos personalizados */}
           <Grid size={{ sx: 12, md: 3 }}>
-            <Controller
-              name='id_coluna'
-              control={control}
-              rules={{ required: 'Selecione uma coluna ' }}
-              render={({ field }) => (
-                <FormControl fullWidth required disabled={isLoading || writePermission === false}>
-                  <InputLabel id='tarefa-id-coluna'>Coluna</InputLabel>
-                  <Select
-                    {...field}
-                    labelId='tarefa-id-coluna'
-                    label='Coluna'
-                    value={field.value || ''}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      salvarCampo('id_coluna', e.target.value);
-                    }}
-                  >
-                    {colunas?.filter(coluna => coluna.ativo === true)?.map(coluna => (
-                      <MenuItem key={`coluna-${coluna.id}`} value={coluna.id}>
-                        <Button color={columnType[coluna.tipo]} type='button' variant='contained' >{coluna.nome}</Button>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-            />
+            <Stack spacing={2.5}>
+              <Controller
+                name='id_coluna'
+                control={control}
+                rules={{ required: 'Selecione uma coluna ' }}
+                render={({ field }) => (
+                  <FormControl fullWidth required disabled={isLoading || writePermission === false}>
+                    <InputLabel id='tarefa-id-coluna'>Coluna</InputLabel>
+                    <Select
+                      {...field}
+                      labelId='tarefa-id-coluna'
+                      label='Coluna'
+                      value={field.value || ''}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        salvarCampo('id_coluna', e.target.value);
+                      }}
+                    >
+                      {colunasAtivas.map(coluna => (
+                        <MenuItem key={`coluna-${coluna.id}`} value={coluna.id}>
+                          <Button color={columnType[coluna.tipo]} type='button' variant='contained' >{coluna.nome}</Button>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+              <Controller
+                name='id_responsavel'
+                control={control}
+                rules={{ required: 'Selecione um responsável' }}
+                render={({ field }) => (
+                  <FormControl fullWidth disabled={isLoading || writePermission === false}>
+                    <InputLabel id='tarefa-id-responsavel'>Responsável</InputLabel>
+                    <Select
+                      {...field}
+                      labelId='tarefa-id-responsavel'
+                      label='Responsável'
+                      value={field.value || ''}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        salvarCampo('id_responsavel', e.target.value);
+                      }}
+                    >
+                      {usuarios.map(usuario => (
+                        <MenuItem key={`usuario-${usuario.id}`} value={usuario.id}>
+                          <Tooltip title={`@${usuario.username} - ${capitalizeFirstLetter(usuario.nome)}`}>
+                            <Stack direction='row' alignItems='center' spacing={1}>
+                              <ProfilePicture size='small' user={usuario} />
+                              <Typography>{usuario.email}</Typography>
+                            </Stack>
+                          </Tooltip>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </Stack>
           </Grid>
         </Grid>
       </Stack>

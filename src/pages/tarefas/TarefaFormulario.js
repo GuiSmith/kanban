@@ -251,6 +251,14 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                         salvarCampo('id_responsavel', e.target.value);
                       }}
                     >
+                      <MenuItem key='usuario-nenhum' value={null}>
+                        <Tooltip title='Nenhum responsável'>
+                          <Stack direction='row' alignItems='center' spacing={1}>
+                            <ProfilePicture user={null} />
+                            <Typography>Nenhum responsável</Typography>
+                          </Stack>
+                        </Tooltip>
+                      </MenuItem>
                       {usuarios.map(usuario => (
                         <MenuItem key={`usuario-${usuario.id}`} value={usuario.id}>
                           <Tooltip title={`@${usuario.username} - ${capitalizeFirstLetter(usuario.nome)}`}>

@@ -35,6 +35,7 @@ import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
 import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 import { formatDate } from "@/utils/formatDate";
+import ProfilePicture from "@/components/ProfilePicture";
 
 const colunaBoxProps = (coluna, isDropTarget) => ({
   size: { xs: 12, sm: 6, md: 2 },
@@ -151,16 +152,13 @@ const TarefaCard = memo(({ espaco, tarefa, coluna, handleEditarTarefa, writePerm
 
   return (
     <Card ref={ref} {...tarefaCardProps} >
-      <CardContent onClick={() => handleEditarTarefa(tarefa)}>
+      <CardContent onClick={() => handleEditarTarefa(tarefa)} sx={{ p: 1, '&:last-child': { pb: 1 } }}>
         <Typography color='info'>{espaco.sigla}-{tarefa.id}</Typography>
-        <Typography variant="h6" component="h2">
-          {tarefa.titulo || "Sem titulo"}
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Typography variant="caption" display="block" color="text.secondary">
-            {formatDate(tarefa.data_atualizacao || tarefa.data_cadastro)}
-          </Typography>
-        </Box>
+        <Typography variant="h6" component="h2">{tarefa.titulo}</Typography>
+        <Typography variant="caption" display="block" color="text.secondary">{tarefa.data_limite ? `Data limite: ${formatDate(tarefa.data_limite)}` : null}</Typography>
+        <Stack direction='row' justifyContent='end' alignItems='center' >
+          <ProfilePicture size='small' user={tarefa?.usuario} />
+        </Stack>
       </CardContent>
     </Card>
   );
@@ -415,6 +413,9 @@ export default function TarefasPage({ espaco, writePermission }) {
     const map = {};
 
     for (const tarefa of tarefas) {
+
+      tarefa.usuario = usuarios.find(u => u.id = tarefa.id_responsavel);
+
       if (!map[tarefa.id_coluna]) {
         map[tarefa.id_coluna] = [];
       }

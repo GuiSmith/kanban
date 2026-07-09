@@ -414,7 +414,7 @@ export default function TarefasPage({ espaco, writePermission }) {
 
     for (const tarefa of tarefas) {
 
-      tarefa.usuario = usuarios.find(u => u.id = tarefa.id_responsavel);
+      tarefa.usuario = usuarios.find(u => u.id == tarefa.id_responsavel);
 
       if (!map[tarefa.id_coluna]) {
         map[tarefa.id_coluna] = [];

@@ -209,6 +209,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
           {/* Campos personalizados */}
           <Grid size={{ sx: 12, md: 3 }}>
             <Stack spacing={2.5}>
+              {/* COluna */}
               <Controller
                 name='id_coluna'
                 control={control}
@@ -235,6 +236,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                   </FormControl>
                 )}
               />
+              {/* Responsável */}
               <Controller
                 name='id_responsavel'
                 control={control}
@@ -252,7 +254,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                       }}
                     >
                       <MenuItem key='usuario-nenhum' value={null}>
-                        <Tooltip title='Nenhum responsável'>
+                        <Tooltip placement='right' title='Nenhum responsável'>
                           <Stack direction='row' alignItems='center' spacing={1}>
                             <ProfilePicture user={null} />
                             <Typography>Nenhum responsável</Typography>
@@ -261,7 +263,7 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                       </MenuItem>
                       {usuarios.map(usuario => (
                         <MenuItem key={`usuario-${usuario.id}`} value={usuario.id}>
-                          <Tooltip title={`@${usuario.username} - ${capitalizeFirstLetter(usuario.nome)}`}>
+                          <Tooltip placement='right-start' title={`@${usuario.username} - ${capitalizeFirstLetter(usuario.nome)}`}>
                             <Stack direction='row' alignItems='center' spacing={1}>
                               <ProfilePicture size='small' user={usuario} />
                               <Typography>{usuario.email}</Typography>

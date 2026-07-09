@@ -2,12 +2,12 @@
 dev-up:
 	docker container stop kanban-app || true
 	docker compose up kanban-app-dev -d --build
-	docker exec kanban-app-dev npm run migrate
+	docker exec -it kanban-app-dev npm run db:sync
 	docker logs -f kanban-app-dev
 up:
 	docker container stop kanban-app-dev || true
 	docker compose up kanban-app -d --build
-	docker exec kanban-app npm run migrate
+	docker exec -it kanban-app npm run db:sync
 	docker logs -f kanban-app
 down:
 	docker compose down
@@ -15,7 +15,7 @@ down:
 # Migração
 dev-migrate:
 	docker exec -it kanban-app-dev npm run migrate
-prod-migrate:
+migrate:
 	docker exec -it kanban-app npm run migrate
 
 # DB

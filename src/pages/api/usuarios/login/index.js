@@ -34,8 +34,12 @@ const handler = async (req, res) => {
 
         const { senha: dbPassword, ...safeUser } = user;
 
-        const senhaCorreta = await verifyPassword(senha,dbPassword);
+        if(!dbPassword){
+            return res.status(401).json(defaultResponse(MENSAGEM_ERRO));
+        }
 
+        const senhaCorreta = await verifyPassword(senha,dbPassword);
+        
         if(!senhaCorreta){
             return res.status(401).json(defaultResponse(MENSAGEM_ERRO));
         }

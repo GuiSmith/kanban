@@ -153,10 +153,10 @@ const TarefaCard = memo(({ espaco, tarefa, coluna, handleEditarTarefa, writePerm
   return (
     <Card ref={ref} {...tarefaCardProps} >
       <CardContent onClick={() => handleEditarTarefa(tarefa)} sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-        <Typography color='info'>{espaco.sigla}-{tarefa.id}</Typography>
         <Typography variant="h6" component="h2">{tarefa.titulo}</Typography>
         <Typography variant="caption" display="block" color="text.secondary">{tarefa.data_limite ? `Data limite: ${formatDate(tarefa.data_limite)}` : null}</Typography>
-        <Stack direction='row' justifyContent='end' alignItems='center' >
+        <Stack direction='row' justifyContent='end' alignItems='center' spacing={1} >
+          <Typography color='info'>{espaco.sigla}-{tarefa.id}</Typography>
           <ProfilePicture size='small' user={tarefa?.usuario} />
         </Stack>
       </CardContent>

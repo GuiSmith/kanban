@@ -1,7 +1,9 @@
 // Next
 import Head from "next/head";
-import { useDroppable, DragDropProvider } from "@dnd-kit/react";
+import { DragDropProvider } from "@dnd-kit/react";
+import { move } from '@dnd-kit/helpers';
 import { useSortable } from '@dnd-kit/react/sortable';
+import { CollisionPriority } from '@dnd-kit/abstract';
 
 // MUI
 import Stack from "@mui/material/Stack";
@@ -20,7 +22,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
 
 // React
-import { useEffect, useState, useMemo, useCallback, memo } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 // UI Personalizado
@@ -65,40 +67,28 @@ const tarefaCardProps = {
   }
 };
 
-const Coluna = memo(({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa, handleEditarTarefa, writePermission }) => {
+const Coluna = memo(({ children, id, index, coluna, qtdTarefas, handleOpenMenu, writePermission }) => {
 
-  const { ref: droppableRef, isDropTarget } = useDroppable({
-    id: `coluna-drop:${coluna.id}`,
-    type: 'task-column',
-    accept: 'item',
+  const { ref, isDragging, isDropTarget } = useSortable({
+    id,
+    index,
+    type: 'coluna',
+    collisionPriority: CollisionPriority.Low,
+    accept: ['tarefa', 'coluna'],
     disabled: writePermission === false
   });
-
-  const { ref: sortableRef } = useSortable({
-    id: `coluna-sort:${coluna.id}`,
-    index: coluna.ordem,
-    type: 'column',
-    group: 'colunas',
-    accept: 'column',
-    disabled: writePermission === false
-  });
-
-  const setRef = (node) => {
-    droppableRef(node);
-    sortableRef(node);
-  };
 
   return (
-    <Box ref={setRef} {...colunaBoxProps(coluna, isDropTarget)} >
+    <Box ref={ref} {...colunaBoxProps(coluna, isDropTarget)} >
       {/* Header */}
       <Stack direction='row' justifyContent='space-between' alignItems='center'>
         <Typography variant="h6" sx={{ mb: 1 }}>
-          {capitalizeFirstLetter(coluna.nome)}
+          {`${coluna.id} - ${capitalizeFirstLetter(coluna.nome)}`}
         </Typography>
         <Stack direction='row' spacing={0.1} alignItems='center' >
-          <Tooltip title={`Esta coluna tem ${tarefas.length} tarefas`}>
+          <Tooltip title={`Esta coluna tem ${qtdTarefas} tarefas`}>
             <IconButton size='small'>
-              {tarefas.length}
+              {qtdTarefas}
             </IconButton>
           </Tooltip>
           <Tooltip title='Ações da coluna'>
@@ -110,52 +100,30 @@ const Coluna = memo(({ espaco, coluna, tarefas, handleOpenMenu, handleNovaTarefa
       </Stack>
       {/* Tarefas */}
       <Stack direction='column' spacing={1} sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
-        {tarefas.map(tarefa => (
-          <TarefaCard
-            espaco={espaco}
-            coluna={coluna}
-            tarefa={tarefa}
-            key={`tarefa:${tarefa.id}`}
-            handleEditarTarefa={handleEditarTarefa}
-            writePermission={writePermission}
-          />
-        ))}
-        <Card sx={{ textAlign: 'start' }} key='nova-tarefa' >
-          <Button
-            onClick={() => handleNovaTarefa(coluna.id)}
-            variant='text'
-            startIcon={<AddIcon />}
-            size='small'
-            sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
-            fullWidth
-            disabled={writePermission === false}
-          >
-            Adicionar Tarefa
-          </Button>
-        </Card>
+        {children}
       </Stack>
     </Box>
   );
 
 });
 
-const TarefaCard = memo(({ espaco, tarefa, coluna, handleEditarTarefa, writePermission }) => {
+const TarefaCard = memo(({ id, espaco, index, tarefa, idColuna, handleEditarTarefa, writePermission }) => {
 
-  const { ref } = useSortable({
-    id: `tarefa:${tarefa.id}`,
-    index: tarefa.ordem,
-    type: 'item',
-    accept: 'item',
-    group: `coluna-drop:${coluna.id}`,
+  const { ref, isDragging } = useSortable({
+    id,
+    index,
+    type: 'tarefa',
+    accept: 'tarefa',
+    group: idColuna,
     disabled: writePermission === false
   });
 
   return (
-    <Card ref={ref} {...tarefaCardProps} >
+    <Card ref={ref} {...tarefaCardProps} data-dragging={isDragging} >
       <CardContent onClick={() => handleEditarTarefa(tarefa)} sx={{ p: 1, '&:last-child': { pb: 1 } }}>
         <Typography variant="h6" component="h2">{tarefa.titulo}</Typography>
         <Typography variant="caption" display="block" color="text.secondary">{tarefa.data_limite ? `Data limite: ${formatDate(tarefa.data_limite)}` : null}</Typography>
-        <Stack direction='row' justifyContent='end' alignItems='center' spacing={1} >
+        <Stack direction='row' justifyContent='space-between' alignItems='center' spacing={1} >
           <Typography color='info'>{espaco.sigla}-{tarefa.id}</Typography>
           <ProfilePicture size='small' user={tarefa?.usuario} />
         </Stack>
@@ -164,127 +132,216 @@ const TarefaCard = memo(({ espaco, tarefa, coluna, handleEditarTarefa, writePerm
   );
 });
 
+const fetchTarefas = async (id_espaco) => {
+  try {
+    const urlParams = new URLSearchParams({ id_espaco });
+    const res = await authAxios('get', `/api/tarefas/listarTarefas?${urlParams.toString()}`);
+    return res.data.data;
+  } catch (error) {
+    catchAuthAxios(error, 'Erro ao listar tarefas');
+  }
+};
+
+// Buscar tarefas, colunas e usuários
+const fetchColunas = async (id_espaco) => {
+  try {
+    const urlParams = new URLSearchParams({ id_espaco });
+    const res = await authAxios('get', `/api/colunas/listarColunas?${urlParams.toString()}`);
+    return res.data.data;
+  } catch (error) {
+    catchAuthAxios(error, 'Erro ao listar colunas');
+  }
+};
+
+const fetchUsuarios = async (id_espaco) => {
+  try {
+    const urlParams = new URLSearchParams({ id_espaco });
+    const res = await authAxios('get', `/api/espacos/listarUsuarios?${urlParams.toString()}`);
+    return res.data.data;
+  } catch (error) {
+    catchAuthAxios(error, 'Erro ao listar colunas');
+  }
+};
+
 export default function TarefasPage({ espaco, writePermission }) {
-  const [tarefas, setTarefas] = useState([]);
+
+  // Dados
+  const [espacoUsuarios, setEspacoUsuarios] = useState([]);
+  const [tarefasPorColuna, setTarefasPorColuna] = useState({});
   const [colunas, setColunas] = useState([]);
-  const [usuarios, setUsuarios] = useState([]);
+  const [idColunas, setIdColunas] = useState([]);
+  
+  // Menus
   const [isLoading, setIsLoading] = useState(false);
   const [tarefaModal, setTarefaModal] = useState({ open: false, data: {} });
   const [colunaModal, setColunaModal] = useState({ open: false, data: {} });
   const [menu, setMenu] = useState({ anchorEl: null, coluna: null });
+  
+  const precisaAtualizarTarefas = useRef(false);
 
-  // Socket
   useEffect(() => {
-
-    const socket = io({ path: '/api/socketio' });
+    const socket = io({
+      path: '/api/socketio',
+    });
 
     socket.emit('join_tarefas');
-    socket.emit('join_colunas');
 
     socket.on('tarefas', payload => {
-
-      switch (payload.op) {
-        case 'DELETE':
-          if (payload.entity === 'tarefa') {
-            setTarefas(prev => prev.filter(tarefa => tarefa.id !== payload.data.id));
-          } else if (payload.entity === 'coluna') {
-            setColunas(prev => prev.filter(coluna => coluna.id !== payload.data.id));
-          }
-          break;
-        case 'UPDATE':
-          if (payload.entity === 'tarefa') {
-            setTarefas(tarefas => tarefas.map(tarefa => {
-              if (tarefa.id == payload.data.id) {
-                return {
-                  ...tarefa,
-                  ...payload.data,
-                };
-              }
-              return tarefa;
-            }));
-          } else if (payload.entity === 'coluna') {
-            setColunas(colunas => colunas.map(coluna => {
-              if (coluna.id == payload.data.id) {
-                return {
-                  ...coluna,
-                  ...payload.data,
-                };
-              }
-              return coluna;
-            }));
-          }
-          break;
-        case 'INSERT':
-          if (payload.entity === 'tarefa') {
-            setTarefas(tarefas => [...tarefas, { ...payload.data }]);
-          } else if (payload.entity === 'coluna') {
-            setColunas(colunas => [...colunas, { ...payload.data }]);
-          }
-          break;
-        default:
-          break;
+      if (payload.entity !== 'tarefa') {
+        return;
       }
+
+      setTarefasPorColuna(prev => {
+        const map = {};
+
+        // Copia os arrays para não alterar o estado anterior diretamente
+        for (const idColuna in prev) {
+          map[idColuna] = [...prev[idColuna]];
+        }
+
+        const idTarefa = payload.data.id;
+
+        switch (payload.op) {
+          case 'DELETE': {
+            for (const idColuna in map) {
+              map[idColuna] = map[idColuna].filter(
+                tarefa => Number(tarefa.id) !== Number(idTarefa)
+              );
+            }
+
+            break;
+          }
+
+          case 'UPDATE': {
+            let tarefaAtual = null;
+
+            // Procura e remove a tarefa da posição/coluna antiga
+            for (const idColuna in map) {
+              const index = map[idColuna].findIndex(
+                tarefa => Number(tarefa.id) === Number(idTarefa)
+              );
+
+              if (index >= 0) {
+                tarefaAtual = map[idColuna][index];
+                map[idColuna].splice(index, 1);
+                break;
+              }
+            }
+
+            const tarefaAtualizada = {
+              ...tarefaAtual,
+              ...payload.data,
+            };
+
+            tarefaAtualizada.usuario = espacoUsuarios.find(
+              usuario =>
+                Number(usuario.id) === Number(tarefaAtualizada.id_responsavel)
+            );
+
+            const idColunaNova = tarefaAtualizada.id_coluna;
+
+            // Ignora tarefas de colunas que não estão sendo exibidas
+            if (map[idColunaNova]) {
+              map[idColunaNova].push(tarefaAtualizada);
+            }
+
+            break;
+          }
+
+          case 'INSERT': {
+            const novaTarefa = {
+              ...payload.data,
+              usuario: espacoUsuarios.find(
+                usuario =>
+                  Number(usuario.id) === Number(payload.data.id_responsavel)
+              ),
+            };
+
+            const idColuna = novaTarefa.id_coluna;
+
+            if (map[idColuna]) {
+              map[idColuna].push(novaTarefa);
+            }
+
+            break;
+          }
+
+          default:
+            return prev;
+        }
+
+        for (const idColuna in map) {
+          map[idColuna].sort(
+            (a, b) => Number(a.ordem) - Number(b.ordem)
+          );
+        }
+
+        return map;
+      });
     });
 
     return () => {
       socket.emit('leave_tarefas');
+      socket.off('tarefas');
       socket.disconnect();
-    }
-  }, []);
+    };
+  }, [espacoUsuarios]);
 
   // Buscar tarefas, colunas e usuários
-  useEffect(() => {
-    const fetchTarefas = async () => {
-      try {
-        setIsLoading(true);
-        const urlParams = new URLSearchParams({ id_espaco: espaco.id });
-        const res = await authAxios('post', `/api/tarefas/listarTarefas?${urlParams.toString()}`);
-        setTarefas(res.data.data);
-      } catch (error) {
-        catchAuthAxios(error, 'Erro ao listar tarefas');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const [tarefas, colunas, usuarios] = await Promise.all([
+        await fetchTarefas(espaco.id),
+        await fetchColunas(espaco.id),
+        await fetchUsuarios(espaco.id),
+      ]);
 
-    const fetchColunas = async () => {
-      try {
-        setIsLoading(true);
-        const urlParams = new URLSearchParams({ id_espaco: espaco.id });
-        const res = await authAxios('get', `/api/colunas/listarColunas?${urlParams.toString()}`);
-        setColunas(res.data.data);
-      } catch (error) {
-        catchAuthAxios(error, 'Erro ao listar colunas');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      // Atribuindo responsáveis aos cartões
+      for (const tarefa of tarefas) {
+        const usuario = usuarios.find(u => Number(u.id) === Number(tarefa.id_responsavel));
 
-    const fetchUsuarios = async () => {
-      try {
-        setIsLoading(true);
-        const urlParams = new URLSearchParams({ id_espaco: espaco.id });
-        const res = await authAxios('get', `/api/espacos/listarUsuarios?${urlParams.toString()}`);
-        setUsuarios(res.data.data);
-      } catch (error) {
-        catchAuthAxios(error, 'Erro ao listar colunas');
-      } finally {
-        setIsLoading(false);
+        if (usuario) {
+          tarefa.id_responsavel = usuario;
+        }
       }
+
+      const colunasAtivas = colunas.filter(coluna => coluna.ativo === true);
+
+      const map = {};
+      for (const coluna of colunasAtivas) {
+        if (coluna.ativo) {
+          map[coluna.id] = tarefas.filter(tarefa => Number(tarefa.id_coluna) === Number(coluna.id)) ?? [];
+          map[coluna.id].sort((a, b) => a.ordem - b.ordem);
+        }
+      }
+
+      setIdColunas(colunasAtivas.map(col => col.id));
+      setColunas(colunasAtivas);
+      setTarefasPorColuna(map);
+      setEspacoUsuarios(usuarios);
+    } catch (error) {
+      catchAuthAxios(error, 'Erro ao listar dados do quadro');
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    fetchColunas();
-    fetchTarefas();
-    fetchUsuarios();
+  useEffect(() => {
+    fetchData();
   }, [espaco]);
+
+  useEffect(() => {
+    precisaAtualizarTarefas.current = true;
+  }, [tarefasPorColuna]);
 
   const handleOpenMenu = useCallback((event, coluna) => {
     setMenu({ anchorEl: event.currentTarget, coluna });
-  },[]);
+  }, []);
 
   const handleCloseMenu = useCallback(() => {
     setMenu({ anchorEl: null, coluna: null });
-  },[]);
+  }, []);
 
   const handleNovaTarefa = useCallback((id_coluna) => {
     setTarefaModal({
@@ -297,7 +354,7 @@ export default function TarefasPage({ espaco, writePermission }) {
         }
       }
     });
-  },[espaco]);
+  }, [espaco]);
 
   const handleEditarTarefa = useCallback((tarefa) => {
     setTarefaModal({
@@ -307,14 +364,14 @@ export default function TarefasPage({ espaco, writePermission }) {
         initialValues: { ...tarefa }
       }
     });
-  },[]);
+  }, []);
 
   const handleFecharTarefaModal = useCallback(() => {
     setTarefaModal({
       open: false,
       data: {}
     });
-  },[]);
+  }, []);
 
   const handleNovaColuna = useCallback(() => {
     setColunaModal({
@@ -326,7 +383,7 @@ export default function TarefasPage({ espaco, writePermission }) {
         }
       }
     });
-  },[espaco]);
+  }, [espaco]);
 
   const handleEditarColuna = useCallback((coluna) => {
     setColunaModal({
@@ -336,14 +393,14 @@ export default function TarefasPage({ espaco, writePermission }) {
         initialValues: { ...coluna }
       }
     });
-  },[]);
+  }, []);
 
   const handleFecharColunaModal = useCallback(() => {
     setColunaModal({
       open: false,
       data: {}
     });
-  },[]);
+  }, []);
 
   const handleOptionClick = useCallback((option) => {
     const coluna = menu.coluna;
@@ -354,82 +411,102 @@ export default function TarefasPage({ espaco, writePermission }) {
 
     option.handleClick(coluna);
 
-  },[menu, handleCloseMenu]);
+  }, [menu, handleCloseMenu]);
 
-  const handleDragEnd = useCallback(async (event) => {
-    if (event.canceled) return;
-
+  const atualizarTarefas = useCallback(async () => {
     try {
+      const data = {
+        id_espaco: espaco.id,
+        tarefas: []
+      };
+
+      for (const idColuna in tarefasPorColuna) {
+        const tarefas = tarefasPorColuna[idColuna];
+
+        tarefas.forEach((tarefa, index) => {
+          const mudouOrdem = Number(tarefa.ordem) !== Number(index);
+          const mudouColuna = Number(tarefa.id_coluna) !== Number(idColuna);
+          if (mudouOrdem || mudouColuna) {
+            data.tarefas.push({ id: tarefa.id, ordem: index, id_coluna: idColuna });
+          }
+        });
+      }
+
+      if (data.tarefas.length === 0) {
+        return;
+      }
+
       setIsLoading(true);
-
-      if (event.operation.source.type === 'column') {
-
-        const id = Number(event.operation.source.id.split(':').pop());
-        const ordem = Number(event.operation.target.index ?? 0);
-        const coluna = colunas.find(coluna => coluna.id == id);
-
-        if (!coluna || coluna.ordem == ordem) {
-          return;
-        }
-
-        const res = await authAxios('put', '/api/colunas/editarColuna', { id, ordem });
-        return;
-      }
-
-      const id = Number(event.operation.source.id.split(':').pop());
-      const id_coluna = Number((event.operation.target.type == 'task-column' ? event.operation.target.id : event.operation.target.group).split(':').pop());
-      const ordem = Number(event.operation.target.index ?? 0);
-      const tarefa = tarefas.find(tarefa => tarefa.id == id);
-
-      if (!tarefa || (tarefa.ordem == ordem && tarefa.id_coluna == id_coluna)) {
-        return;
-      }
-
-      const data = { id };
-
-      if (tarefa.ordem != ordem) data.ordem = ordem;
-      if (tarefa.id_coluna != id_coluna) data.id_coluna = id_coluna;
-
-      await authAxios('put', '/api/tarefas/editarTarefa', data);
+      const res = await authAxios('PATCH', '/api/tarefas/atualizarTarefasEmMassa', data);
     } catch (error) {
-      catchAuthAxios(error, 'Erro ao mover item');
+      catchAuthAxios(error, 'Erro ao atualizar tarefas');
     } finally {
       setIsLoading(false);
     }
-  },[colunas,tarefas]);
+  }, [setIsLoading, tarefasPorColuna]);
+
+  const atualizarColunas = useCallback(async () => {
+    try {
+      setIsLoading(true);
+    } catch (error) {
+      catchAuthAxios();
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleDragStart = () => {
+    // setIsDraggingElement(true);
+  }
+
+  const handleDragOver = (e) => {
+    const { source, target } = e.operation;
+
+    if (source?.id === target?.id) {
+      return;
+    }
+
+    setTarefasPorColuna(t => move(t, e));
+  };
+
+  const handleDragEnd = async (e) => {
+    if(precisaAtualizarTarefas.current === true){
+        await atualizarTarefas();
+        precisaAtualizarTarefas.current = false;
+    }
+
+    const { source, target } = e.operation;
+
+    if (e.canceled || source.type !== 'coluna') {
+      return;
+    }
+
+    setIdColunas(cols => move(cols, e));
+
+  };
+
+  const handleDragEnd2 = async (e) => {
+    if (e.cancelled) return;
+
+    const { type } = e.operation.source;
+
+    if (type == 'tarefa') {
+      await atualizarTarefas();
+      return;
+    }
+
+    if (type == 'coluna') {
+      await atualizarColunas();
+      return;
+    }
+
+    console.warning('Tipo inesperado: ', type);
+  };
 
   const menuOptions = useMemo(() => [
     { label: 'Adicionar tarefa', icon: AddIcon, handleClick: (coluna) => handleNovaTarefa(coluna.id) },
     { label: 'Editar coluna', icon: EditIcon, handleClick: (coluna) => handleEditarColuna(coluna) },
-  ],[handleNovaTarefa, handleNovaColuna]);
-
-  const colunasOrdenadas = useMemo(() => {
-    return colunas
-      .filter(col => col?.ativo === true)
-      .sort((a, b) => a.ordem - b.ordem);
-  }, [colunas]);
-
-  const tarefasPorColuna = useMemo(() => {
-    const map = {};
-
-    for (const tarefa of tarefas) {
-
-      tarefa.usuario = usuarios.find(u => u.id == tarefa.id_responsavel);
-
-      if (!map[tarefa.id_coluna]) {
-        map[tarefa.id_coluna] = [];
-      }
-
-      map[tarefa.id_coluna].push(tarefa);
-    }
-
-    for (const idColuna in map) {
-      map[idColuna].sort((a, b) => a.ordem - b.ordem);
-    }
-
-    return map;
-
-  }, [tarefas]);
+  ], [handleNovaTarefa, handleNovaColuna]);
 
   return (
     <>
@@ -448,7 +525,7 @@ export default function TarefasPage({ espaco, writePermission }) {
           onClose={handleFecharTarefaModal}
           colunas={colunas}
           writePermission={writePermission}
-          usuarios={usuarios}
+          usuarios={espacoUsuarios}
         />
       </Dialog>
 
@@ -477,34 +554,72 @@ export default function TarefasPage({ espaco, writePermission }) {
         })}
       </Menu>
 
-      <DragDropProvider onDragEnd={handleDragEnd}>
+      <Button
+        variant='contained'
+        color='primary'
+        disabled={isLoading}
+        onClick={fetchData}
+      >
+        Recarregar
+      </Button>
+
+      <DragDropProvider onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd} >
         <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', overflowY: 'hidden', justifyContent: 'flex-start', alignItems: 'flex-start', py: 1, }} >
-          {colunasOrdenadas?.map(coluna => (
-            <Coluna
-              espaco={espaco}
-              coluna={coluna}
-              key={`coluna:${coluna.id}`}
-              tarefas={tarefasPorColuna[coluna.id] ?? []}
-              handleOpenMenu={handleOpenMenu}
-              handleNovaTarefa={handleNovaTarefa}
-              handleEditarTarefa={handleEditarTarefa}
-              writePermission={writePermission}
-            />
-          ))}
-          {colunasOrdenadas?.length == 0 ? null : (
-            <Box key='nova-coluna' {...colunaBoxProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
-              <Button
-                variant='text'
-                startIcon={<AddIcon />}
-                fullWidth
-                sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
-                onClick={handleNovaColuna}
-                disabled={writePermission === false}
+          {idColunas.map((idColuna, index) => {
+            const coluna = colunas.find(col => Number(col.id) == Number(idColuna));
+
+            if (!coluna) return null;
+
+            return (
+              <Coluna
+                id={idColuna}
+                index={index}
+                coluna={coluna}
+                tarefas={tarefasPorColuna[idColuna]?.length ?? 0}
+                key={idColuna}
+                handleOpenMenu={handleOpenMenu}
+                writePermission={writePermission}
               >
-                Adicionar Coluna
-              </Button>
-            </Box>
-          )}
+                {tarefasPorColuna[idColuna].map((tarefa, index) => (
+                  <TarefaCard
+                    id={tarefa.id}
+                    espaco={espaco}
+                    idColuna={idColuna}
+                    tarefa={tarefa}
+                    index={index}
+                    key={tarefa.id}
+                    handleEditarTarefa={handleEditarTarefa}
+                    writePermission={writePermission}
+                  />
+                ))}
+                <Card sx={{ textAlign: 'start' }} key='nova-tarefa' >
+                  <Button
+                    onClick={() => handleNovaTarefa(idColuna)}
+                    variant='text'
+                    startIcon={<AddIcon />}
+                    size='small'
+                    sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+                    fullWidth
+                    disabled={writePermission === false}
+                  >
+                    Adicionar Tarefa
+                  </Button>
+                </Card>
+              </Coluna>
+            )
+          })}
+          <Box key='nova-coluna' {...colunaBoxProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
+            <Button
+              variant='text'
+              startIcon={<AddIcon />}
+              fullWidth
+              sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+              onClick={handleNovaColuna}
+              disabled={writePermission === false}
+            >
+              Adicionar Coluna
+            </Button>
+          </Box>
         </Stack>
       </DragDropProvider>
 

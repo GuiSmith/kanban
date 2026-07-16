@@ -15,13 +15,13 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import Chip from '@mui/material/Chip';
 
-import ModalCloseButton from '@/components/ModalCloseButton';
+import ModalCloseButton from '@/components/common/ModalCloseButton';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import { formatDateTime } from '@/utils/formatDate';
 import getNameInitials from '@/utils/getNameInitials';
 import statusMap from '@/utils/InviteStatusMap';
-import ProfilePicture from '@/components/ProfilePicture';
+import ProfilePicture from '@/components/common/ProfilePicture';
 
 const Convites = ({ convites = [], onConviteCancelado, writePermission }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -297,7 +297,3 @@ const Convites = ({ convites = [], onConviteCancelado, writePermission }) => {
 };
 
 export default Convites;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

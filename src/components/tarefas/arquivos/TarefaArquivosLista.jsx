@@ -6,8 +6,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 // Personalized UI
-import Table from '@/components/Table';
-import Loading from '@/components/Loading';
+import Table from '@/components/common/Table';
+import Loading from '@/components/common/Loading';
 
 // Utils
 import truncateString from '@/utils/truncateString';
@@ -127,7 +127,3 @@ const TarefaArquivosLista = ({ arquivos, setArquivos, writePermission }) => {
 };
 
 export default TarefaArquivosLista;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

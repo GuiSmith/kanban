@@ -17,8 +17,8 @@ import { useState, useEffect } from 'react';
 import hasRouteAccess from "@/utils/hasRouteAccess";
 
 // Componentes
-const Navbar = dynamic(() => import('@/components/Navbar'), { ssr: false });
-import Loading from '@/components/Loading';
+const Navbar = dynamic(() => import('@/components/common/Navbar'), { ssr: false });
+import Loading from '@/components/common/Loading';
 
 // Contextos
 import { AppThemeProvider } from '@/contexts/ThemeContext';

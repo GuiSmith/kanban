@@ -26,10 +26,10 @@ import { useEffect, useState, useMemo, useCallback, memo, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 // UI Personalizado
-import Loading from '@/components/Loading';
-import ModalCloseButton from '@/components/ModalCloseButton';
-import TarefaFormulario from "./TarefaFormulario";
-import ColunaFormulario from "./ColunaFormulario";
+import Loading from '@/components/common/Loading';
+import ModalCloseButton from '@/components/common/ModalCloseButton';
+import TarefaFormulario from "../../components/tarefas/TarefaFormulario";
+import ColunaFormulario from "../../components/tarefas/ColunaFormulario";
 
 // Utils
 import authAxios from "@/utils/authAxios";
@@ -37,7 +37,7 @@ import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
 import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 import { formatDate } from "@/utils/formatDate";
-import ProfilePicture from "@/components/ProfilePicture";
+import ProfilePicture from "@/components/common/ProfilePicture";
 
 const hoverOpacity = 0.5;
 
@@ -682,7 +682,3 @@ export default function TarefasPage({ espaco, writePermission }) {
     </>
   );
 }
-
-export const getServerSideProps = async () => ({
-  props: {},
-});

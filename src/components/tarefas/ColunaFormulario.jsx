@@ -19,7 +19,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 // Componentes
-import Loading from '@/components/Loading';
+import Loading from '@/components/common/Loading';
 
 // Utils
 import authAxios from "@/utils/authAxios";

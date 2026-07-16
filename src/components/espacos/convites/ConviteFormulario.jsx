@@ -186,7 +186,3 @@ const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onC
 };
 
 export default ConviteFormulario;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

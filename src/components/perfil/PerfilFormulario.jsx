@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import Loading from '@/components/Loading';
+import Loading from '@/components/common/Loading';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import PerfilImagemFormulario from './PerfilImagemFormulario';
@@ -147,7 +147,3 @@ const PerfilFormulario = ({
 };
 
 export default PerfilFormulario;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

@@ -12,11 +12,11 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import WorkspacesIcon from '@mui/icons-material/Workspaces';
 
 // Componentes
-import Loading from '@/components/Loading';
-import PerfilFormulario from './PerfilFormulario';
-import EspacosInativos from './EspacosInativos';
-import Convites from './Convites';
-import PerfilImagemFormulario from './PerfilImagemFormulario';
+import Loading from '@/components/common/Loading';
+import PerfilFormulario from '../../../components/perfil/PerfilFormulario';
+import EspacosInativos from '../../../components/perfil/EspacosInativos';
+import Convites from '../../../components/perfil/Convites';
+import PerfilImagemFormulario from '../../../components/perfil/PerfilImagemFormulario';
 
 import { useNavbar } from '@/contexts/NavbarContext';
 
@@ -103,7 +103,3 @@ export default function PerfilPage() {
     </>
   );
 }
-
-export const getServerSideProps = async () => ({
-  props: {},
-});

@@ -20,8 +20,8 @@ import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 
-import Loading from '@/components/Loading';
-import ModalCloseButton from '@/components/ModalCloseButton';
+import Loading from '@/components/common/Loading';
+import ModalCloseButton from '@/components/common/ModalCloseButton';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import { ESPACO_ICONES } from '../../utils/EspacosIcones';
@@ -264,7 +264,3 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues, writ
 };
 
 export default EspacoFormulario;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

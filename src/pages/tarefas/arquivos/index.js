@@ -3,9 +3,9 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 
 // Personalized UI
-import Loading from '@/components/Loading';
-import TarefaArquivoFormulario from './TarefaArquivoFormulario';
-import TarefaArquivosLista from './TarefaArquivosLista';
+import Loading from '@/components/common/Loading';
+import TarefaArquivoFormulario from '../../../components/tarefas/arquivos/TarefaArquivoFormulario';
+import TarefaArquivosLista from '../../../components/tarefas/arquivos/TarefaArquivosLista';
 
 // React Next
 import { useState, useEffect } from 'react';
@@ -75,7 +75,3 @@ const TarefaArquivos = ({ tarefa, writePermission }) => {
 }
 
 export default TarefaArquivos;
-
-export const getServerSideProps = async () => ({
-    notFound: true,
-});

@@ -5,7 +5,7 @@ import axios from 'axios';
 import Router from 'next/router';
 
 // Componentens
-import Loading from '@/components/Loading';
+import Loading from '@/components/common/Loading';
 
 // Contextos
 import { useAuth } from '@/contexts/AuthContext';

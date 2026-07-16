@@ -15,15 +15,15 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 
 // Componentes
-import Loading from '@/components/Loading';
-import ModalCloseButton from '@/components/ModalCloseButton';
-import UsuarioPermissoesFormulario from '@/pages/espacos/usuarios/UsuarioPermissoesFormulario';
+import Loading from '@/components/common/Loading';
+import ModalCloseButton from '@/components/common/ModalCloseButton';
+import UsuarioPermissoesFormulario from '@/components/usuarios/UsuarioPermissoesFormulario';
 
 // Utils
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 import getNameInitials from '@/utils/getNameInitials';
-import ProfilePicture from '@/components/ProfilePicture';
+import ProfilePicture from '@/components/common/ProfilePicture';
 
 const UsuariosPage = ({ espaco, writePermission }) => {
   const [usuarios, setUsuarios] = useState([]);
@@ -162,7 +162,3 @@ const UsuariosPage = ({ espaco, writePermission }) => {
 };
 
 export default UsuariosPage;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

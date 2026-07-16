@@ -50,7 +50,3 @@ export const getEspacoIcon = (value) => {
 const EspacosIconesPage = () => null;
 
 export default EspacosIconesPage;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

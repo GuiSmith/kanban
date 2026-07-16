@@ -22,8 +22,8 @@ import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutli
 
 
 // Componentes
-import EspacoFormulario from './EspacoFormulario';
-import Loading from '@/components/Loading';
+import EspacoFormulario from '../../components/espacos/EspacoFormulario';
+import Loading from '@/components/common/Loading';
 
 // Paginas
 import ConvitesPage from '@/pages/espacos/convites';
@@ -213,7 +213,3 @@ export default function EspacosPage() {
     </>
   );
 }
-
-export const getServerSideProps = async () => ({
-  props: {},
-});

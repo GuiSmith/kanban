@@ -22,7 +22,3 @@ const Logout = () => {
 };
 
 export default Logout;
-
-export const getServerSideProps = async () => ({
-  props: {},
-});

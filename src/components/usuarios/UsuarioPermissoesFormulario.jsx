@@ -16,7 +16,7 @@ import authAxios from "@/utils/authAxios";
 import catchAuthAxios from "@/utils/catchAxios";
 
 // Components
-import Loading from '@/components/Loading';
+import Loading from '@/components/common/Loading';
 
 const PermissoesFormulario = ({ usuario, espaco, readonly }) => {
 

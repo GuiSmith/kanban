@@ -21,8 +21,8 @@ import { getEspacoIcon } from '@/utils/EspacosIcones';
 import statusMap from '@/utils/InviteStatusMap';
 
 // Componentes
-import Loading from '@/components/Loading';
-import ModalCloseButton from '@/components/ModalCloseButton';
+import Loading from '@/components/common/Loading';
+import ModalCloseButton from '@/components/common/ModalCloseButton';
 
 // Contextos
 import { useNavbar } from '@/contexts/NavbarContext';
@@ -298,7 +298,3 @@ const Convites = () => {
 };
 
 export default Convites;
-
-export const getServerSideProps = async () => ({
-    notFound: true,
-});

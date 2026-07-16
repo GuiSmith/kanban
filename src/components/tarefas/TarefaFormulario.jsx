@@ -16,15 +16,15 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 
 // Componentes
-import Loading from '@/components/Loading';
-import TarefaArquivos from "./arquivos";
+import Loading from '@/components/common/Loading';
+import TarefaArquivos from "../../pages/tarefas/arquivos";
 
 // Utils
 import authAxios from "@/utils/authAxios";
 import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
 import { formatDateTime } from "@/utils/formatDate";
-import ProfilePicture from "@/components/ProfilePicture";
+import ProfilePicture from "@/components/common/ProfilePicture";
 import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 import Tooltip from "@mui/material/Tooltip";
 
@@ -333,7 +333,3 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
 }
 
 export default TarefaFormulario;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

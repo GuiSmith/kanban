@@ -15,7 +15,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 
-import ModalCloseButton from '@/components/ModalCloseButton';
+import ModalCloseButton from '@/components/common/ModalCloseButton';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
 
@@ -243,6 +243,3 @@ const PerfilImagemFormulario = ({ src, nome, isLoading, setIsLoading, onImagemAt
 
 export default PerfilImagemFormulario;
 
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

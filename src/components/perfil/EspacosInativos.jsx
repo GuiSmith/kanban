@@ -7,8 +7,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
-import Table from '@/components/Table';
-import Loading from '@/components/Loading';
+import Table from '@/components/common/Table';
+import Loading from '@/components/common/Loading';
 import authAxios from '@/utils/authAxios';
 import { getEspacoIcon } from '@/utils/EspacosIcones';
 
@@ -75,7 +75,3 @@ const EspacosInativosLista = () => {
 };
 
 export default EspacosInativosLista;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

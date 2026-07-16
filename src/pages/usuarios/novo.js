@@ -125,7 +125,3 @@ export default function NovoUsuarioPage() {
     </>
   );
 }
-
-export const getServerSideProps = async () => ({
-  props: {},
-});

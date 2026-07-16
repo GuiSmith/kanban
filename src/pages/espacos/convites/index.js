@@ -4,11 +4,11 @@ import { toast } from 'react-toastify';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import Loading from '@/components/Loading';
+import Loading from '@/components/common/Loading';
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
-import ConviteFormulario from './ConviteFormulario';
-import Convites from './Convites';
+import ConviteFormulario from '../../../components/espacos/convites/ConviteFormulario';
+import Convites from '../../../components/espacos/convites/Convites';
 
 const ConvitesPage = ({ espaco, writePermission }) => {
   const [convites, setConvites] = useState([]);
@@ -63,7 +63,3 @@ const ConvitesPage = ({ espaco, writePermission }) => {
 };
 
 export default ConvitesPage;
-
-export const getServerSideProps = async () => ({
-  notFound: true,
-});

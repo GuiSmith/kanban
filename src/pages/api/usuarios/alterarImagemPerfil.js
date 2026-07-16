@@ -18,11 +18,38 @@ const extensoesPermitidas = ['png', 'jpg', 'jpeg', 'webp'];
 const mimeTypesPermitidos = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp'];
 
 const handler = async (req, res) => {
-  if (req.method !== 'POST') {
+  if (!['POST', 'DELETE'].includes(req.method)) {
     return res.status(405).json(defaultResponse('Método não permitido'));
   }
 
   try {
+    if (req.method === 'DELETE') {
+      const userResult = await db.query({
+        text: `
+          UPDATE usuario
+          SET avatar_public_url = NULL
+          WHERE id = $1
+          RETURNING id, nome, email, username
+        `,
+        values: [req.user.id],
+      });
+
+      if (userResult.rowCount !== 1) {
+        return res.status(404).json(defaultResponse('Usuário não encontrado'));
+      }
+
+      const user = userResult.rows[0];
+      const profile = {
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        username: user.username,
+        src: null,
+      };
+
+      return res.status(200).json(defaultResponse('Imagem removida com sucesso', profile));
+    }
+
     const maxSizeMb = 5;
     const maxSizeByte = maxSize(maxSizeMb);
     const { files } = await parseForm(req);

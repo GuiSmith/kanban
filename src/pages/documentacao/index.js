@@ -186,7 +186,7 @@ export default function DocumentacaoPage() {
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="body1" sx={{ mb: 1 }}>
                   A imagem de perfil também pode ser alterada. Clique no avatar, escolha Trocar imagem e salve a nova
-                  imagem.
+                  imagem. Para remover a foto atual, clique em Remover imagem.
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 1 }}>
                   Extensões aceitas para imagem de perfil:

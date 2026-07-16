@@ -12,6 +12,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import DeleteIcon from '@mui/icons-material/Delete';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 
 import ModalCloseButton from '@/components/ModalCloseButton';
@@ -128,6 +129,37 @@ const PerfilImagemFormulario = ({ src, nome, isLoading, setIsLoading, onImagemAt
     }
   };
 
+  const handleRemoveImagem = async () => {
+    if (!src) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const res = await authAxios('delete', '/api/usuarios/alterarImagemPerfil');
+      const perfil = res?.data?.data;
+
+      toast.success('Imagem removida com sucesso');
+      setImagem(null);
+      setIsDialogOpen(false);
+      onImagemAtualizada?.(perfil);
+
+      if (previewSrc) {
+        URL.revokeObjectURL(previewSrc);
+        setPreviewSrc(null);
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('kanban-profile-change', { detail: perfil }));
+      }
+    } catch (error) {
+      catchAuthAxios(error, 'Erro ao remover imagem de perfil');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const visibleSrc = previewSrc || src;
 
   return (
@@ -188,7 +220,17 @@ const PerfilImagemFormulario = ({ src, nome, isLoading, setIsLoading, onImagemAt
               </Typography>
             </Stack>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={{ justifyContent: 'space-between' }}>
+            <Button
+              variant="outlined"
+              color="error"
+              type="button"
+              startIcon={<DeleteIcon />}
+              disabled={isLoading || !src}
+              onClick={handleRemoveImagem}
+            >
+              Remover imagem
+            </Button>
             <Button variant="contained" color="success" type="submit" disabled={isLoading || !imagem}>
               Salvar imagem
             </Button>

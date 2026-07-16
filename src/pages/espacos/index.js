@@ -5,6 +5,8 @@ import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 
 // MUI
+import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Tab from '@mui/material/Tab';
@@ -15,6 +17,9 @@ import Typography from '@mui/material/Typography';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupIcon from '@mui/icons-material/Group';
 import WorkspacesIcon from '@mui/icons-material/Workspaces';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+
 
 // Componentes
 import EspacoFormulario from './EspacoFormulario';
@@ -95,32 +100,37 @@ export default function EspacosPage() {
     buscarPermissoes();
   }, [space, id]);
 
+  
   const SpaceIcon = getEspacoIcon(space?.icon) ?? WorkspacesIcon;
-
+  
   const handleTabChange = (_, value) => {
     setActiveTab(value);
   };
-
+  
   const hasTabPermission = (permissionName) => {
     if (permissoes.length === 0) {
       return false;
     }
-
+    
     const permissao = permissoes.find(p => p.nome == permissionName);
-
+    
     return typeof permissao?.escrita == 'boolean';
   }
-
+  
   const getWritePermission = (permissionName) => {
-    if(permissoes.length === 0){
+    if (permissoes.length === 0) {
       return false;
     }
-
+    
     const permissao = permissoes.find(p => p.nome == permissionName);
-
+    
     return permissao?.escrita === true;
   }
 
+  const currentTabPermission = useMemo(() => {
+    return getWritePermission(tabs[activeTab].permission) ?? false;
+  },[activeTab, permissoes, space, isLoading]);
+  
   return (
     <>
       <Head>
@@ -131,7 +141,7 @@ export default function EspacosPage() {
       {isNavbarLoading || isLoading ? <Loading /> : <></>}
 
       <Stack spacing={3}>
-        <Box>
+        <Box sx={{ position: 'relative' }}>
           <Typography component="h1" variant="h3" sx={{
             mb: 1,
             display: 'flex',
@@ -143,20 +153,29 @@ export default function EspacosPage() {
           <Typography variant="body1" color="text.secondary">
             Gerencie suas tarefas
           </Typography>
+          <Tooltip
+            title={currentTabPermission ? `Você pode fazer alterações em '${tabs[activeTab].label}'` : `Você não pode fazer alterações em '${tabs[activeTab].label}'`}
+            sx={{ position: 'absolute', top: 0, right: 0, cursor: 'help' }}
+          >
+            {currentTabPermission
+              ? <Chip label={`${tabs[activeTab].label}: Modo escrita`} color='primary' icon={<DriveFileRenameOutlineIcon />} />
+              : <Chip label={`${tabs[activeTab].label}: Modo leitura`} color='warning' icon={<VisibilityIcon />} />
+            }
+          </Tooltip>
         </Box>
 
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="Abas da tela de espaços">
             {tabs.map(tab => (
-                <Tab
-                  key={tab.index}
-                  icon={<tab.icon />}
-                  iconPosition="start"
-                  label={tab.label}
-                  {...getTabProps(tab.index)}
-                  disabled={tab.index === 0 ? false : !hasTabPermission(tab.permission)}
-                />
-              ))}
+              <Tab
+                key={tab.index}
+                icon={<tab.icon />}
+                iconPosition="start"
+                label={tab.label}
+                {...getTabProps(tab.index)}
+                disabled={tab.index === 0 ? false : !hasTabPermission(tab.permission)}
+              />
+            ))}
           </Tabs>
         </Box>
 
@@ -165,7 +184,7 @@ export default function EspacosPage() {
             modo={space ? 'edit' : 'create'}
             initialValues={space}
             writePermission={getWritePermission('ESPACO')}
-            />
+          />
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>

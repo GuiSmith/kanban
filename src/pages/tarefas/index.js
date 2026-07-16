@@ -39,7 +39,9 @@ import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 import { formatDate } from "@/utils/formatDate";
 import ProfilePicture from "@/components/ProfilePicture";
 
-const colunaBoxProps = (coluna, isDropTarget) => ({
+const hoverOpacity = 0.5;
+
+const colunaBoxProps = (coluna, isDropTarget, isDragging) => ({
   size: { xs: 12, sm: 6, md: 2 },
   sx: {
     minWidth: '250px',
@@ -47,29 +49,30 @@ const colunaBoxProps = (coluna, isDropTarget) => ({
     overflow: 'hidden',
     position: 'relative',
     mb: 3,
+    px: 1,
     border: 1,
     borderColor: `${columnType[coluna.tipo] ?? 'default'}.main`,
-    p: 1,
     borderRadius: 1,
-    opacity: isDropTarget ? 0.7 : 1,
+    opacity: isDropTarget || isDragging ? hoverOpacity : 1,
   }
 });
 
-const tarefaCardProps = {
+const tarefaCardProps = (tarefa, isDragging) => ({
   elevation: 4,
   sx: {
     cursor: "pointer",
+    opacity: isDragging ? hoverOpacity : 1,
     transition: "transform 0.2s ease, box-shadow 0.2s ease",
     "&:hover": {
       transform: "translateY(-4px)",
       boxShadow: 8,
     },
   }
-};
+});
 
 const Coluna = memo(({ children, id, index, coluna, qtdTarefas, handleOpenMenu, writePermission }) => {
 
-  const { ref, isDragging, isDropTarget } = useSortable({
+  const { ref, isDragging, isDropTarget, handleRef } = useSortable({
     id,
     index,
     type: 'coluna',
@@ -79,12 +82,18 @@ const Coluna = memo(({ children, id, index, coluna, qtdTarefas, handleOpenMenu, 
   });
 
   return (
-    <Box ref={ref} {...colunaBoxProps(coluna, isDropTarget)} >
+    <Box ref={ref} {...colunaBoxProps(coluna, isDropTarget, isDragging)} >
       {/* Header */}
-      <Stack direction='row' justifyContent='space-between' alignItems='center'>
-        <Typography variant="h6" sx={{ mb: 1 }}>
-          {`${coluna.id} - ${capitalizeFirstLetter(coluna.nome)}`}
-        </Typography>
+      <Stack
+        direction='row'
+        justifyContent='space-between'
+        alignItems='center'
+      >
+        <Tooltip title={`${coluna.id} - ${capitalizeFirstLetter(coluna.nome)}`}>
+          <Typography variant="h6" sx={{ cursor: 'grab' }} ref={handleRef} >
+            {capitalizeFirstLetter(coluna.nome)}
+          </Typography>
+        </Tooltip>
         <Stack direction='row' spacing={0.1} alignItems='center' >
           <Tooltip title={`Esta coluna tem ${qtdTarefas} tarefas`}>
             <IconButton size='small'>
@@ -119,7 +128,7 @@ const TarefaCard = memo(({ id, espaco, index, tarefa, idColuna, handleEditarTare
   });
 
   return (
-    <Card ref={ref} {...tarefaCardProps} data-dragging={isDragging} >
+    <Card ref={ref} {...tarefaCardProps(tarefa, isDragging)} data-dragging={isDragging} >
       <CardContent onClick={() => handleEditarTarefa(tarefa)} sx={{ p: 1, '&:last-child': { pb: 1 } }}>
         <Typography variant="h6" component="h2">{tarefa.titulo}</Typography>
         <Typography variant="caption" display="block" color="text.secondary">{tarefa.data_limite ? `Data limite: ${formatDate(tarefa.data_limite)}` : null}</Typography>
@@ -170,13 +179,14 @@ export default function TarefasPage({ espaco, writePermission }) {
   const [tarefasPorColuna, setTarefasPorColuna] = useState({});
   const [colunas, setColunas] = useState([]);
   const [idColunas, setIdColunas] = useState([]);
-  
+
   // Menus
   const [isLoading, setIsLoading] = useState(false);
   const [tarefaModal, setTarefaModal] = useState({ open: false, data: {} });
   const [colunaModal, setColunaModal] = useState({ open: false, data: {} });
   const [menu, setMenu] = useState({ anchorEl: null, coluna: null });
-  
+
+  const arrastandoTarefa = useRef(false);
   const precisaAtualizarTarefas = useRef(false);
   const precisaAtualizarColunas = useRef(false);
 
@@ -188,97 +198,140 @@ export default function TarefasPage({ espaco, writePermission }) {
     socket.emit('join_tarefas');
 
     socket.on('tarefas', payload => {
-      if (payload.entity !== 'tarefa') {
+      if (payload.entity === 'coluna') {
+        switch (payload.op) {
+          case 'INSERT':
+            setColunas(colunas => [...colunas, { ...payload.data }]);
+            setIdColunas(idColunas => [...idColunas, payload.data.id]);
+            setTarefasPorColuna(prev => ({ ...prev, [payload.data.id]: [] }));
+            break;
+          case 'UPDATE':
+            setColunas(colunas => colunas.map(coluna => {
+              if (coluna.id == payload.data.id) {
+                return {
+                  ...coluna,
+                  ...payload.data,
+                };
+              }
+              return coluna;
+            }));
+
+            if (payload.data.ativo === false) {
+              setIdColunas(prev => prev.filter(idColuna => idColuna !== payload.data.id));
+              setTarefasPorColuna(prev => {
+                delete prev?.[payload.data.id];
+
+                return prev;
+              });
+            }
+            break;
+          case 'DELETE':
+            setColunas(prev => prev.filter(coluna => coluna.id !== payload.data.id));
+            setIdColunas(prev => prev.filter(idColuna => idColuna !== payload.data.id));
+            setTarefasPorColuna(prev => {
+              delete prev?.[payload.data.id];
+
+              return prev;
+            });
+          default:
+            console.error('Operação desconhecida: ', payload.op);
+        }
         return;
       }
 
-      setTarefasPorColuna(prev => {
-        const map = {};
+      if (payload.entity === 'tarefa') {
+        setTarefasPorColuna(prev => {
+          const map = {};
 
-        // Copia os arrays para não alterar o estado anterior diretamente
-        for (const idColuna in prev) {
-          map[idColuna] = [...prev[idColuna]];
-        }
-
-        const idTarefa = payload.data.id;
-
-        switch (payload.op) {
-          case 'DELETE': {
-            for (const idColuna in map) {
-              map[idColuna] = map[idColuna].filter(
-                tarefa => Number(tarefa.id) !== Number(idTarefa)
-              );
-            }
-
-            break;
+          // Copia os arrays para não alterar o estado anterior diretamente
+          for (const idColuna in prev) {
+            map[idColuna] = [...prev[idColuna]];
           }
 
-          case 'UPDATE': {
-            let tarefaAtual = null;
+          const idTarefa = payload.data.id;
 
-            // Procura e remove a tarefa da posição/coluna antiga
-            for (const idColuna in map) {
-              const index = map[idColuna].findIndex(
-                tarefa => Number(tarefa.id) === Number(idTarefa)
-              );
-
-              if (index >= 0) {
-                tarefaAtual = map[idColuna][index];
-                map[idColuna].splice(index, 1);
-                break;
+          switch (payload.op) {
+            case 'DELETE': {
+              for (const idColuna in map) {
+                map[idColuna] = map[idColuna].filter(
+                  tarefa => Number(tarefa.id) !== Number(idTarefa)
+                );
               }
+
+              break;
             }
 
-            const tarefaAtualizada = {
-              ...tarefaAtual,
-              ...payload.data,
-            };
+            case 'UPDATE': {
+              let tarefaAtual = null;
 
-            tarefaAtualizada.usuario = espacoUsuarios.find(
-              usuario =>
-                Number(usuario.id) === Number(tarefaAtualizada.id_responsavel)
-            );
+              // Procura e remove a tarefa da posição/coluna antiga
+              for (const idColuna in map) {
+                const index = map[idColuna].findIndex(
+                  tarefa => Number(tarefa.id) === Number(idTarefa)
+                );
 
-            const idColunaNova = tarefaAtualizada.id_coluna;
+                if (index >= 0) {
+                  tarefaAtual = map[idColuna][index];
+                  map[idColuna].splice(index, 1);
+                  break;
+                }
+              }
 
-            // Ignora tarefas de colunas que não estão sendo exibidas
-            if (map[idColunaNova]) {
-              map[idColunaNova].push(tarefaAtualizada);
-            }
+              const tarefaAtualizada = {
+                ...tarefaAtual,
+                ...payload.data,
+              };
 
-            break;
-          }
-
-          case 'INSERT': {
-            const novaTarefa = {
-              ...payload.data,
-              usuario: espacoUsuarios.find(
+              tarefaAtualizada.usuario = espacoUsuarios.find(
                 usuario =>
-                  Number(usuario.id) === Number(payload.data.id_responsavel)
-              ),
-            };
+                  Number(usuario.id) === Number(tarefaAtualizada.id_responsavel)
+              );
 
-            const idColuna = novaTarefa.id_coluna;
+              const idColunaNova = tarefaAtualizada.id_coluna;
 
-            if (map[idColuna]) {
-              map[idColuna].push(novaTarefa);
+              // Ignora tarefas de colunas que não estão sendo exibidas
+              if (map[idColunaNova]) {
+                map[idColunaNova].push(tarefaAtualizada);
+              }
+
+              break;
             }
 
-            break;
+            case 'INSERT': {
+              const novaTarefa = {
+                ...payload.data,
+                usuario: espacoUsuarios.find(
+                  usuario =>
+                    Number(usuario.id) === Number(payload.data.id_responsavel)
+                ),
+              };
+
+              const idColuna = novaTarefa.id_coluna;
+
+              if (map[idColuna]) {
+                map[idColuna].push(novaTarefa);
+              }
+
+              break;
+            }
+
+            default:
+              return prev;
           }
 
-          default:
-            return prev;
-        }
+          for (const idColuna in map) {
+            map[idColuna].sort(
+              (a, b) => Number(a.ordem) - Number(b.ordem)
+            );
+          }
 
-        for (const idColuna in map) {
-          map[idColuna].sort(
-            (a, b) => Number(a.ordem) - Number(b.ordem)
-          );
-        }
+          return map;
+        });
 
-        return map;
-      });
+        return;
+      }
+
+      console.error('Tipo de identidade desconhecido');
     });
 
     return () => {
@@ -303,9 +356,10 @@ export default function TarefasPage({ espaco, writePermission }) {
         const usuario = usuarios.find(u => Number(u.id) === Number(tarefa.id_responsavel));
 
         if (usuario) {
-          tarefa.id_responsavel = usuario;
+          tarefa.usuario = usuario;
         }
       }
+
 
       const colunasAtivas = colunas.filter(coluna => coluna.ativo === true);
 
@@ -333,12 +387,14 @@ export default function TarefasPage({ espaco, writePermission }) {
   }, [espaco]);
 
   useEffect(() => {
-    precisaAtualizarTarefas.current = true;
+    if (arrastandoTarefa.current === true) {
+      precisaAtualizarTarefas.current = true;
+    }
   }, [tarefasPorColuna]);
 
   useEffect(() => {
     precisaAtualizarColunas.current = true;
-  },[idColunas]);
+  }, [idColunas]);
 
   const handleOpenMenu = useCallback((event, coluna) => {
     setMenu({ anchorEl: event.currentTarget, coluna });
@@ -441,19 +497,14 @@ export default function TarefasPage({ espaco, writePermission }) {
         return;
       }
 
-      setIsLoading(true);
       const res = await authAxios('PATCH', '/api/tarefas/atualizarTarefasEmMassa', data);
     } catch (error) {
       catchAuthAxios(error, 'Erro ao atualizar tarefas');
-    } finally {
-      setIsLoading(false);
     }
   }, [setIsLoading, tarefasPorColuna]);
 
   const atualizarColunas = useCallback(async () => {
     try {
-      setIsLoading(true);
-
       const data = {
         id_espaco: espaco.id,
         colunas: []
@@ -462,7 +513,7 @@ export default function TarefasPage({ espaco, writePermission }) {
       idColunas.forEach((idColuna, index) => {
         const coluna = colunas.find(col => Number(col.id) === idColuna);
 
-        if(coluna && coluna.ordem !== index){
+        if (coluna && coluna.ordem !== index) {
           data.colunas.push({ id: coluna.id, ordem: index });
         }
       });
@@ -470,13 +521,11 @@ export default function TarefasPage({ espaco, writePermission }) {
       const res = await authAxios('PATCH', '/api/colunas/atualizarColunasEmMassa', data);
     } catch (error) {
       catchAuthAxios();
-    } finally {
-      setIsLoading(false);
     }
   }, [setIsLoading, idColunas]);
 
   const handleDragStart = () => {
-    // setIsDraggingElement(true);
+    arrastandoTarefa.current = true;
   }
 
   const handleDragOver = (e) => {
@@ -486,23 +535,25 @@ export default function TarefasPage({ espaco, writePermission }) {
       return;
     }
 
-    if(source?.type === 'tarefa'){
+    if (source?.type === 'tarefa') {
       setTarefasPorColuna(t => move(t, e));
     }
 
-    if(source?.type === 'coluna'){
+    if (source?.type === 'coluna') {
       setIdColunas(cols => move(cols, e));
     }
 
   };
 
   const handleDragEnd = async (e) => {
-    if(precisaAtualizarTarefas.current === true){
-        await atualizarTarefas();
-        precisaAtualizarTarefas.current = false;
+    if (precisaAtualizarTarefas.current === true) {
+      console.log('Atualizando tarefas...');
+      await atualizarTarefas();
+      precisaAtualizarTarefas.current = false;
+      arrastandoTarefa.current = false;
     }
 
-    if(precisaAtualizarColunas.current === true){
+    if (precisaAtualizarColunas.current === true) {
       await atualizarColunas();
       precisaAtualizarColunas.current = false;
     }
@@ -513,24 +564,6 @@ export default function TarefasPage({ espaco, writePermission }) {
       return;
     }
 
-  };
-
-  const handleDragEnd2 = async (e) => {
-    if (e.cancelled) return;
-
-    const { type } = e.operation.source;
-
-    if (type == 'tarefa') {
-      await atualizarTarefas();
-      return;
-    }
-
-    if (type == 'coluna') {
-      await atualizarColunas();
-      return;
-    }
-
-    console.warning('Tipo inesperado: ', type);
   };
 
   const menuOptions = useMemo(() => [
@@ -584,15 +617,6 @@ export default function TarefasPage({ espaco, writePermission }) {
         })}
       </Menu>
 
-      <Button
-        variant='contained'
-        color='primary'
-        disabled={isLoading}
-        onClick={fetchData}
-      >
-        Recarregar
-      </Button>
-
       <DragDropProvider onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd} >
         <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', overflowY: 'hidden', justifyContent: 'flex-start', alignItems: 'flex-start', py: 1, }} >
           {idColunas.map((idColuna, index) => {
@@ -638,18 +662,20 @@ export default function TarefasPage({ espaco, writePermission }) {
               </Coluna>
             )
           })}
-          <Box key='nova-coluna' {...colunaBoxProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
-            <Button
-              variant='text'
-              startIcon={<AddIcon />}
-              fullWidth
-              sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
-              onClick={handleNovaColuna}
-              disabled={writePermission === false}
-            >
-              Adicionar Coluna
-            </Button>
-          </Box>
+          {writePermission === false ? null : (
+            <Box key='nova-coluna' {...colunaBoxProps({ id: 'nova-coluna', nome: 'Nova Coluna' })}>
+              <Button
+                variant='text'
+                startIcon={<AddIcon />}
+                fullWidth
+                sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+                onClick={handleNovaColuna}
+                disabled={writePermission === false}
+              >
+                Adicionar Coluna
+              </Button>
+            </Box>
+          )}
         </Stack>
       </DragDropProvider>
 

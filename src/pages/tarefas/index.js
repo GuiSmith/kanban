@@ -178,6 +178,7 @@ export default function TarefasPage({ espaco, writePermission }) {
   const [menu, setMenu] = useState({ anchorEl: null, coluna: null });
   
   const precisaAtualizarTarefas = useRef(false);
+  const precisaAtualizarColunas = useRef(false);
 
   useEffect(() => {
     const socket = io({
@@ -335,6 +336,10 @@ export default function TarefasPage({ espaco, writePermission }) {
     precisaAtualizarTarefas.current = true;
   }, [tarefasPorColuna]);
 
+  useEffect(() => {
+    precisaAtualizarColunas.current = true;
+  },[idColunas]);
+
   const handleOpenMenu = useCallback((event, coluna) => {
     setMenu({ anchorEl: event.currentTarget, coluna });
   }, []);
@@ -448,12 +453,27 @@ export default function TarefasPage({ espaco, writePermission }) {
   const atualizarColunas = useCallback(async () => {
     try {
       setIsLoading(true);
+
+      const data = {
+        id_espaco: espaco.id,
+        colunas: []
+      };
+
+      idColunas.forEach((idColuna, index) => {
+        const coluna = colunas.find(col => Number(col.id) === idColuna);
+
+        if(coluna && coluna.ordem !== index){
+          data.colunas.push({ id: coluna.id, ordem: index });
+        }
+      });
+
+      const res = await authAxios('PATCH', '/api/colunas/atualizarColunasEmMassa', data);
     } catch (error) {
       catchAuthAxios();
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [setIsLoading, idColunas]);
 
   const handleDragStart = () => {
     // setIsDraggingElement(true);
@@ -462,11 +482,18 @@ export default function TarefasPage({ espaco, writePermission }) {
   const handleDragOver = (e) => {
     const { source, target } = e.operation;
 
-    if (source?.id === target?.id) {
+    if (source?.id === target?.id && source?.type === target?.type) {
       return;
     }
 
-    setTarefasPorColuna(t => move(t, e));
+    if(source?.type === 'tarefa'){
+      setTarefasPorColuna(t => move(t, e));
+    }
+
+    if(source?.type === 'coluna'){
+      setIdColunas(cols => move(cols, e));
+    }
+
   };
 
   const handleDragEnd = async (e) => {
@@ -475,13 +502,16 @@ export default function TarefasPage({ espaco, writePermission }) {
         precisaAtualizarTarefas.current = false;
     }
 
+    if(precisaAtualizarColunas.current === true){
+      await atualizarColunas();
+      precisaAtualizarColunas.current = false;
+    }
+
     const { source, target } = e.operation;
 
     if (e.canceled || source.type !== 'coluna') {
       return;
     }
-
-    setIdColunas(cols => move(cols, e));
 
   };
 

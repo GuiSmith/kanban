@@ -1,7 +1,7 @@
 # Inicialização
 dev-up:
 	docker container stop kanban-app || true
-	docker compose up kanban-app-dev -d
+	([ -d node_modules ] || npm ci) && docker compose up kanban-app-dev -d
 	docker logs -f kanban-app-dev
 up:
 	docker container stop kanban-app-dev || true

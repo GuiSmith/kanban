@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import db from "@/pages/api/config/connectDB";
+import getQuadroRoom from "@/utils/getQuadroRoom";
 
 let io = null;
 let pgClient = null;
@@ -29,9 +30,19 @@ export default async function SocketHandler(req, res) {
 
     pgClient.on("notification", (msg) => {
       if (msg.channel === "tarefas") {
-        const payload = JSON.parse(msg.payload);
+        try {
+          const payload = JSON.parse(msg.payload);
+          const room = getQuadroRoom(payload.id_espaco);
 
-        io.to("tarefas").emit("tarefas", payload);
+          if (!room) {
+            console.error("Notificação do Quadro com ID de espaço inválido:", payload);
+            return;
+          }
+
+          io.to(room).emit("tarefas", payload);
+        } catch (error) {
+          console.error("Erro ao processar notificação do Quadro:", error);
+        }
       }
     });
   }
@@ -39,14 +50,26 @@ export default async function SocketHandler(req, res) {
   io.on("connection", (socket) => {
     console.log("Socket conectado:", socket.id);
 
-    socket.on("join_tarefas", () => {
-      socket.join("tarefas");
-      console.log(`${socket.id} entrou na room tarefas`);
+    socket.on("join_quadro", ({ id_espaco } = {}) => {
+      const room = getQuadroRoom(id_espaco);
+
+      if (!room) {
+        console.error(`${socket.id} tentou entrar em uma room com ID de espaço inválido`);
+        return;
+      }
+
+      socket.join(room);
     });
 
-    socket.on("leave_tarefas", () => {
-      socket.leave("tarefas");
-      console.log(`${socket.id} saiu da room tarefas`);
+    socket.on("leave_quadro", ({ id_espaco } = {}) => {
+      const room = getQuadroRoom(id_espaco);
+
+      if (!room) {
+        console.error(`${socket.id} tentou sair de uma room com ID de espaço inválido`);
+        return;
+      }
+
+      socket.leave(room);
     });
 
     socket.on("disconnect", () => {

@@ -218,15 +218,33 @@ export default function TarefasPage({ espaco, writePermission }) {
   const precisaAtualizarTarefas = useRef(false);
   const arrastandoColuna = useRef(false);
   const precisaAtualizarColunas = useRef(false);
+  const espacoUsuariosRef = useRef(espacoUsuarios);
 
   useEffect(() => {
+    espacoUsuariosRef.current = espacoUsuarios;
+  }, [espacoUsuarios]);
+
+  useEffect(() => {
+    const idEspaco = Number(espaco?.id);
+
+    if (!Number.isInteger(idEspaco) || idEspaco <= 0) {
+      return;
+    }
+
     const socket = io({
       path: '/api/socketio',
+      addTrailingSlash: false,
     });
 
-    socket.emit('join_tarefas');
+    const handleConnect = () => {
+      socket.emit('join_quadro', { id_espaco: idEspaco });
+    };
 
-    socket.on('tarefas', payload => {
+    const handleTarefas = payload => {
+      
+      if (Number(payload?.id_espaco) !== idEspaco) {
+        return;
+      }
 
       if (payload.entity === 'coluna') {
         switch (payload.op) {
@@ -249,9 +267,10 @@ export default function TarefasPage({ espaco, writePermission }) {
             if (payload.data.ativo === false) {
               setIdColunas(prev => prev.filter(idColuna => idColuna !== payload.data.id));
               setTarefasPorColuna(prev => {
-                delete prev?.[payload.data.id];
+                const map = { ...prev };
+                delete map[payload.data.id];
 
-                return prev;
+                return map;
               });
             }
             break;
@@ -259,10 +278,12 @@ export default function TarefasPage({ espaco, writePermission }) {
             setColunas(prev => prev.filter(coluna => coluna.id !== payload.data.id));
             setIdColunas(prev => prev.filter(idColuna => idColuna !== payload.data.id));
             setTarefasPorColuna(prev => {
-              delete prev?.[payload.data.id];
+              const map = { ...prev };
+              delete map[payload.data.id];
 
-              return prev;
+              return map;
             });
+            break;
           default:
             console.error('Operação desconhecida: ', payload.op);
         }
@@ -275,12 +296,13 @@ export default function TarefasPage({ espaco, writePermission }) {
         switch (payload.op) {
           case 'DELETE': {
             setTarefasPorColuna(prev => {
+              const map = {};
+
               for (const idColuna in prev) {
-                const tarefas = prev[idColuna];
-                prev[idColuna] = tarefas.filter(tarefa => tarefa.id !== payload.data.id);
+                map[idColuna] = prev[idColuna].filter(tarefa => tarefa.id !== payload.data.id);
               }
 
-              return prev;
+              return map;
             });
             break;
           }
@@ -288,7 +310,7 @@ export default function TarefasPage({ espaco, writePermission }) {
           case 'UPDATE': {
 
             const novaTarefa = payload.data;
-            const usuario = espacoUsuarios.find(u => Number(u.id) === novaTarefa.id_responsavel);
+            const usuario = espacoUsuariosRef.current.find(u => Number(u.id) === Number(novaTarefa.id_responsavel));
             novaTarefa.usuario = usuario ?? null;
 
             setTarefasPorColuna(prev => {
@@ -296,11 +318,11 @@ export default function TarefasPage({ espaco, writePermission }) {
               const map = {};
 
               for (const idColuna in prev) {
-                const tarefas = prev[idColuna];
+                const tarefas = [...prev[idColuna]];
                 const tarefaIndex = tarefas.findIndex(t => t.id === novaTarefa.id);
 
                 if (tarefaIndex >= 0) {
-                  const [tarefaRemovida] = tarefas.splice(tarefaIndex, 1);
+                  tarefas.splice(tarefaIndex, 1);
                 }
 
                 map[idColuna] = tarefas;
@@ -323,11 +345,13 @@ export default function TarefasPage({ espaco, writePermission }) {
 
           case 'INSERT': {
             const novaTarefa = payload.data;
+            const usuario = espacoUsuariosRef.current.find(u => Number(u.id) === Number(novaTarefa.id_responsavel));
+            novaTarefa.usuario = usuario ?? null;
 
             setTarefasPorColuna(prev => {
               const map = {};
 
-              for(const idColuna in prev) map[idColuna] = prev[idColuna];
+              for(const idColuna in prev) map[idColuna] = [...prev[idColuna]];
 
               if(!map[novaTarefa.id_coluna]){
                 console.error('Coluna não existente ou inativa');
@@ -340,11 +364,6 @@ export default function TarefasPage({ espaco, writePermission }) {
                 map[novaTarefa.id_coluna].push(novaTarefa);
               }
 
-              console.log({
-                antes: prev,
-                depois: map
-              });
-
               return map;
             });
             break;
@@ -354,14 +373,20 @@ export default function TarefasPage({ espaco, writePermission }) {
       }
 
       console.error('Tipo de identidade desconhecido');
-    });
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('tarefas', handleTarefas);
 
     return () => {
-      socket.emit('leave_tarefas');
-      socket.off('tarefas');
+      if (socket.connected) {
+        socket.emit('leave_quadro', { id_espaco: idEspaco });
+      }
+      socket.off('connect', handleConnect);
+      socket.off('tarefas', handleTarefas);
       socket.disconnect();
     };
-  }, [espacoUsuarios]);
+  }, [espaco?.id]);
 
   // Buscar tarefas, colunas e usuários
   const fetchData = async () => {

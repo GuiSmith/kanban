@@ -3,11 +3,9 @@
 # =========================================================
 # Dependências
 # =========================================================
-FROM node:22-alpine AS dependencies
+FROM node:22-bookworm-slim AS dependencies
 
 WORKDIR /app
-
-RUN apk add --no-cache libc6-compat
 
 COPY package.json package-lock.json ./
 
@@ -18,11 +16,9 @@ RUN npm ci
 # =========================================================
 # Build
 # =========================================================
-FROM node:22-alpine AS builder
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
-
-RUN apk add --no-cache libc6-compat
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -40,11 +36,9 @@ RUN npm run build
 # =========================================================
 # Produção
 # =========================================================
-FROM node:22-alpine AS production
+FROM node:22-bookworm-slim AS production
 
 WORKDIR /app
-
-RUN apk add --no-cache libc6-compat
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -56,6 +50,10 @@ RUN addgroup --system --gid 1001 nodejs \
 
 # Aplicação standalone
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+
+# Dependência nativa carregada dinamicamente
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/bcrypt ./node_modules/bcrypt
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/node-gyp-build ./node_modules/node-gyp-build
 
 # Arquivos estáticos não são copiados automaticamente para standalone
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static

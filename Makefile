@@ -8,7 +8,7 @@ dev-migrate:
 
 # Produção
 build:
-	docker build -t guismith/kanban-app:latest .
+	docker build --no-cache -t guismith/kanban-app:latest .
 push:
 	docker push guismith/kanban-app:latest
 up:

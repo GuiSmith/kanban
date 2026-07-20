@@ -5,6 +5,7 @@ import defaultResponse from '@/pages/api/config/defaultResponse.js';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
 import userBelongsToSpace from '../utils/userBelongsToSpace';
+import { isValidTaskPriority } from '@/utils/taskPriority';
 
 const requiredPermission = {
     name: 'QUADRO',
@@ -15,7 +16,7 @@ const handler = async (req, res) => {
     try {
         const dadosForm = req.body ?? {};
         const dadosObrigatorios = ['titulo','descricao','id_espaco','id_coluna'];
-        const dadosPermitidos = [...dadosObrigatorios, 'id_responsavel','data_prevista','data_limite'];
+        const dadosPermitidos = [...dadosObrigatorios, 'id_responsavel','data_prevista','data_limite','prioridade'];
         const dadosObrigatoriosPreenchidos = dadosObrigatorios.every(dado => dadosForm[dado]);
         const somenteDadosPermitidosPreenchidos = Object.keys(dadosForm).every(key => dadosPermitidos.includes(key));
 
@@ -25,6 +26,10 @@ const handler = async (req, res) => {
 
         if(!somenteDadosPermitidosPreenchidos){
             return res.status(400).json(defaultResponse('Preencha apenas os dados permitidos para continuar', { obrigatorios: dadosObrigatorios} ));
+        }
+        
+        if(!isValidTaskPriority(dadosForm.prioridade)){
+            return res.status(400).json(defaultResponse('Prioridade inválida'));
         }
 
         const idEspaco = Number(dadosForm.id_espaco);

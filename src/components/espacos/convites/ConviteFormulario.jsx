@@ -3,7 +3,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 
 import Autocomplete from '@mui/material/Autocomplete';
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
@@ -15,6 +14,7 @@ import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
+import ProfilePicture from '@/components/common/ProfilePicture';
 
 import getNameInitials from '@/utils/getNameInitials';
 

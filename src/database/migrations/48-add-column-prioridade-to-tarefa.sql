@@ -1,0 +1,6 @@
+ALTER TABLE tarefa
+ADD COLUMN prioridade VARCHAR(20) NOT NULL DEFAULT 'MEDIO';
+
+ALTER TABLE tarefa
+ADD CONSTRAINT tarefa_prioridade_check
+CHECK (prioridade IN ('CRITICO', 'ALTO', 'MEDIO', 'BAIXO', 'MUITO_BAIXO'));

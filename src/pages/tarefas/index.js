@@ -39,6 +39,9 @@ import columnType from "@/utils/columnType";
 import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 import { formatDate } from "@/utils/formatDate";
 import ProfilePicture from "@/components/common/ProfilePicture";
+import TaskPriorityIcon from '@/components/tarefas/TaskPriorityIcon';
+import { getTaskPriority } from '@/utils/taskPriority';
+import { getBottomNavigationActionUtilityClass } from "@mui/material/BottomNavigationAction";
 
 const hoverOpacity = 0.5;
 
@@ -113,9 +116,11 @@ const Coluna = memo(({ children, id, index, coluna, qtdTarefas, handleOpenMenu, 
             </IconButton>
           </Tooltip>
           <Tooltip title='Ações da coluna'>
-            <IconButton size='small' onClick={(e) => handleOpenMenu(e, coluna)} disabled={writePermission === false}>
-              <MoreVertIcon />
-            </IconButton>
+            <span>
+              <IconButton size='small' onClick={(e) => handleOpenMenu(e, coluna)} disabled={writePermission === false}>
+                <MoreVertIcon />
+              </IconButton>
+            </span>
           </Tooltip>
         </Stack>
       </Stack>
@@ -139,6 +144,8 @@ const TarefaCard = memo(({ id, espaco, index, tarefa, idColuna, handleEditarTare
     disabled: writePermission === false
   });
 
+  const priority = getTaskPriority(tarefa.prioridade);
+
   return (
     <Card ref={ref} {...tarefaCardProps(tarefa, isDragging)} data-dragging={isDragging} >
       <CardContent onClick={() => handleEditarTarefa(tarefa)} sx={{ p: 1, '&:last-child': { pb: 1 } }}>
@@ -146,7 +153,14 @@ const TarefaCard = memo(({ id, espaco, index, tarefa, idColuna, handleEditarTare
         <Typography variant="caption" display="block" color="text.secondary">{tarefa.data_limite ? `Data limite: ${formatDate(tarefa.data_limite)}` : null}</Typography>
         <Stack direction='row' justifyContent='space-between' alignItems='center' spacing={1} >
           <Typography color='info'>{espaco.sigla}-{getTarefaId(tarefa.id)}</Typography>
-          <ProfilePicture size='small' user={tarefa?.usuario} />
+          <Stack direction='row' alignItems='center' spacing={1}>
+            <Tooltip title={`Prioridade: ${priority.label}`}>
+              <span>
+                <TaskPriorityIcon priority={priority.value} fontSize='small' />
+              </span>
+            </Tooltip>
+            <ProfilePicture size='small' user={tarefa?.usuario} />
+          </Stack>
         </Stack>
       </CardContent>
     </Card>
@@ -213,6 +227,7 @@ export default function TarefasPage({ espaco, writePermission }) {
     socket.emit('join_tarefas');
 
     socket.on('tarefas', payload => {
+
       if (payload.entity === 'coluna') {
         switch (payload.op) {
           case 'INSERT':
@@ -271,37 +286,66 @@ export default function TarefasPage({ espaco, writePermission }) {
           }
 
           case 'UPDATE': {
+
+            const novaTarefa = payload.data;
+            const usuario = espacoUsuarios.find(u => Number(u.id) === novaTarefa.id_responsavel);
+            novaTarefa.usuario = usuario ?? null;
+
             setTarefasPorColuna(prev => {
+
+              const map = {};
+
               for (const idColuna in prev) {
                 const tarefas = prev[idColuna];
+                const tarefaIndex = tarefas.findIndex(t => t.id === novaTarefa.id);
 
-                tarefas.forEach(tarefa => {
-                  if (tarefa.id === payload.data.id) {
-                    tarefa = payload.data;
-                  }
-                });
+                if (tarefaIndex >= 0) {
+                  const [tarefaRemovida] = tarefas.splice(tarefaIndex, 1);
+                }
 
-                prev[idColuna] = tarefas;
+                map[idColuna] = tarefas;
               }
 
-              return prev;
+              if (!map[novaTarefa.id_coluna]) {
+                map[novaTarefa.id_coluna] = [];
+              }
+
+              const tarefaExistente = map[novaTarefa.id_coluna].find(t => t.id === novaTarefa.id);
+
+              if(!tarefaExistente){
+                map[novaTarefa.id_coluna].splice(novaTarefa.ordem, 0, novaTarefa);
+              }
+
+              return map;
             });
             break;
           }
 
           case 'INSERT': {
+            const novaTarefa = payload.data;
+
             setTarefasPorColuna(prev => {
-              if (!prev?.[payload.data.id]) {
+              const map = {};
+
+              for(const idColuna in prev) map[idColuna] = prev[idColuna];
+
+              if(!map[novaTarefa.id_coluna]){
                 console.error('Coluna não existente ou inativa');
-                return;
+                return prev;
               }
-              const tarefaExiste = prev[payload.data.id_coluna].find(tarefa => tarefa.id === payload.data.id);
+
+              const tarefaExiste = map[novaTarefa.id_coluna].find(tarefa => tarefa.id === novaTarefa.id);
 
               if (!tarefaExiste) {
-                prev[payload.data.id_coluna].push(payload.data);
+                map[novaTarefa.id_coluna].push(novaTarefa);
               }
 
-              return prev;
+              console.log({
+                antes: prev,
+                depois: map
+              });
+
+              return map;
             });
             break;
           }

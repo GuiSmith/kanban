@@ -27,12 +27,14 @@ import { formatDateTime } from "@/utils/formatDate";
 import ProfilePicture from "@/components/common/ProfilePicture";
 import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 import Tooltip from "@mui/material/Tooltip";
+import TaskPriorityIcon from '@/components/tarefas/TaskPriorityIcon';
+import { DEFAULT_TASK_PRIORITY, getTaskPriority, TASK_PRIORITY_OPTIONS } from '@/utils/taskPriority';
 
 // const defaultValues = { titulo: '', descricao: '' };
 
 const defaultValues = {
-  create: ['titulo', 'descricao', 'id_coluna', 'id_espaco', 'id_responsavel', 'data_prevista', 'data_limite'],
-  edit: ['id', 'titulo', 'descricao', 'id_coluna', 'ordem', 'id_responsavel', 'data_cadastro','data_atualizacao', 'data_prevista', 'data_limite']
+  create: ['titulo', 'descricao', 'id_coluna', 'id_espaco', 'id_responsavel', 'prioridade', 'data_prevista', 'data_limite'],
+  edit: ['id', 'titulo', 'descricao', 'id_coluna', 'ordem', 'id_responsavel', 'prioridade', 'data_cadastro','data_atualizacao', 'data_prevista', 'data_limite']
 
 };
 
@@ -54,7 +56,9 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
     const obj = {};
 
     for (const key of defaultValues[mode]) {
-      obj[key] = initialValues?.[key] ?? null;
+      obj[key] = key === 'prioridade'
+        ? initialValues?.[key] ?? DEFAULT_TASK_PRIORITY
+        : initialValues?.[key] ?? null;
     }
 
     reset(obj);
@@ -230,6 +234,46 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                       {colunasAtivas.map(coluna => (
                         <MenuItem key={`coluna-${coluna.id}`} value={coluna.id}>
                           <Button color={columnType[coluna.tipo]} type='button' variant='contained' >{coluna.nome}</Button>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+              {/* Prioridade */}
+              <Controller
+                name='prioridade'
+                control={control}
+                rules={{ required: 'Selecione uma prioridade' }}
+                render={({ field }) => (
+                  <FormControl fullWidth required disabled={isLoading || writePermission === false}>
+                    <InputLabel id='tarefa-prioridade'>Prioridade</InputLabel>
+                    <Select
+                      {...field}
+                      labelId='tarefa-prioridade'
+                      label='Prioridade'
+                      value={field.value || DEFAULT_TASK_PRIORITY}
+                      renderValue={(value) => {
+                        const priority = getTaskPriority(value);
+
+                        return (
+                          <Stack direction='row' alignItems='center' spacing={1}>
+                            <TaskPriorityIcon priority={priority.value} />
+                            <Typography>{priority.label}</Typography>
+                          </Stack>
+                        );
+                      }}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        salvarCampo('prioridade', e.target.value);
+                      }}
+                    >
+                      {TASK_PRIORITY_OPTIONS.map(priority => (
+                        <MenuItem key={priority.value} value={priority.value}>
+                          <Stack direction='row' alignItems='center' spacing={1}>
+                            <TaskPriorityIcon priority={priority.value} />
+                            <Typography>{priority.label}</Typography>
+                          </Stack>
                         </MenuItem>
                       ))}
                     </Select>

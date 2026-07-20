@@ -6,6 +6,7 @@ import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
 import userBelongsToSpace from '@/pages/api/utils/userBelongsToSpace';
 import isDatabaseDate from '@/pages/api/utils/isDatabaseDate';
 import databaseDateToPrisma from '@/pages/api/utils/databaseDateToPrisma';
+import { isValidTaskPriority } from '@/utils/taskPriority';
 
 const requiredPermission = {
     name: 'QUADRO',
@@ -15,7 +16,7 @@ const requiredPermission = {
 const handler = async (req, res) => {
     try {
         const data = req.body ?? {};
-        const dadosPermitidos = ['id','titulo','descricao','id_coluna','ordem','id_responsavel','data_prevista','data_limite'];
+        const dadosPermitidos = ['id','titulo','descricao','id_coluna','ordem','id_responsavel','data_prevista','data_limite','prioridade'];
         const idInformado = 'id' in data;
         const apenasDadosPermitidosInformados = Object.keys(data).every(key => dadosPermitidos.includes(key));
 
@@ -25,6 +26,10 @@ const handler = async (req, res) => {
 
         if(!apenasDadosPermitidosInformados){
             return res.status(400).json(defaultResponse('Informe apenas dados permitidos', { informados: data, permitidos: dadosPermitidos }));
+        }
+
+        if('prioridade' in data && !isValidTaskPriority(data.prioridade)){
+            return res.status(400).json(defaultResponse('Prioridade inválida'));
         }
 
         const tarefa = await dbPrisma.tarefa.findUnique({ where: { id: data.id }});

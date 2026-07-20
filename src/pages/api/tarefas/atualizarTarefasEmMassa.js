@@ -60,8 +60,6 @@ const handler = async (req, res) => {
             }
         }
 
-        console.log(data);
-
         const result = await dbPrisma.$transaction(
             data.tarefas.map(tarefa => dbPrisma.tarefa.update({
                 where: {

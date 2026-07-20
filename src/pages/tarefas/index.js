@@ -241,6 +241,8 @@ export default function TarefasPage({ espaco, writePermission }) {
     };
 
     const handleTarefas = payload => {
+
+      console.log(payload);
       
       if (Number(payload?.id_espaco) !== idEspaco) {
         return;

@@ -1,8 +1,6 @@
 services:
   kanban-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: guismith/kanban-app:latest
     container_name: kanban-app
     networks:
      - kanban-shared-services

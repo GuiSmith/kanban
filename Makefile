@@ -19,6 +19,10 @@ up:
 migrate:
 	docker exec -it kanban-app npm run migrate
 
+# Realizar backup
+bkp:
+	sudo bash src/database/backup.sh
+
 # Derrubar containers
 down:
 	docker compose down

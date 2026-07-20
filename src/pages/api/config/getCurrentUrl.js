@@ -1,18 +1,22 @@
 const getCurrentUrl = () => {
 
     if(process.env.STAGE == 'production'){
+        const fullUrl = process.env.PRODUCTION_URL;
+
         return {
-            fullUrl: `http://localhost:${process.env.PRODUCTION_PORT}`,
-            origin: `http://localhost`,
+            fullUrl,
+            origin: new URL(fullUrl).origin,
         }
     }
 
     if(process.env.STAGE == 'development'){
         return {
-            fullUrl: `http://localhost:${process.env.DEVELOPMENT_PORT}`,
+            fullUrl: `http://localhost:3000`,
             origin: `http://localhost`,
         };
     }
+
+    throw new Error(`STAGE inválido: ${process.env.STAGE}`);
 }
 
 export default getCurrentUrl;

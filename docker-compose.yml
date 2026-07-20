@@ -7,7 +7,7 @@ services:
     networks:
      - kanban-shared-services
     ports:
-      - "${PRODUCTION_PORT}:3000"
+      - "${PORT}:3000"
     environment:
       STAGE: production
     env_file:
@@ -25,7 +25,7 @@ services:
      - kanban-shared-services
     working_dir: /app
     ports:
-      - "${DEVELOPMENT_PORT}:3000"
+      - "${PORT}:3000"
     volumes:
       - ./:/app
       - node_modules:/app/node_modules

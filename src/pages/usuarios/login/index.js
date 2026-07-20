@@ -19,6 +19,7 @@ import axios from "axios";
 
 import { signIn } from 'next-auth/react';
 import { useAuth } from '@/contexts/AuthContext';
+import catchAuthAxios from "@/utils/catchAxios";
 
 const defaultValues = {
   login: "",
@@ -54,8 +55,7 @@ export default function LoginUsuarioPage() {
       const redirectUrl = params.get("redirectUrl") || "/documentacao";
       Router.push(redirectUrl);
     } catch (error) {
-      console.log(error.response || error);
-      toast.error(error.response?.data?.mensagem || "Não foi possível realizar login.");
+      catchAuthAxios(error, 'Erro ao realizar login. Contate o suporte');
     } finally {
       setIsLoading(false);
     }

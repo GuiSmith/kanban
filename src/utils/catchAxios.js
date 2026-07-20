@@ -12,7 +12,7 @@ const catchAuthAxios = (error, genericMessage = 'Ocorreu um erro inesperado' ) =
     const errorMessage = error?.response?.data?.mensagem ?? genericMessage;
 
     if (status === 401) {
-        toast.warning(errorMessage);''
+        toast.warning(errorMessage);
         removeToken();
         Router.replace('/usuarios/logout');
         return null;

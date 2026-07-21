@@ -125,7 +125,7 @@ const Coluna = memo(({ children, id, index, coluna, qtdTarefas, handleOpenMenu, 
         alignItems='center'
       >
         <Tooltip title={`${coluna.id} - ${capitalizeFirstLetter(coluna.nome)}`} sx={{ cursor: 'grab' }} ref={handleRef} >
-          <Stack direction='row' justifyContent='flex-start' alignItems='center'>
+          <Stack direction='row' justifyContent='flex-start' alignItems='center' data-board-pan-ignore="true">
             <DragIndicatorIcon />
             <Typography variant="h6" >
               {capitalizeFirstLetter(coluna.nome)}
@@ -180,7 +180,7 @@ const TarefaCard = memo(({ id, espaco, index, tarefa, idColuna, handleEditarTare
   const priority = getTaskPriority(tarefa.prioridade);
 
   return (
-    <Card ref={ref} {...tarefaCardProps(tarefa, isDragging)} data-dragging={isDragging} >
+    <Card ref={ref} {...tarefaCardProps(tarefa, isDragging)} data-dragging={isDragging} data-board-pan-ignore="true">
       <CardContent onClick={() => handleEditarTarefa(tarefa)} sx={{ p: 1, '&:last-child': { pb: 1 } }}>
         <Typography variant="h6" component="h2">{tarefa.titulo}</Typography>
         <Typography variant="caption" display="block" color="text.secondary">{tarefa.data_limite ? `Data limite: ${formatDate(tarefa.data_limite)}` : null}</Typography>
@@ -248,6 +248,7 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
   const [tarefaModal, setTarefaModal] = useState({ open: false, data: {} });
   const [colunaModal, setColunaModal] = useState({ open: false, data: {} });
   const [menu, setMenu] = useState({ anchorEl: null, coluna: null });
+  const [isBoardPanning, setIsBoardPanning] = useState(false);
 
   const arrastandoTarefa = useRef(false);
   const precisaAtualizarTarefas = useRef(false);
@@ -255,6 +256,7 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
   const precisaAtualizarColunas = useRef(false);
   const espacoUsuariosRef = useRef(espacoUsuarios);
   const tarefaAbertaPelaNavegacaoRef = useRef(null);
+  const boardPanRef = useRef({ active: false, pointerId: null, startX: 0, scrollLeft: 0 });
 
   useEffect(() => {
     espacoUsuariosRef.current = espacoUsuarios;
@@ -487,6 +489,44 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
 
   const handleCloseMenu = useCallback(() => {
     setMenu({ anchorEl: null, coluna: null });
+  }, []);
+
+  const handleBoardPointerDown = useCallback((event) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+
+    const ignoredElement = event.target.closest?.(
+      '[data-board-pan-ignore="true"], button, a, input, textarea, select, [role="button"]'
+    );
+    if (ignoredElement) return;
+
+    const board = event.currentTarget;
+    boardPanRef.current = {
+      active: true,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      scrollLeft: board.scrollLeft,
+    };
+    board.setPointerCapture(event.pointerId);
+    setIsBoardPanning(true);
+  }, []);
+
+  const handleBoardPointerMove = useCallback((event) => {
+    const pan = boardPanRef.current;
+    if (!pan.active || pan.pointerId !== event.pointerId) return;
+
+    event.preventDefault();
+    event.currentTarget.scrollLeft = pan.scrollLeft - (event.clientX - pan.startX);
+  }, []);
+
+  const handleBoardPointerEnd = useCallback((event) => {
+    const pan = boardPanRef.current;
+    if (!pan.active || pan.pointerId !== event.pointerId) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    boardPanRef.current = { active: false, pointerId: null, startX: 0, scrollLeft: 0 };
+    setIsBoardPanning(false);
   }, []);
 
   const handleNovaTarefa = useCallback((id_coluna) => {
@@ -741,12 +781,18 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
         <Stack
           direction="row"
           spacing={2}
+          onPointerDown={handleBoardPointerDown}
+          onPointerMove={handleBoardPointerMove}
+          onPointerUp={handleBoardPointerEnd}
+          onPointerCancel={handleBoardPointerEnd}
           sx={{
             overflowX: 'auto',
             overflowY: 'hidden',
             justifyContent: 'flex-start',
             alignItems: 'flex-start',
             py: 1,
+            cursor: isBoardPanning ? 'grabbing' : 'grab',
+            userSelect: isBoardPanning ? 'none' : 'auto',
             ...scrollbarSx,
           }}
         >

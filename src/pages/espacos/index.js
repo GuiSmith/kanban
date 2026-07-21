@@ -69,7 +69,7 @@ export default function EspacosPage() {
 
   const { espacos, isNavbarLoading, profile } = useNavbar();
 
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(localStorage.getItem('activeTab') ?? 0);
   const [permissoes, setPermissoes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -99,12 +99,12 @@ export default function EspacosPage() {
 
     buscarPermissoes();
   }, [space, id, isNavbarLoading, profile?.id, router.isReady]);
-
   
   const SpaceIcon = getEspacoIcon(space?.icon) ?? WorkspacesIcon;
   
   const handleTabChange = (_, value) => {
     setActiveTab(value);
+    localStorage.setItem('activeTab', value);
   };
   
   const hasTabPermission = (permissionName) => {

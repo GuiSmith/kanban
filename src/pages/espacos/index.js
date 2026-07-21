@@ -69,7 +69,7 @@ export default function EspacosPage() {
 
   const { espacos, isNavbarLoading, profile } = useNavbar();
 
-  const [activeTab, setActiveTab] = useState(localStorage.getItem('activeTab') ?? 0);
+  const [activeTab, setActiveTab] = useState(typeof window !== 'undefined' ? (localStorage.getItem('activeTab') ?? 0) : 0);
   const [permissoes, setPermissoes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 

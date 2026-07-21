@@ -85,9 +85,13 @@ const colunaBoxProps = (coluna, isDropTarget, isDragging) => ({
     position: 'relative',
     mb: 3,
     px: 1,
-    border: 1,
+    pb: 1,
+    borderTop: 4,
     borderColor: `${columnType[coluna.tipo] ?? 'default'}.main`,
-    borderRadius: 1,
+    borderRadius: 2,
+    bgcolor: (theme) => theme.palette.mode === 'dark'
+      ? alpha(theme.palette.common.white, 0.12)
+      : theme.palette.background.paper,
     opacity: isDropTarget || isDragging ? hoverOpacity : 1,
   }
 });

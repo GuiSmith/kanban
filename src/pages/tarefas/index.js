@@ -795,7 +795,7 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
             justifyContent: 'flex-start',
             alignItems: 'flex-start',
             py: 1,
-            cursor: isBoardPanning ? 'grabbing' : 'grab',
+            cursor: isBoardPanning ? 'grabbing' : 'default',
             userSelect: isBoardPanning ? 'none' : 'auto',
             ...scrollbarSx,
           }}

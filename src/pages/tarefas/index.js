@@ -112,7 +112,7 @@ const Coluna = memo(({ children, id, index, coluna, qtdTarefas, handleOpenMenu, 
         <Stack direction='row' spacing={0.1} alignItems='center' >
           <Tooltip title={`Esta coluna tem ${qtdTarefas} tarefas`}>
             <IconButton size='small'>
-              {qtdTarefas}
+              {qtdTarefas ?? '?'}
             </IconButton>
           </Tooltip>
           <Tooltip title='Ações da coluna'>
@@ -687,7 +687,7 @@ export default function TarefasPage({ espaco, writePermission }) {
                 id={idColuna}
                 index={index}
                 coluna={coluna}
-                tarefas={tarefasPorColuna[idColuna]?.length ?? 0}
+                qtdTarefas={tarefasPorColuna[idColuna]?.length ?? 0}
                 key={idColuna}
                 handleOpenMenu={handleOpenMenu}
                 writePermission={writePermission}

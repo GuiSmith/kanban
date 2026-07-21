@@ -315,14 +315,14 @@ const ActivityChart = ({ tasks }) => {
         <Typography id="activity-chart-title" component="h2" variant="h6">Atividade recente</Typography>
         <Typography variant="caption" color="text.secondary">Tarefas atualizadas em três escalas de tempo</Typography>
       </Box>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
+      <Grid container spacing={3} justifyContent="space-evenly">
+        <Grid size={{ xs: 12, md: 4 }}>
           <ActivityBars title="Por dia" description="Últimos 7 dias" data={activityData.day} />
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <ActivityBars title="Por semana" description="Últimas 8 semanas" data={activityData.week} />
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <ActivityBars title="Por mês" description="Últimos 6 meses" data={activityData.month} />
         </Grid>
       </Grid>
@@ -497,17 +497,17 @@ export default function DashboardPage() {
           </Stack>
         ) : (
           <>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} lg={3}>
+            <Grid container spacing={2} justifyContent="space-evenly">
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <MetricCard title="Em aberto" value={metrics.open} description="Tarefas ainda não concluídas" icon={AssignmentOutlinedIcon} color="primary" />
               </Grid>
-              <Grid item xs={12} sm={6} lg={3}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <MetricCard title="Em andamento" value={metrics.doing} description="Tarefas na etapa Fazendo" icon={AccessTimeIcon} color="info" />
               </Grid>
-              <Grid item xs={12} sm={6} lg={3}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <MetricCard title="Atrasadas" value={metrics.overdue} description="Prazo limite já ultrapassado" icon={ErrorOutlineIcon} color="error" />
               </Grid>
-              <Grid item xs={12} sm={6} lg={3}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <MetricCard title="Próximos 7 dias" value={metrics.dueSoon} description="Prazos que estão se aproximando" icon={CalendarMonthOutlinedIcon} color="warning" />
               </Grid>
             </Grid>
@@ -525,10 +525,12 @@ export default function DashboardPage() {
               </Paper>
             ) : (
               <>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} lg={6}><StatusChart tasks={filteredTasks} /></Grid>
-                  <Grid item xs={12} lg={6}><PriorityChart tasks={filteredTasks} /></Grid>
-                  <Grid item xs={12}><ActivityChart tasks={filteredTasks} /></Grid>
+                <Grid container spacing={2} justifyContent="space-evenly">
+                  {/* <Grid size={{ xs: 12, lg: 2}}></Grid> */}
+                  <Grid size={{ xs: 12, lg: 4 }}><StatusChart tasks={filteredTasks} /></Grid>
+                  <Grid size={{ xs: 12, lg: 4 }}><PriorityChart tasks={filteredTasks} /></Grid>
+                  <Grid size={12}><ActivityChart tasks={filteredTasks} /></Grid>
+                  {/* <Grid size={{ xs: 12, lg: 2}}></Grid> */}
                 </Grid>
                 <FocusList tasks={focusTasks} />
               </>

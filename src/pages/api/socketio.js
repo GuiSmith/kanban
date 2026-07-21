@@ -39,8 +39,6 @@ export default async function SocketHandler(req, res) {
             return;
           }
 
-          console.log(`Emitindo para room '${room}': `, payload);
-
           io.to(room).emit("tarefas", payload);
         } catch (error) {
           console.error("Erro ao processar notificação do Quadro:", error);

@@ -16,6 +16,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 
 // MUI Icons
 import HouseIcon from '@mui/icons-material/House';
@@ -251,10 +252,35 @@ const Navbar = () => {
     >
       <Toolbar
         sx={{
-          justifyContent: collapsed ? "center" : "flex-end",
-          px: 1,
+          justifyContent: collapsed ? "center" : "space-between",
+          px: collapsed ? 1 : 2,
         }}
       >
+        {!collapsed ? (
+          <Box
+            component={Link}
+            href="/"
+            aria-label="Kanban - início"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "text.primary",
+              textDecoration: "none",
+              minWidth: 0,
+            }}
+          >
+            <Box
+              component="img"
+              src="/brand/kanban-logo.png"
+              alt=""
+              sx={{ width: 36, height: 36, objectFit: "contain" }}
+            />
+            <Typography variant="h6" component="span" fontWeight={700} noWrap>
+              Kanban
+            </Typography>
+          </Box>
+        ) : null}
         <IconButton onClick={() => setCollapsed((prev) => !prev)} aria-label="alternar menu lateral">
           {collapsed ? <MenuIcon /> : <ChevronLeftIcon />}
         </IconButton>

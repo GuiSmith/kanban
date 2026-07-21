@@ -1,5 +1,6 @@
 // Next
 import Head from "next/head";
+import { useRouter } from 'next/router';
 import { DragDropProvider } from "@dnd-kit/react";
 import { move } from '@dnd-kit/helpers';
 import { useSortable } from '@dnd-kit/react/sortable';
@@ -200,7 +201,9 @@ const fetchUsuarios = async (id_espaco) => {
   }
 };
 
-export default function TarefasPage({ espaco, writePermission }) {
+export default function TarefasPage({ espaco, writePermission, tarefaIdInicial = null }) {
+
+  const router = useRouter();
 
   // Dados
   const [espacoUsuarios, setEspacoUsuarios] = useState([]);
@@ -219,6 +222,7 @@ export default function TarefasPage({ espaco, writePermission }) {
   const arrastandoColuna = useRef(false);
   const precisaAtualizarColunas = useRef(false);
   const espacoUsuariosRef = useRef(espacoUsuarios);
+  const tarefaAbertaPelaNavegacaoRef = useRef(null);
 
   useEffect(() => {
     espacoUsuariosRef.current = espacoUsuarios;
@@ -476,12 +480,38 @@ export default function TarefasPage({ espaco, writePermission }) {
     });
   }, []);
 
+  useEffect(() => {
+    const tarefaId = Number(tarefaIdInicial);
+
+    if (!Number.isInteger(tarefaId) || tarefaId <= 0) {
+      tarefaAbertaPelaNavegacaoRef.current = null;
+      return;
+    }
+
+    if (tarefaAbertaPelaNavegacaoRef.current === tarefaId) return;
+
+    const tarefa = Object.values(tarefasPorColuna)
+      .flat()
+      .find((item) => getTarefaId(item.id) === tarefaId);
+
+    if (!tarefa) return;
+
+    tarefaAbertaPelaNavegacaoRef.current = tarefaId;
+    handleEditarTarefa(tarefa);
+  }, [handleEditarTarefa, tarefaIdInicial, tarefasPorColuna]);
+
   const handleFecharTarefaModal = useCallback(() => {
     setTarefaModal({
       open: false,
       data: {}
     });
-  }, []);
+
+    if (router.query.tarefa) {
+      const nextQuery = { ...router.query };
+      delete nextQuery.tarefa;
+      router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true });
+    }
+  }, [router]);
 
   const handleNovaColuna = useCallback(() => {
     setColunaModal({

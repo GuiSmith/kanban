@@ -106,6 +106,21 @@ export default function EspacosPage() {
     setActiveTab(value);
     localStorage.setItem('activeTab', value);
   };
+
+  useEffect(() => {
+    if (!router.isReady || !router.query.aba) return;
+
+    const requestedTab = tabs.find((tab) => tab.label.toLowerCase() === String(router.query.aba).toLowerCase());
+    if (!requestedTab) return;
+
+    const hasPermission = requestedTab.index === 0
+      || permissoes.some((permissao) => permissao.nome === requestedTab.permission);
+
+    if (hasPermission) {
+      setActiveTab(requestedTab.index);
+      localStorage.setItem('activeTab', requestedTab.index);
+    }
+  }, [permissoes, router.isReady, router.query.aba]);
   
   const hasTabPermission = (permissionName) => {
     if (permissoes.length === 0) {
@@ -189,7 +204,13 @@ export default function EspacosPage() {
 
         <TabPanel value={activeTab} index={1}>
           {space
-            ? <TarefasPage espaco={space} writePermission={getWritePermission('QUADRO')} />
+            ? (
+              <TarefasPage
+                espaco={space}
+                writePermission={getWritePermission('QUADRO')}
+                tarefaIdInicial={router.query.tarefa}
+              />
+            )
             : <Typography variant="body1" color="text.secondary"> Salve o espaço para continuar  </Typography>
           }
         </TabPanel>

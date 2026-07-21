@@ -345,7 +345,14 @@ const FocusList = ({ tasks }) => (
             <Box key={task.id}>
               {index > 0 ? <Divider component="li" /> : null}
               <ListItem disablePadding>
-                <ListItemButton component={Link} href={`/espacos?id=${task.id_espaco}`} sx={{ px: 3, py: 2 }}>
+                <ListItemButton
+                  component={Link}
+                  href={{
+                    pathname: '/espacos',
+                    query: { id: task.id_espaco, aba: 'quadro', tarefa: task.id },
+                  }}
+                  sx={{ px: 3, py: 2 }}
+                >
                   <TaskPriorityIcon priority={task.prioridade} sx={{ mr: 2 }} />
                   <ListItemText
                     primary={task.titulo}

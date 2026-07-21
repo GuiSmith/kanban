@@ -48,7 +48,7 @@ export default async function SocketHandler(req, res) {
   }
 
   io.on("connection", (socket) => {
-    console.log("Socket conectado:", socket.id);
+    // console.log("Socket conectado:", socket.id);
 
     socket.on("join_quadro", ({ id_espaco } = {}) => {
       const room = getQuadroRoom(id_espaco);
@@ -73,7 +73,7 @@ export default async function SocketHandler(req, res) {
     });
 
     socket.on("disconnect", () => {
-      console.log("Socket desconectado:", socket.id);
+      // console.log("Socket desconectado:", socket.id);
     });
   });
 

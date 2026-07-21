@@ -80,7 +80,7 @@ export default function EspacosPage() {
 
   // Buscando permissões
   useEffect(() => {
-    if (!id || !space || isNavbarLoading) {
+    if (!id || !space || !profile || isNavbarLoading) {
       setActiveTab(0);
       return;
     }
@@ -98,7 +98,7 @@ export default function EspacosPage() {
     };
 
     buscarPermissoes();
-  }, [space, id]);
+  }, [space, id, isNavbarLoading, profile?.id, router.isReady]);
 
   
   const SpaceIcon = getEspacoIcon(space?.icon) ?? WorkspacesIcon;

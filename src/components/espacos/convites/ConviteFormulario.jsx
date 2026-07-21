@@ -157,7 +157,11 @@ const ConviteFormulario = ({ mode = 'create', initialValues = defaultValues, onC
         name="enviar_email"
         control={control}
         render={({ field }) => (
-          <FormControl sx={{ flex: { xs: '1 1 auto', md: '0 0 170px' }, minWidth: 170 }} disabled={isLoading || writePermission === false}>
+          <FormControl
+            sx={{ flex: { xs: '1 1 auto', md: '0 0 170px' }, minWidth: 170 }}
+            disabled={true}
+            // disabled={isLoading || writePermission === false}
+          >
             <InputLabel id="convite-enviar-email-label">Enviar e-mail</InputLabel>
             <Select
               labelId="convite-enviar-email-label"

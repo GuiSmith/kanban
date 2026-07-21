@@ -22,6 +22,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import { alpha } from '@mui/material/styles';
 
 // React
 import { useEffect, useState, useMemo, useCallback, memo, useRef } from 'react';
@@ -45,6 +46,27 @@ import { getTaskPriority } from '@/utils/taskPriority';
 import { getBottomNavigationActionUtilityClass } from "@mui/material/BottomNavigationAction";
 
 const hoverOpacity = 0.5;
+
+const scrollbarSx = {
+  scrollbarWidth: 'thin',
+  scrollbarColor: (theme) => `${alpha(theme.palette.text.primary, 0.32)} transparent`,
+  '&::-webkit-scrollbar': {
+    width: 8,
+    height: 8,
+  },
+  '&::-webkit-scrollbar-track': {
+    backgroundColor: 'transparent',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.32),
+    border: '2px solid transparent',
+    borderRadius: 999,
+    backgroundClip: 'content-box',
+  },
+  '&::-webkit-scrollbar-thumb:hover': {
+    backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.52),
+  },
+};
 
 const setTarefaId = (id) => {
   return `tarefa-${id}`;
@@ -126,7 +148,17 @@ const Coluna = memo(({ children, id, index, coluna, qtdTarefas, handleOpenMenu, 
         </Stack>
       </Stack>
       {/* Tarefas */}
-      <Stack direction='column' spacing={1} sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+      <Stack
+        direction='column'
+        spacing={1}
+        sx={{
+          maxHeight: 'calc(100vh - 200px)',
+          overflowY: 'auto',
+          pr: 0.5,
+          ...scrollbarSx,
+          '& > *': { flexShrink: 0 },
+        }}
+      >
         {children}
       </Stack>
     </Box>
@@ -706,7 +738,18 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
       </Menu>
 
       <DragDropProvider onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd} >
-        <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', overflowY: 'hidden', justifyContent: 'flex-start', alignItems: 'flex-start', py: 1, }} >
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+            py: 1,
+            ...scrollbarSx,
+          }}
+        >
           {idColunas.map((idColuna, index) => {
             const coluna = colunas.find(col => Number(col.id) == Number(idColuna));
 

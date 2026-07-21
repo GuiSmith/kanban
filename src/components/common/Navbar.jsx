@@ -33,6 +33,7 @@ import WorkspacesIcon from '@mui/icons-material/Workspaces';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 
 // Utils
 import hasRouteAccess from '@/utils/hasRouteAccess';
@@ -49,6 +50,7 @@ const collapsedDrawerWidth = 72;
 
 const menuItems = [
   { label: "Perfil", href: "/usuarios/perfil", icon: "profile" },
+  { label: "Dashboard", href: "/dashboard", icon: <DashboardOutlinedIcon /> },
   { label: "Entrar", href: '/usuarios/login', icon: <LoginIcon /> },
   { label: 'Início', href: '/', icon: <HouseIcon /> },
   { label: "Sobre", href: "/sobre", icon: <InfoOutlinedIcon /> },

@@ -23,8 +23,6 @@ import Paper from '@mui/material/Paper';
 import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
 
@@ -36,7 +34,6 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
-import UpdateOutlinedIcon from '@mui/icons-material/UpdateOutlined';
 
 // Components
 import TaskPriorityIcon from '@/components/tarefas/TaskPriorityIcon';
@@ -222,98 +219,113 @@ const PriorityChart = ({ tasks }) => {
   );
 };
 
-const ActivityChart = ({ tasks }) => {
-  const [period, setPeriod] = useState('month');
-
-  const activityData = useMemo(() => {
-    if (period === 'day') {
-      return Array.from({ length: 7 }, (_, index) => {
-        const date = dayjs().subtract(6 - index, 'day').startOf('day');
-        const count = tasks.filter((task) => dayjs(task.data_atualizacao).isSame(date, 'day')).length;
-        return {
-          key: date.format('YYYY-MM-DD'),
-          label: date.format('DD/MM'),
-          tooltipLabel: date.format('DD/MM/YYYY'),
-          count,
-        };
-      });
-    }
-
-    if (period === 'week') {
-      const today = dayjs().startOf('day');
-      const currentWeekStart = today.subtract((today.day() + 6) % 7, 'day');
-      return Array.from({ length: 8 }, (_, index) => {
-        const start = currentWeekStart.subtract(7 - index, 'week');
-        const end = start.add(6, 'day').endOf('day');
-        const count = tasks.filter((task) => {
-          const updatedAt = dayjs(task.data_atualizacao);
-          return !updatedAt.isBefore(start) && !updatedAt.isAfter(end);
-        }).length;
-        return {
-          key: start.format('YYYY-MM-DD'),
-          label: start.format('DD/MM'),
-          tooltipLabel: `${start.format('DD/MM')} a ${end.format('DD/MM/YYYY')}`,
-          count,
-        };
-      });
-    }
-
-    return Array.from({ length: 6 }, (_, index) => {
-      const month = dayjs().subtract(5 - index, 'month');
-      return {
-        key: month.format('YYYY-MM'),
-        label: MONTH_LABELS[Number(month.format('M')) - 1],
-        tooltipLabel: `${MONTH_LABELS[Number(month.format('M')) - 1]}/${month.format('YYYY')}`,
-        count: tasks.filter((task) => dayjs(task.data_atualizacao).format('YYYY-MM') === month.format('YYYY-MM')).length,
-      };
-    });
-  }, [period, tasks]);
-
-  const maxValue = Math.max(1, ...activityData.map(({ count }) => count));
-  const periodLabel = period === 'day' ? 'dia' : period === 'week' ? 'semana' : 'mês';
+const ActivityBars = ({ title, description, data }) => {
+  const maxValue = Math.max(1, ...data.map(({ count }) => count));
 
   return (
-    <Paper component="section" aria-labelledby="activity-chart-title" variant="outlined" sx={{ height: '100%', p: 3, borderRadius: 2 }}>
-      <Stack spacing={2.5} sx={{ mb: 3 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Box>
-            <Typography id="activity-chart-title" component="h2" variant="h6">Atividade recente</Typography>
-            <Typography variant="caption" color="text.secondary">Tarefas atualizadas por {periodLabel}</Typography>
-          </Box>
-          <UpdateOutlinedIcon color="action" aria-hidden="true" />
-        </Stack>
-        <ToggleButtonGroup
-          value={period}
-          exclusive
-          size="small"
-          fullWidth
-          onChange={(_, value) => value && setPeriod(value)}
-          aria-label="Período do gráfico de atividade"
-        >
-          <ToggleButton value="day" aria-label="Visualizar por dia">Dia</ToggleButton>
-          <ToggleButton value="week" aria-label="Visualizar por semana">Semana</ToggleButton>
-          <ToggleButton value="month" aria-label="Visualizar por mês">Mês</ToggleButton>
-        </ToggleButtonGroup>
-      </Stack>
-      <Stack direction="row" alignItems="flex-end" spacing={1.5} sx={{ height: 178 }}>
-        {activityData.map(({ key, label, tooltipLabel, count }) => (
+    <Box
+      component="section"
+      aria-label={title}
+      sx={{
+        minWidth: 0,
+        height: '100%',
+        p: 2.5,
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 2,
+        bgcolor: 'action.hover',
+      }}
+    >
+      <Typography component="h3" variant="subtitle1" fontWeight={700} align="center">{title}</Typography>
+      <Typography variant="caption" color="text.secondary" align="center" display="block">{description}</Typography>
+      <Stack direction="row" alignItems="flex-end" spacing={1} sx={{ height: 170, mt: 2 }}>
+        {data.map(({ key, label, tooltipLabel, count }) => (
           <Stack key={key} alignItems="center" justifyContent="flex-end" spacing={1} sx={{ flex: 1, height: '100%', minWidth: 0 }}>
             <Tooltip title={`${tooltipLabel}: ${count} tarefa${count === 1 ? '' : 's'} atualizada${count === 1 ? '' : 's'}`}>
               <Box
                 sx={{
                   width: '100%',
                   maxWidth: 42,
-                  height: `${Math.max(count ? 12 : 3, (count / maxValue) * 130)}px`,
+                  height: `${Math.max(count ? 12 : 3, (count / maxValue) * 120)}px`,
                   bgcolor: count ? 'primary.main' : 'action.disabledBackground',
                   borderRadius: '6px 6px 2px 2px',
-                  transition: 'height 0.2s ease',
                 }}
               />
             </Tooltip>
-            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>{label}</Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.68rem', sm: '0.75rem' }, whiteSpace: 'nowrap', textTransform: 'capitalize' }}
+            >
+              {label}
+            </Typography>
           </Stack>
         ))}
       </Stack>
+    </Box>
+  );
+};
+
+const ActivityChart = ({ tasks }) => {
+  const activityData = useMemo(() => {
+    const today = dayjs().startOf('day');
+    const currentWeekStart = today.subtract((today.day() + 6) % 7, 'day');
+
+    const day = Array.from({ length: 7 }, (_, index) => {
+      const date = today.subtract(6 - index, 'day');
+      return {
+        key: date.format('YYYY-MM-DD'),
+        label: date.format('DD/MM'),
+        tooltipLabel: date.format('DD/MM/YYYY'),
+        count: tasks.filter((task) => dayjs(task.data_atualizacao).isSame(date, 'day')).length,
+      };
+    });
+
+    const week = Array.from({ length: 8 }, (_, index) => {
+      const start = currentWeekStart.subtract(7 - index, 'week');
+      const end = start.add(6, 'day').endOf('day');
+      return {
+        key: start.format('YYYY-MM-DD'),
+        label: start.format('DD/MM'),
+        tooltipLabel: `${start.format('DD/MM')} a ${end.format('DD/MM/YYYY')}`,
+        count: tasks.filter((task) => {
+          const updatedAt = dayjs(task.data_atualizacao);
+          return !updatedAt.isBefore(start) && !updatedAt.isAfter(end);
+        }).length,
+      };
+    });
+
+    const month = Array.from({ length: 6 }, (_, index) => {
+      const date = today.subtract(5 - index, 'month');
+      const label = MONTH_LABELS[Number(date.format('M')) - 1];
+      return {
+        key: date.format('YYYY-MM'),
+        label,
+        tooltipLabel: `${label}/${date.format('YYYY')}`,
+        count: tasks.filter((task) => dayjs(task.data_atualizacao).format('YYYY-MM') === date.format('YYYY-MM')).length,
+      };
+    });
+
+    return { day, week, month };
+  }, [tasks]);
+
+  return (
+    <Paper component="section" aria-labelledby="activity-chart-title" variant="outlined" sx={{ height: '100%', p: 3, borderRadius: 2 }}>
+      <Box sx={{ mb: 3, textAlign: 'center' }}>
+        <Typography id="activity-chart-title" component="h2" variant="h6">Atividade recente</Typography>
+        <Typography variant="caption" color="text.secondary">Tarefas atualizadas em três escalas de tempo</Typography>
+      </Box>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <ActivityBars title="Por dia" description="Últimos 7 dias" data={activityData.day} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <ActivityBars title="Por semana" description="Últimas 8 semanas" data={activityData.week} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <ActivityBars title="Por mês" description="Últimos 6 meses" data={activityData.month} />
+        </Grid>
+      </Grid>
     </Paper>
   );
 };
@@ -514,9 +526,9 @@ export default function DashboardPage() {
             ) : (
               <>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} lg={4}><StatusChart tasks={filteredTasks} /></Grid>
-                  <Grid item xs={12} md={6} lg={4}><PriorityChart tasks={filteredTasks} /></Grid>
-                  <Grid item xs={12} md={6} lg={4}><ActivityChart tasks={filteredTasks} /></Grid>
+                  <Grid item xs={12} lg={6}><StatusChart tasks={filteredTasks} /></Grid>
+                  <Grid item xs={12} lg={6}><PriorityChart tasks={filteredTasks} /></Grid>
+                  <Grid item xs={12}><ActivityChart tasks={filteredTasks} /></Grid>
                 </Grid>
                 <FocusList tasks={focusTasks} />
               </>

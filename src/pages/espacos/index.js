@@ -69,7 +69,7 @@ export default function EspacosPage() {
 
   const { espacos, isNavbarLoading, profile } = useNavbar();
 
-  const [activeTab, setActiveTab] = useState(typeof window !== 'undefined' ? (Number(localStorage.getItem('activeTab')) ?? 0) : 0);
+  const [activeTab, setActiveTab] = useState(0);
   const [permissoes, setPermissoes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -106,6 +106,17 @@ export default function EspacosPage() {
     setActiveTab(value);
     localStorage.setItem('activeTab', value);
   };
+
+  useEffect(() => {
+    if (!router.isReady || router.query.aba) return;
+
+    const storedTab = Number(localStorage.getItem('activeTab'));
+    const isValidTab = Number.isInteger(storedTab) && tabs.some((tab) => tab.index === storedTab);
+
+    if (isValidTab) {
+      setActiveTab(storedTab);
+    }
+  }, [router.isReady, router.query.aba]);
 
   useEffect(() => {
     if (!router.isReady || !router.query.aba) return;

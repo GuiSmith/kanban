@@ -27,6 +27,7 @@ import { alpha } from '@mui/material/styles';
 // React
 import { useEffect, useState, useMemo, useCallback, memo, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { toast } from 'react-toastify';
 
 // UI Personalizado
 import Loading from '@/components/common/Loading';
@@ -37,6 +38,7 @@ import ColunaFormulario from "../../components/tarefas/ColunaFormulario";
 // Utils
 import authAxios from "@/utils/authAxios";
 import catchAuthAxios from '@/utils/catchAxios';
+import { getToken } from '@/utils/token';
 import columnType from "@/utils/columnType";
 import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 import { formatDate } from "@/utils/formatDate";
@@ -46,6 +48,10 @@ import { getTaskPriority } from '@/utils/taskPriority';
 import { getBottomNavigationActionUtilityClass } from "@mui/material/BottomNavigationAction";
 
 const hoverOpacity = 0.5;
+
+// O join faz consulta no banco antes de confirmar; a margem cobre isso sem
+// deixar o usuário sem resposta caso o socket caia antes do ack voltar.
+const JOIN_TIMEOUT_MS = 5000;
 
 const scrollbarSx = {
   scrollbarWidth: 'thin',
@@ -276,10 +282,58 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
     const socket = io({
       path: '/api/socketio',
       addTrailingSlash: false,
+      auth: { token: getToken() },
+      reconnectionAttempts: 5,
     });
 
+    // Um join recusado não derruba a conexão: o quadro apenas para de receber
+    // atualizações, sem nada na tela explicando por quê. O ack transforma esse
+    // silêncio em aviso. Só avisa uma vez por montagem, senão cada tentativa de
+    // reconexão repetiria o toast.
+    let jaAvisouJoinRecusado = false;
+
+    const avisarJoinRecusado = mensagem => {
+      if (jaAvisouJoinRecusado) {
+        return;
+      }
+
+      jaAvisouJoinRecusado = true;
+      toast.error(mensagem);
+    };
+
     const handleConnect = () => {
-      socket.emit('join_quadro', { id_espaco: idEspaco });
+      socket
+        .timeout(JOIN_TIMEOUT_MS)
+        .emit('join_quadro', { id_espaco: idEspaco }, (erro, resposta) => {
+          // `erro` aqui é estouro do timeout — inclui o caso de o socket cair
+          // antes de o ack voltar.
+          if (erro) {
+            avisarJoinRecusado('Não foi possível sincronizar o quadro em tempo real. Recarregue a página.');
+            return;
+          }
+
+          if (resposta?.ok === true) {
+            return;
+          }
+
+          avisarJoinRecusado(
+            resposta?.motivo === 'SEM_PERMISSAO'
+              ? 'Você não tem acesso a este quadro. As atualizações em tempo real ficarão indisponíveis.'
+              : 'Não foi possível sincronizar o quadro em tempo real. Recarregue a página.'
+          );
+        });
+    };
+
+    // O servidor marca falha de credencial com o código NAO_AUTORIZADO.
+    // Sem essa distinção, uma oscilação de rede levaria o usuário ao login.
+    const handleConnectError = error => {
+      if (error?.data?.code !== 'NAO_AUTORIZADO') {
+        return;
+      }
+
+      socket.disconnect();
+      toast.error(error.message);
+      router.push('/usuarios/login');
     };
 
     const handleTarefas = payload => {
@@ -418,6 +472,7 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
     };
 
     socket.on('connect', handleConnect);
+    socket.on('connect_error', handleConnectError);
     socket.on('tarefas', handleTarefas);
 
     return () => {
@@ -425,6 +480,7 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
         socket.emit('leave_quadro', { id_espaco: idEspaco });
       }
       socket.off('connect', handleConnect);
+      socket.off('connect_error', handleConnectError);
       socket.off('tarefas', handleTarefas);
       socket.disconnect();
     };

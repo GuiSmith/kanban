@@ -15,8 +15,12 @@ const requiredPermission = {
 const handler = async (req, res) => {
     try {
         const dadosForm = req.body ?? {};
-        const dadosObrigatorios = ['titulo','descricao','id_espaco','id_coluna'];
-        const dadosPermitidos = [...dadosObrigatorios, 'id_responsavel','data_prevista','data_limite','prioridade'];
+        // `prioridade` entra aqui porque já era obrigatória de fato: a validação
+        // abaixo rejeita `undefined`. Fora da lista, omitir o campo devolvia
+        // 'Prioridade inválida' — mensagem que sugere valor errado, e não campo
+        // ausente, e que deixava `prioridade` fora dos obrigatórios da resposta.
+        const dadosObrigatorios = ['titulo','descricao','id_espaco','id_coluna','prioridade'];
+        const dadosPermitidos = [...dadosObrigatorios, 'id_responsavel','data_prevista','data_limite'];
         const dadosObrigatoriosPreenchidos = dadosObrigatorios.every(dado => dadosForm[dado]);
         const somenteDadosPermitidosPreenchidos = Object.keys(dadosForm).every(key => dadosPermitidos.includes(key));
 
@@ -74,7 +78,7 @@ const handler = async (req, res) => {
                 return res.status(404).json(defaultResponse('Responsável não encontrado!'));
             }
 
-            const responsavelPertenceAoEspaco = userBelongsToSpace(dadosForm.id_espaco, dadosForm.id_responsavel);
+            const responsavelPertenceAoEspaco = await userBelongsToSpace(dadosForm.id_espaco, dadosForm.id_responsavel);
 
             if(responsavelPertenceAoEspaco.belongs === false){
                 return res.status(403).json(defaultResponse('Usuário não pertence a este espaço!'));
@@ -99,7 +103,7 @@ const handler = async (req, res) => {
         return res.status(201).json(defaultResponse('Tarefa criada com sucesso', tarefa.rows[0]));
 
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json(defaultResponse());
     }
 }

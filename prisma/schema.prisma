@@ -27,9 +27,10 @@ model coluna {
   id_espaco     Int
   nome          String   @db.VarChar(255)
   tipo          String   @db.VarChar(50)
-  data_cadastro DateTime @default(now()) @db.Timestamptz(6)
+  data_cadastro DateTime @default(now()) @db.Timestamp(6)
   ordem         Int
   ativo         Boolean  @default(true)
+  descricao     String?
   espaco        espaco   @relation(fields: [id_espaco], references: [id], onDelete: Cascade, onUpdate: NoAction)
   tarefa        tarefa[]
 }
@@ -40,7 +41,7 @@ model email_log {
   email          String          @db.VarChar(100)
   assunto        String          @db.VarChar(100)
   corpo          String
-  data_cadastro  DateTime        @default(now()) @db.Timestamptz(6)
+  data_cadastro  DateTime        @default(now()) @db.Timestamp(6)
   id_convite     Int?
   erro           String?
   espaco_convite espaco_convite? @relation(fields: [id_convite], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -70,10 +71,10 @@ model espaco_convite {
   id_usuario        Int
   status            espaco_convite_status @default(PENDENTE)
   enviar_email      Boolean?              @default(false)
-  data_cadastro     DateTime              @default(now()) @db.Timestamptz(6)
+  data_cadastro     DateTime              @default(now()) @db.Timestamp(6)
   data_expiracao    DateTime              @default(now()) @db.Timestamp(6)
-  data_aceite       DateTime?             @db.Timestamptz(6)
-  data_recusa       DateTime?             @db.Timestamptz(6)
+  data_aceite       DateTime?             @db.Timestamp(6)
+  data_recusa       DateTime?             @db.Timestamp(6)
   data_cancelamento DateTime?             @db.Timestamp(6)
   email_log         email_log[]
   espaco            espaco                @relation(fields: [id_espaco], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -84,7 +85,7 @@ model espaco_permissoes {
   id                        Int                         @id @default(autoincrement())
   nome                      String?                     @db.VarChar(50)
   descricao                 String?
-  data_cadastro             DateTime                    @default(now()) @db.Timestamptz(6)
+  data_cadastro             DateTime                    @default(now()) @db.Timestamp(6)
   espaco_usuario_permissoes espaco_usuario_permissoes[]
 }
 
@@ -105,7 +106,7 @@ model espaco_usuario_permissoes {
   id_usuario        Int
   id_espaco         Int
   escrita           Boolean?          @default(false)
-  data_cadastro     DateTime          @default(now()) @db.Timestamptz(6)
+  data_cadastro     DateTime          @default(now()) @db.Timestamp(6)
   espaco            espaco            @relation(fields: [id_espaco], references: [id], onDelete: NoAction, onUpdate: NoAction)
   espaco_permissoes espaco_permissoes @relation(fields: [id_permissao], references: [id], onDelete: NoAction, onUpdate: NoAction)
   usuario           usuario           @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -121,8 +122,8 @@ model tarefa {
   id               Int              @id @default(autoincrement())
   titulo           String           @db.VarChar(255)
   descricao        String?
-  data_cadastro    DateTime         @default(now()) @db.Timestamptz(6)
-  data_atualizacao DateTime         @default(now()) @db.Timestamptz(6)
+  data_cadastro    DateTime         @default(now()) @db.Timestamp(6)
+  data_atualizacao DateTime         @default(now()) @db.Timestamp(6)
   id_espaco        Int?
   id_coluna        Int?
   ordem            Int
@@ -141,7 +142,7 @@ model tarefa_arquivo {
   id_tarefa     Int?
   id_opera      Int?
   nome          String   @db.VarChar(255)
-  data_cadastro DateTime @default(now()) @db.Timestamptz(6)
+  data_cadastro DateTime @default(now()) @db.Timestamp(6)
   public_url    String?
   tarefa        tarefa?  @relation(fields: [id_tarefa], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -170,7 +171,7 @@ model usuario {
   avatar_public_url         String?
   email                     String                      @db.VarChar(100)
   senha                     String?                     @db.VarChar(100)
-  data_cadastro             DateTime                    @default(now()) @db.Timestamptz(6)
+  data_cadastro             DateTime                    @default(now()) @db.Timestamp(6)
   ativo                     Boolean?                    @default(true)
   username                  String                      @unique @db.VarChar(15)
   provedor                  String                      @default("credentials") @db.VarChar(100)

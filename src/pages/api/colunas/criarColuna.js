@@ -20,6 +20,11 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('Preencha todos os dados para continuar'));
         }
 
+        if (dadosForm.descricao != null && typeof dadosForm.descricao !== 'string') {
+          return res.status(400).json(defaultResponse('Descrição deve ser um texto'));
+        }
+        dadosForm.descricao = dadosForm.descricao?.trim() || null;
+
         const idEspaco = Number(dadosForm.id_espaco);
         if(!Number.isInteger(idEspaco) || idEspaco <= 0){
             return res.status(400).json(defaultResponse('ID inválido'));

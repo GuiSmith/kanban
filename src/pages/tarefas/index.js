@@ -128,7 +128,15 @@ const Coluna = memo(({ children, id, index, coluna, qtdTarefas, handleOpenMenu, 
         justifyContent='space-between'
         alignItems='center'
       >
-        <Tooltip title={`${coluna.id} - ${capitalizeFirstLetter(coluna.nome)}`} sx={{ cursor: 'grab' }} ref={handleRef} >
+        <Tooltip
+          title={
+            <Box sx={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+              {`${coluna.id} - ${capitalizeFirstLetter(coluna.nome)}${coluna.descricao ? `\n${coluna.descricao}` : ''}`}
+            </Box>
+          }
+          sx={{ cursor: 'grab' }}
+          ref={handleRef}
+        >
           <Stack direction='row' justifyContent='flex-start' alignItems='center' data-board-pan-ignore="true">
             <DragIndicatorIcon />
             <Typography variant="h6" >

@@ -27,8 +27,8 @@ import catchAuthAxios from '@/utils/catchAxios';
 import columnType from "@/utils/columnType";
 
 const defaultValues = {
-    create: ['nome','tipo','id_espaco'],
-    edit: ['id','ativo','nome','tipo','ordem'],
+    create: ['nome','descricao','tipo','id_espaco'],
+    edit: ['id','ativo','nome','descricao','tipo','ordem'],
 };
 
 const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) => {
@@ -128,6 +128,23 @@ const ColunaFormulario = ({ mode = 'create', initialValues = null, onClose }) =>
                                 message: 'Nome deve ter no máximo 50 caracteres.',
                             },
                         })}
+                    />
+
+                    <Controller
+                      name="descricao"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          value={field.value ?? ''}
+                          label="Descrição (opcional)"
+                          helperText="Explique por que as tarefas estão ou devem ir para esta coluna."
+                          fullWidth
+                          multiline
+                          minRows={3}
+                          disabled={isLoading}
+                        />
+                      )}
                     />
 
                     {/* Tipo */}

@@ -13,7 +13,7 @@ const tiposValidos = ['A FAZER', 'FAZENDO', 'FEITO'];
 const handler = async (req, res) => {
     try {
         const data = req.body ?? {};
-        const dadosPermitidos = ['id','ativo','nome','tipo','ordem'];
+        const dadosPermitidos = ['id','ativo','nome','descricao','tipo','ordem'];
         const idInformado = 'id' in data;
         const apenasDadosPermitidosInformados = Object.keys(data).every(key => dadosPermitidos.includes(key));
 
@@ -23,6 +23,13 @@ const handler = async (req, res) => {
 
         if(!apenasDadosPermitidosInformados){
             return res.status(400).json(defaultResponse('Informe apenas os dados permitidos', { informados: data, permitidos: dadosPermitidos }));
+        }
+
+        if ('descricao' in data) {
+          if (data.descricao != null && typeof data.descricao !== 'string') {
+            return res.status(400).json(defaultResponse('Descrição deve ser um texto'));
+          }
+          data.descricao = data.descricao?.trim() || null;
         }
 
         const coluna = await dbPrisma.coluna.findUnique({ where: { id: data.id } });

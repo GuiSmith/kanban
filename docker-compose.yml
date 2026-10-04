@@ -26,7 +26,6 @@ services:
       - "${PORT}:3000"
     volumes:
       - ./:/app
-      - node_modules:/app/node_modules
     env_file:
       - .env
     environment:
@@ -85,7 +84,6 @@ services:
 
 volumes:
   postgres_data_vol:
-  node_modules:
 
 networks:
   kanban-shared-services:

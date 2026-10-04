@@ -4,12 +4,18 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 
 import authAxios from '@/utils/authAxios';
 import catchAuthAxios from '@/utils/catchAxios';
+import { toast } from 'react-toastify';
+import { TAREFA_ARQUIVO_MAX_BYTES, TAREFA_ARQUIVO_TAMANHO_MENSAGEM } from '@/utils/tarefaArquivoLimites';
 
 const TarefaArquivoFormulario = ({ tarefaId, isLoading, setIsLoading, onArquivoInserido, writePermission }) => {
     const handleUpload = async (e) => {
         try {
             const arquivo = e.target.files[0];
             if (!arquivo) return;
+            if (arquivo.size > TAREFA_ARQUIVO_MAX_BYTES) {
+                toast.warning(TAREFA_ARQUIVO_TAMANHO_MENSAGEM);
+                return;
+            }
             setIsLoading(true);
 
             const form = new FormData();
@@ -20,10 +26,12 @@ const TarefaArquivoFormulario = ({ tarefaId, isLoading, setIsLoading, onArquivoI
 
             onArquivoInserido?.(res.data.data);
 
-            e.target.value = '';
         } catch (error) {
-            catchAuthAxios(error, 'Erro ao inserir arquivo na tarefa');
+            catchAuthAxios(error, error?.response?.status === 413
+                ? 'O servidor recusou o tamanho do arquivo. Tente um arquivo menor ou contate o suporte.'
+                : 'Erro ao inserir arquivo na tarefa');
         } finally {
+            e.target.value = '';
             setIsLoading(false);
         }
     };
@@ -48,4 +56,3 @@ const TarefaArquivoFormulario = ({ tarefaId, isLoading, setIsLoading, onArquivoI
 };
 
 export default TarefaArquivoFormulario;
-

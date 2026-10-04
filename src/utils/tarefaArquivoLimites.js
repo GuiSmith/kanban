@@ -1,0 +1,3 @@
+export const TAREFA_ARQUIVO_MAX_MB = 22;
+export const TAREFA_ARQUIVO_MAX_BYTES = TAREFA_ARQUIVO_MAX_MB * 1024 * 1024;
+export const TAREFA_ARQUIVO_TAMANHO_MENSAGEM = `Arquivo deve ter no máximo ${TAREFA_ARQUIVO_MAX_MB} MB`;

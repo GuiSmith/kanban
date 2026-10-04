@@ -7,7 +7,7 @@ import axios from 'axios';
 // Utils
 import parseForm from '@/pages/api/utils/parseForm';
 import readFileAsync from '@/pages/api/utils/readFileAsync';
-import maxSize from '@/pages/api/utils/maxSize';
+import { TAREFA_ARQUIVO_MAX_BYTES, TAREFA_ARQUIVO_TAMANHO_MENSAGEM } from '@/utils/tarefaArquivoLimites';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import buildImgSrc from '@/pages/api/utils/buildImgSrc';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
@@ -26,12 +26,13 @@ export const config = {
 
 const handler = async (req, res) => {
     try {       
-        const maxSizeMb = 22;
-        const maxSizeByte = maxSize(maxSizeMb); // 22MB
         const extensoesPermitidas = ['pdf', 'jpg', 'png', 'jpeg'];
 
         // Extraindo dados
-        const { fields, files } = await parseForm(req);
+        const { fields, files } = await parseForm(req, {
+            maxFileSize: TAREFA_ARQUIVO_MAX_BYTES,
+            maxTotalFileSize: TAREFA_ARQUIVO_MAX_BYTES,
+        });
         const arquivo = Array.isArray(files?.arquivo) ? files.arquivo[0] : files?.arquivo;
         const idTarefa = Array.isArray(fields?.id_tarefa) ? fields.id_tarefa[0] : fields?.id_tarefa;
 
@@ -60,10 +61,10 @@ const handler = async (req, res) => {
         }
 
         // Validando tamanho do arquivo
-        const fileBuffer = await readFileAsync(arquivo.filepath);
-        if (fileBuffer.length > maxSizeByte) {
-            return res.status(400).json(defaultResponse(`Arquivo deve ter no máximo ${maxSizeMb} MB`));
+        if (arquivo.size > TAREFA_ARQUIVO_MAX_BYTES) {
+            return res.status(413).json(defaultResponse(TAREFA_ARQUIVO_TAMANHO_MENSAGEM));
         }
+        const fileBuffer = await readFileAsync(arquivo.filepath);
 
         // Validando tipo do arquivo
         const extensao = arquivo.originalFilename.split('.').pop();
@@ -85,6 +86,9 @@ const handler = async (req, res) => {
                 },
             });
         } catch (error) {
+            if (error?.response?.status === 413) {
+                return res.status(413).json(defaultResponse('O serviço de armazenamento recusou o tamanho do arquivo. Tente um arquivo menor ou contate o suporte.'));
+            }
             console.log('Erro ao salvar arquivo no Opera', error?.response ?? error);
             return res.status(500).json(defaultResponse('Erro ao salvar arquivo internamente. Contate o suporte!'));
         }
@@ -111,6 +115,9 @@ const handler = async (req, res) => {
 
         return res.status(200).json(defaultResponse('Arquivo registrado', { ...returnObj }));
     } catch (error) {
+        if (error?.httpCode === 413) {
+            return res.status(413).json(defaultResponse(TAREFA_ARQUIVO_TAMANHO_MENSAGEM));
+        }
         console.log(error);
         return res.status(500).json(defaultResponse('Erro interno ao salvar arquivos'));
     }

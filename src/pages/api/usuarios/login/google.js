@@ -1,3 +1,4 @@
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 // Next Auth Provider
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
@@ -7,8 +8,6 @@ import jwt from 'jsonwebtoken';
 
 // Personalizados
 import defaultResponse from '../../config/defaultResponse';
-import db from '@/pages/api/config/connectDB';
-import buildInsert from '@/pages/api/utils/buildInsert.js';
 import usernameGenerator from '@/pages/api/utils/usernameGenerator';
 import insertIndividualSpace from '@/pages/api/utils/insertIndividualSpace';
 
@@ -29,36 +28,27 @@ const handler = async (req, res) => {
     while (1) {
         const username = usernameGenerator();
 
-        const existingUsername = await db.query({ text: `SELECT 1 FROM usuario WHERE username = $1`, values: [username] });
+        const existingUsername = await dbPrisma.usuario.findUnique({ where: { username }, select: { id: true } });
 
-        if (existingUsername.rowCount === 0) {
+        if (!existingUsername) {
             data.username = username;
             break;
         }
     }
 
     const [emailExistente, usernameExistente] = await Promise.all([
-        db.query({ text: `SELECT * FROM usuario WHERE email = $1 LIMIT 1`, values: [data.email] }),
-        db.query({ text: `SELECT 1 FROM usuario WHERE username = $1 LIMIT 1`, values: [data.username] }),
+        dbPrisma.usuario.findFirst({ where: { email: data.email } }),
+        dbPrisma.usuario.findUnique({ where: { username: data.username }, select: { id: true } }),
     ]);
 
-    if (usernameExistente.rowCount > 0) {
+    if (usernameExistente) {
         return res.status(409).json(defaultResponse('Nome de usuário já existe, tente novamente'));
     }
 
-    let user = emailExistente.rowCount > 0 ? emailExistente.rows[0] : null;
+    let user = emailExistente;
 
     if (!user) {
-        const { text, values } = buildInsert('usuario', data);
-        const userResult = await db.query({ text, values });
-
-        if (userResult.rowCount > 0) {
-            user = userResult.rows[0];
-        } else {
-            throw new Error('Usuário não criado', {
-                cause: userResult
-            });
-        }
+        user = await dbPrisma.usuario.create({ data });
 
         try {
             const espacoResult = await insertIndividualSpace(user);

@@ -1,4 +1,4 @@
-import db from '@/pages/api/config/connectDB.js';
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 import defaultResponse from '@/pages/api/config/defaultResponse.js';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
@@ -16,8 +16,8 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('ID inválido'));
         }
 
-        const spaceResult = await db.query({ text: 'SELECT id FROM espaco WHERE id = $1', values:[idEspaco] });
-        if(spaceResult.rowCount !== 1){
+        const space = await dbPrisma.espaco.findUnique({ where: { id: idEspaco }, select: { id: true } });
+        if(!space){
             return res.status(404).json(defaultResponse('Espaço não encontrado!'));
         }
 
@@ -26,14 +26,13 @@ const handler = async (req, res) => {
             idEspaco,
             nomePermissao: requiredPermission.name,
             escrita: requiredPermission.escrita,
-            dbClient: db
         });
         if(!hasPermission){   
             return res.status(403).json(defaultResponse('Você não tem permissão para listar colunas neste espaço!'));
         }
 
-        const colunasResult = await db.query({ text: 'SELECT * FROM coluna WHERE id_espaco = $1 ORDER BY ordem ASC', values:[idEspaco] });
-        return res.status(200).json(defaultResponse('Colunas listadas com sucesso', colunasResult.rows));
+        const colunas = await dbPrisma.coluna.findMany({ where: { id_espaco: idEspaco }, orderBy: { ordem: 'asc' } });
+        return res.status(200).json(defaultResponse('Colunas listadas com sucesso', colunas));
 
     } catch (error) {
         console.log(error);

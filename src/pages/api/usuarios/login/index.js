@@ -1,6 +1,6 @@
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 import jwt from 'jsonwebtoken';
 
-import db from '@/pages/api/config/connectDB.js';
 import defaultResponse from '@/pages/api/config/defaultResponse.js';
 import verifyPassword from '@/pages/api/utils/verifyPassword.js';
 
@@ -19,18 +19,18 @@ const handler = async (req, res) => {
         }
 
         const [userByUsername, userByEmail] = await Promise.all([
-            db.query({ text: `SELECT * FROM usuario WHERE username = $1`, values: [login] }),
-            db.query({ text: `SELECT * FROM usuario WHERE email = $1`, values: [login] }),
+            dbPrisma.usuario.findMany({ where: { username: login } }),
+            dbPrisma.usuario.findMany({ where: { email: login } }),
         ]);
 
-        const usernameFound = userByUsername.rows.length > 0;
-        const emailFound = userByEmail.rows.length > 0;
+        const usernameFound = userByUsername.length > 0;
+        const emailFound = userByEmail.length > 0;
 
         if(usernameFound === emailFound){
             return res.status(401).json(defaultResponse(MENSAGEM_ERRO));
         }
 
-        const user = usernameFound ? userByUsername.rows[0] : userByEmail.rows[0];
+        const user = usernameFound ? userByUsername[0] : userByEmail[0];
 
         const { senha: dbPassword, ...safeUser } = user;
 
@@ -39,11 +39,11 @@ const handler = async (req, res) => {
         }
 
         const senhaCorreta = await verifyPassword(senha,dbPassword);
-        
+
         if(!senhaCorreta){
             return res.status(401).json(defaultResponse(MENSAGEM_ERRO));
         }
-        
+
         const token = jwt.sign(
             { ...safeUser },
             process.env.JWT_SECRET,
@@ -54,7 +54,7 @@ const handler = async (req, res) => {
 
     } catch (error) {
         console.log('Erro inesperado ao realizar login', error);
-        
+
         return res.status(500).json(defaultResponse('Erro inesperado ao realizar login. Contate o suporte'));
     }
 };

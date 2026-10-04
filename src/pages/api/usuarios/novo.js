@@ -1,8 +1,7 @@
-import db from '@/pages/api/config/connectDB.js';
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 import defaultResponse from '@/pages/api/config/defaultResponse.js';
 import getTableColumns from '@/pages/api/utils/getTableColumns.js';
 import encryptPassword from '@/pages/api/utils/encryptPassword.js';
-import buildInsert from '@/pages/api/utils/buildInsert.js';
 import isEmailValid from '@/pages/api/utils/isEmailValid.js';
 import isUsernameValid from '@/pages/api/utils/isUsernameValid.js';
 import insertIndividualSpace from '@/pages/api/utils/insertIndividualSpace.js';
@@ -52,28 +51,21 @@ const handler = async (req, res) => {
         }
 
         const [emailExistente, usernameExistente] = await Promise.all([
-            db.query({ text: `SELECT 1 FROM usuario WHERE email = $1 LIMIT 1`, values: [data.email] }),
-            db.query({ text: `SELECT 1 FROM usuario WHERE username = $1 LIMIT 1`, values: [data.username] }),
+            dbPrisma.usuario.findFirst({ where: { email: data.email }, select: { id: true } }),
+            dbPrisma.usuario.findUnique({ where: { username: data.username }, select: { id: true } }),
         ]);
 
-        if (emailExistente.rowCount > 0) {
+        if (emailExistente) {
             return res.status(409).json(defaultResponse('E-mail já cadastrado.'));
         }
 
-        if (usernameExistente.rowCount > 0) {
+        if (usernameExistente) {
             return res.status(409).json(defaultResponse('Username já cadastrado.'));
         }
 
         data.senha = await encryptPassword(data.senha);
 
-        const insertData = buildInsert('usuario', data);
-        const userResult = await db.query({ text: insertData.text, values: insertData.values });
-        
-        if (!userResult || userResult.rowCount === 0){
-            return res.status(500).json(defaultResponse('Erro ao criar usuário. Contate o suporte'));
-        }
-
-        const user = userResult.rows[0];
+        const user = await dbPrisma.usuario.create({ data });
 
         try {
 

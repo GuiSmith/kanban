@@ -1,6 +1,5 @@
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 // DB
-import db from '@/pages/api/config/connectDB';
-import buildInsert from '@/pages/api/utils/buildInsert';
 
 // Js
 import axios from 'axios';
@@ -44,18 +43,17 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('Informe a tarefa!'));
         }
 
-        const tarefa = await db.query({ text: 'SELECT id, id_espaco FROM tarefa WHERE id = $1', values: [idTarefa]});
+        const tarefa = await dbPrisma.tarefa.findUnique({ where: { id: Number(idTarefa) }, select: { id: true, id_espaco: true } });
 
-        if (!tarefa || tarefa.rowCount !== 1){
+        if (!tarefa){
             return res.status(404).json(defaultResponse('Tarefa não encontrada!'));
         }
 
         const hasPermission = await usuarioTemPermissao({
             idUsuario: req.user.id,
-            idEspaco: tarefa.rows[0].id_espaco,
+            idEspaco: tarefa.id_espaco,
             nomePermissao: requiredPermission.name,
             escrita: requiredPermission.escrita,
-            dbClient: db
         });
         if(!hasPermission){
             return res.status(403).json(defaultResponse('Você não tem permissão para inserir arquivos nesta tarefa!'));
@@ -93,19 +91,12 @@ const handler = async (req, res) => {
 
         // Inserindo no BD
         const tarefaArquivoData = {
-            id_tarefa: idTarefa,
-            id_opera: response.data.content.id,
+            id_tarefa: Number(idTarefa),
+            id_opera: Number(response.data.content.id),
             nome: arquivo.originalFilename,
             public_url: response.data.content.public_url
         };
-        const tarefaArquivoInsert = buildInsert('tarefa_arquivo',tarefaArquivoData);
-        const result = await db.query({ text: tarefaArquivoInsert.text, values: tarefaArquivoInsert.values });
-
-        if (!result){
-            return res.status(400).json(defaultResponse('Erro ao salvar arquivo no banco de dados!'));
-        }
-
-        const tarefaArquivo = result.rows[0];
+        const tarefaArquivo = await dbPrisma.tarefa_arquivo.create({ data: tarefaArquivoData });
 
         const dadosNaoEnviados = ['public_url'];
         const returnObj = {};

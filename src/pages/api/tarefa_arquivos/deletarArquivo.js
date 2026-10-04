@@ -1,6 +1,6 @@
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 import axios from 'axios';
 
-import db from '@/pages/api/config/connectDB';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
 import usuarioTemPermissao from '@/pages/api/utils/usuarioTemPermissao';
@@ -27,28 +27,22 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('Arquivo inválido!'));
         }
 
-        const tarefaArquivo = await db.query({
-            text: `
-                SELECT ta.*, t.id_espaco
-                FROM tarefa_arquivo ta
-                JOIN tarefa t ON t.id = ta.id_tarefa
-                WHERE ta.id = $1
-            `,
-            values: [idArquivo],
+        const tarefaArquivo = await dbPrisma.tarefa_arquivo.findUnique({
+          where: { id: idArquivo },
+          include: { tarefa: { select: { id_espaco: true } } },
         });
 
-        if (!tarefaArquivo || tarefaArquivo.rowCount === 0) {
+        if (!tarefaArquivo?.tarefa) {
             return res.status(404).json(defaultResponse('Arquivo não encontrado!'));
         }
 
-        const arquivo = tarefaArquivo.rows[0];
+        const arquivo = tarefaArquivo;
 
         const hasPermission = await usuarioTemPermissao({
             idUsuario: req.user.id,
-            idEspaco: arquivo.id_espaco,
+            idEspaco: arquivo.tarefa.id_espaco,
             nomePermissao: requiredPermission.name,
             escrita: requiredPermission.escrita,
-            dbClient: db
         });
         if(!hasPermission){
             return res.status(403).json(defaultResponse('Você não tem permissão para deletar arquivos desta tarefa!'));
@@ -68,17 +62,13 @@ const handler = async (req, res) => {
             }
         }
 
-        const arquivoDeletado = await db.query({
-            text: 'DELETE FROM tarefa_arquivo WHERE id = $1 RETURNING *',
-            values: [idArquivo],
-        });
+        const arquivoDeletado = await dbPrisma.tarefa_arquivo.delete({ where: { id: idArquivo } });
 
-        if (!arquivoDeletado || arquivoDeletado.rowCount === 0) {
+        return res.status(200).json(defaultResponse('Arquivo deletado com sucesso', arquivoDeletado));
+    } catch (error) {
+        if (error.code === 'P2025') {
             return res.status(400).json(defaultResponse('Erro ao deletar arquivo no banco de dados!'));
         }
-
-        return res.status(200).json(defaultResponse('Arquivo deletado com sucesso', arquivoDeletado.rows[0]));
-    } catch (error) {
         console.log(error);
         return res.status(500).json(defaultResponse('Erro interno ao deletar arquivos'));
     }

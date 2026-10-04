@@ -1,4 +1,4 @@
-import db from '@/pages/api/config/connectDB';
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import buildImgSrc from '@/pages/api/utils/buildImgSrc';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
@@ -25,36 +25,35 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('Tarefa inválida!'));
         }
 
-        const tarefa = await db.query({
-            text: 'SELECT id, id_espaco FROM tarefa WHERE id = $1',
-            values: [idTarefa],
+        const tarefa = await dbPrisma.tarefa.findUnique({
+          where: { id: idTarefa },
+          select: { id: true, id_espaco: true },
         });
 
-        if (!tarefa || tarefa.rowCount === 0) {
+        if (!tarefa) {
             return res.status(404).json(defaultResponse('Tarefa não encontrada!'));
         }
 
         const hasPermission = await usuarioTemPermissao({
             idUsuario: req.user.id,
-            idEspaco: tarefa.rows[0].id_espaco,
+            idEspaco: tarefa.id_espaco,
             nomePermissao: requiredPermission.name,
             escrita: requiredPermission.escrita,
-            dbClient: db
         });
         if(!hasPermission){
             return res.status(403).json(defaultResponse('Você não tem permissão para visualizar arquivos desta tarefa!'));
         }
 
-        const arquivos = await db.query({
-            text: 'SELECT * FROM tarefa_arquivo WHERE id_tarefa = $1 ORDER BY id ASC',
-            values: [idTarefa],
+        const arquivos = await dbPrisma.tarefa_arquivo.findMany({
+          where: { id_tarefa: idTarefa },
+          orderBy: { id: 'asc' },
         });
 
         if(!arquivos){
             return res.status(400).json(defaultResponse('Erro ao buscar tarefas no banco de dados'));
         }
 
-        const data = arquivos.rows.map(row => {
+        const data = arquivos.map(row => {
             row.src = buildImgSrc(row.public_url);
             delete row.public_url;
 

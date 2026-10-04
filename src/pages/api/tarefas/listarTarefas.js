@@ -1,4 +1,4 @@
-import db from '@/pages/api/config/connectDB';
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
@@ -16,8 +16,8 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('ID inválido'));
         }
 
-        const spaceResult = await db.query({ text: 'SELECT id FROM espaco WHERE id = $1', values:[Number(id_espaco)]});
-        if(spaceResult.rowCount !== 1){
+        const space = await dbPrisma.espaco.findUnique({ where: { id: Number(id_espaco) }, select: { id: true } });
+        if(!space){
             return res.status(404).json(defaultResponse('Espaço não encontrado!'));
         }
 
@@ -26,17 +26,17 @@ const handler = async (req, res) => {
             idEspaco: Number(id_espaco),
             nomePermissao: requiredPermission.name,
             escrita: requiredPermission.escrita,
-            dbClient: db
         });
         if(!hasPermission){
             return res.status(403).json(defaultResponse('Você não tem permissão para visualizar as tarefas deste espaço!'));
         }
 
-        const space = spaceResult.rows[0];
-        const sql = "SELECT * FROM tarefa WHERE id_espaco = $1 ORDER BY id ASC";
-        const tarefas = await db.query({ text: sql, values:[space.id]});
+        const tarefas = await dbPrisma.tarefa.findMany({
+          where: { id_espaco: space.id },
+          orderBy: { id: 'asc' },
+        });
 
-        return res.status(200).json(defaultResponse('Segue tarefas', tarefas.rows));
+        return res.status(200).json(defaultResponse('Segue tarefas', tarefas));
     } catch (error) {
         console.log(error);
         return res.status(500).json(defaultResponse());

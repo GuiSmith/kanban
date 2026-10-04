@@ -1,4 +1,3 @@
-import db from '@/pages/api/config/connectDB';
 import dbPrisma from '@/pages/api/config/connectDbPrisma';
 import defaultResponse from '@/pages/api/config/defaultResponse';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
@@ -62,16 +61,16 @@ const handler = async (req, res) => {
         }
 
         if(data?.id_responsavel){
-            const responsavelResult = await db.query({
-                text: `SELECT * FROM usuario WHERE id = $1`,
-                values:[data.id_responsavel]
+            data.id_responsavel = Number(data.id_responsavel);
+            const responsavel = await dbPrisma.usuario.findUnique({
+              where: { id: data.id_responsavel },
             });
 
-            if(responsavelResult.rowCount !== 1){
+            if(!responsavel){
                 return res.status(404).json(defaultResponse('Responsável não encontrado!'));
             }
 
-            const responsavelPertenceAoEspaco = userBelongsToSpace(tarefa.id_espaco, data.id_responsavel);
+            const responsavelPertenceAoEspaco = await userBelongsToSpace(tarefa.id_espaco, data.id_responsavel);
 
             if(responsavelPertenceAoEspaco.belongs === false){
                 return res.status(403).json(defaultResponse('Usuário não pertence a este espaço!'));

@@ -1,7 +1,7 @@
-import db from '@/pages/api/config/connectDB';
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
 
 const usuarioTemPermissao = async ({ idUsuario, idEspaco, nomePermissao, escrita, dbClient = null }) => {
-    const queryClient = dbClient ?? db;
+    const queryClient = dbClient ?? dbPrisma;
 
     try {
 
@@ -25,6 +25,20 @@ const usuarioTemPermissao = async ({ idUsuario, idEspaco, nomePermissao, escrita
             throw new Error('Valor de escrita inválido. Informe true, false ou null');
         }
 
+        if (queryClient.espaco_usuario_permissoes) {
+          const permissao = await queryClient.espaco_usuario_permissoes.findFirst({
+            where: {
+              id_usuario,
+              id_espaco,
+              espaco_permissoes: { nome: nome_permissao },
+              ...(escrita ? { escrita: true } : {}),
+            },
+            select: { id: true },
+          });
+          return Boolean(permissao);
+        }
+
+        // Keep compatibility with routes that still pass a pg transaction client.
         const result = await queryClient.query({
             text: `
                 SELECT 1

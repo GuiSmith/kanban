@@ -1,5 +1,5 @@
-import db from '@/pages/api/config/connectDB.js';
-import buildInsert from '@/pages/api/utils/buildInsert.js';
+import dbPrisma from '@/pages/api/config/connectDbPrisma';
+import databaseDateToPrisma from '@/pages/api/utils/databaseDateToPrisma';
 import isDatabaseDate from '@/pages/api/utils/isDatabaseDate';
 import defaultResponse from '@/pages/api/config/defaultResponse.js';
 import authMiddleware from '@/pages/api/config/middlewares/authMiddleware';
@@ -37,8 +37,8 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('ID inválido'));
         }
 
-        const spaceResult = await db.query({ text: 'SELECT id FROM espaco WHERE id = $1', values:[idEspaco] });
-        if(spaceResult.rowCount !== 1){
+        const space = await dbPrisma.espaco.findUnique({ where: { id: idEspaco }, select: { id: true } });
+        if(!space){
             return res.status(404).json(defaultResponse('Espaço não encontrado!'));
         }
 
@@ -47,7 +47,6 @@ const handler = async (req, res) => {
             idEspaco,
             nomePermissao: requiredPermission.name,
             escrita: requiredPermission.escrita,
-            dbClient: db
         });
         if(!hasPermission){
             return res.status(403).json(defaultResponse('Você não tem permissão para criar tarefas neste espaço!'));
@@ -58,23 +57,23 @@ const handler = async (req, res) => {
         if(!Number.isInteger(idColuna) || idColuna <= 0){
             return res.status(400).json(defaultResponse('ID inválido'));
         }
-        const columnResult = await db.query({ text: 'SELECT id FROM coluna WHERE id = $1 AND id_espaco = $2', values:[idColuna, idEspaco] });
-        if(columnResult.rowCount !== 1){
+        const coluna = await dbPrisma.coluna.findFirst({ where: { id: idColuna, id_espaco: idEspaco }, select: { id: true } });
+        if(!coluna){
             return res.status(404).json(defaultResponse('Coluna não encontrada!'));
         }
         dadosForm.id_coluna = idColuna;
 
         if(dadosForm?.id_responsavel){
-            const responsavelResult = await db.query({
-                text: `SELECT * FROM usuario WHERE id = $1`,
-                values:[dadosForm.id_responsavel]
+            dadosForm.id_responsavel = Number(dadosForm.id_responsavel);
+            const responsavel = await dbPrisma.usuario.findUnique({
+              where: { id: dadosForm.id_responsavel },
             });
 
-            if(responsavelResult.rowCount !== 1){
+            if(!responsavel){
                 return res.status(404).json(defaultResponse('Responsável não encontrado!'));
             }
 
-            const responsavelPertenceAoEspaco = userBelongsToSpace(dadosForm.id_espaco, dadosForm.id_responsavel);
+            const responsavelPertenceAoEspaco = await userBelongsToSpace(dadosForm.id_espaco, dadosForm.id_responsavel);
 
             if(responsavelPertenceAoEspaco.belongs === false){
                 return res.status(403).json(defaultResponse('Usuário não pertence a este espaço!'));
@@ -89,14 +88,22 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('Tipo de data inválida'));
         }
 
-        const ordemResult = await db.query({ text: 'SELECT MAX(ordem) AS max_ordem FROM tarefa WHERE id_coluna = $1', values:[idColuna] });
-        const maxOrdem = ordemResult.rows[0].max_ordem ?? 0;
-        dadosForm.ordem = maxOrdem + 1;
+        const { _max } = await dbPrisma.tarefa.aggregate({
+          where: { id_coluna: idColuna },
+          _max: { ordem: true },
+        });
+        dadosForm.ordem = (_max.ordem ?? 0) + 1;
 
-        const insert = buildInsert('tarefa', dadosForm);
-        const tarefa = await db.query({text: insert.text, values: insert.values });
+        const tarefa = await dbPrisma.tarefa.create({
+          data: {
+            ...dadosForm,
+            id_responsavel: dadosForm.id_responsavel == null ? null : Number(dadosForm.id_responsavel),
+            data_prevista: databaseDateToPrisma(dadosForm.data_prevista),
+            data_limite: databaseDateToPrisma(dadosForm.data_limite),
+          },
+        });
 
-        return res.status(201).json(defaultResponse('Tarefa criada com sucesso', tarefa.rows[0]));
+        return res.status(201).json(defaultResponse('Tarefa criada com sucesso', tarefa));
 
     } catch (error) {
         console.log(error);

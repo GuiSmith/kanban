@@ -25,9 +25,10 @@ const handler = async (req, res) => {
       sigla: 'Sigla',
       icon: 'Ícone',
       ativo: 'Ativo',
+      responsavel_obrigatorio: 'Responsável obrigatório',
     };
     const data = {};
-    const { id, nome, descricao, sigla, icon, ativo } = dadosForm;
+    const { id, nome, descricao, sigla, icon, ativo, responsavel_obrigatorio } = dadosForm;
 
     for (const requiredKey in requiredData) {
       if (dadosForm[requiredKey] === undefined || dadosForm[requiredKey] === null || dadosForm[requiredKey] === '') {
@@ -44,6 +45,10 @@ const handler = async (req, res) => {
 
     if (typeof ativo !== 'boolean') {
       return res.status(400).json(defaultResponse('Ativo deve ser verdadeiro ou falso'));
+    }
+
+    if (typeof responsavel_obrigatorio !== 'boolean') {
+      return res.status(400).json(defaultResponse('Responsável obrigatório deve ser verdadeiro ou falso'));
     }
 
     const dbColumns = await getTableColumns(tableName);
@@ -88,12 +93,13 @@ const handler = async (req, res) => {
         descricao = $2,
         sigla = $3,
         icon = $4,
-        ativo = $5
-      WHERE id = $6
+        ativo = $5,
+        responsavel_obrigatorio = $6
+      WHERE id = $7
       RETURNING *
     `;
 
-    const espaco = await db.query({ text: sql, values: [nome, descricao, sigla, icon, ativo, id] });
+    const espaco = await db.query({ text: sql, values: [nome, descricao, sigla, icon, ativo, responsavel_obrigatorio, id] });
 
     if (espaco.rowCount === 0) {
       return res.status(404).json(defaultResponse('Espaço não encontrado!'));

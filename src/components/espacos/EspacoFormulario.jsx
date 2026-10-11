@@ -19,6 +19,9 @@ import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
+import InfoIcon from '@mui/icons-material/Info';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 
 import Loading from '@/components/common/Loading';
 import ModalCloseButton from '@/components/common/ModalCloseButton';
@@ -33,6 +36,7 @@ const defaultValues = {
   sigla: '',
   icon: '',
   ativo: true,
+  responsavel_obrigatorio: true,
 };
 
 const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues, writePermission }) => {
@@ -94,8 +98,8 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues, writ
       toast.success(config.successMessage);
 
       const successFunction = config?.onSuccess;
-      if(successFunction && espaco){
-        if(espaco?.id){
+      if (successFunction && espaco) {
+        if (espaco?.id) {
           await successFunction(espaco.id);
         }
         // Outras checagens
@@ -149,6 +153,32 @@ const EspacoFormulario = ({ modo = 'create', initialValues = defaultValues, writ
                   />
                 }
                 label="Ativo"
+              />
+            )}
+          />
+        ) : null}
+
+        {modo === 'edit' ? (
+          <Controller
+            name="responsavel_obrigatorio"
+            control={control}
+            render={({ field }) => (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={field.value !== false}
+                    onChange={(event) => field.onChange(event.target.checked)}
+                    disabled={isLoading || writePermission === false}
+                  />
+                }
+                label={
+                  <Stack direction='row'>
+                    <Typography>Responsável obrigatório</Typography>
+                    <Tooltip title="Quando marcado, um responsável pela tarefa é obrigatório ao salvar">
+                      <InfoIcon color='primary' />
+                    </Tooltip>
+                  </Stack>
+                }
               />
             )}
           />

@@ -45,9 +45,10 @@ const toDateInputValue = (value) => {
   return value.toISOString().split('T')[0];
 };
 
-const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colunas, writePermission, usuarios }) => {
+const TarefaFormulario = ({ espaco, mode = 'create', initialValues = null, onClose, colunas, writePermission, usuarios }) => {
 
   const { control, reset, register, handleSubmit, getValues } = useForm({ defaultValues: initialValues });
+  const responsavelObrigatorio = espaco?.responsavel_obrigatorio === true;
 
   const [isLoading, setIsLoading] = useState(false);
   const valoresSalvos = useRef({});
@@ -296,8 +297,9 @@ const TarefaFormulario = ({ mode = 'create', initialValues = null, onClose, colu
                         field.onChange(e);
                         salvarCampo('id_responsavel', e.target.value);
                       }}
+                      required={responsavelObrigatorio}
                     >
-                      <MenuItem key='usuario-nenhum' value={null}>
+                      <MenuItem key='usuario-nenhum' value={null} disabled={responsavelObrigatorio}>
                         <Tooltip placement='right' title='Nenhum responsável'>
                           <Stack direction='row' alignItems='center' spacing={1}>
                             <ProfilePicture user={null} />

@@ -37,7 +37,7 @@ const handler = async (req, res) => {
             return res.status(400).json(defaultResponse('ID inválido'));
         }
 
-        const space = await dbPrisma.espaco.findUnique({ where: { id: idEspaco }, select: { id: true } });
+        const space = await dbPrisma.espaco.findUnique({ where: { id: idEspaco }, select: { id: true, responsavel_obrigatorio: true } });
         if(!space){
             return res.status(404).json(defaultResponse('Espaço não encontrado!'));
         }
@@ -62,6 +62,10 @@ const handler = async (req, res) => {
             return res.status(404).json(defaultResponse('Coluna não encontrada!'));
         }
         dadosForm.id_coluna = idColuna;
+
+        if(space.responsavel_obrigatorio === true && !dadosForm?.id_responsavel){
+            return res.status(409).json(defaultResponse('Responsável é obrigatório conforme regras do espaço'));
+        }
 
         if(dadosForm?.id_responsavel){
             dadosForm.id_responsavel = Number(dadosForm.id_responsavel);

@@ -1,0 +1,1 @@
+ALTER TABLE espaco ADD COLUMN responsavel_obrigatorio BOOLEAN DEFAULT TRUE;

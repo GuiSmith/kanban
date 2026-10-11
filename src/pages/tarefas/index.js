@@ -755,6 +755,7 @@ export default function TarefasPage({ espaco, writePermission, tarefaIdInicial =
       <Dialog open={tarefaModal.open} onClose={handleFecharTarefaModal} maxWidth="lg" fullWidth slotProps={{ paper: { sx: { p: 3, position: 'relative' } } }} >
         <ModalCloseButton onClick={handleFecharTarefaModal} />
         <TarefaFormulario
+          espaco={espaco}
           mode={tarefaModal.data?.mode}
           initialValues={tarefaModal.data?.initialValues}
           onClose={handleFecharTarefaModal}

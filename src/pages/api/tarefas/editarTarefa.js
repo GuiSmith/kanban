@@ -60,6 +60,14 @@ const handler = async (req, res) => {
             }
         }
 
+        if('id_responsavel' in data && !data.id_responsavel){
+            const espaco = await dbPrisma.espaco.findUnique({ where: { id: tarefa.id_espaco }, select: { responsavel_obrigatorio: true } });
+
+            if(espaco?.responsavel_obrigatorio === true){
+                return res.status(409).json(defaultResponse('Responsável é obrigatório conforme regras do espaço'));
+            }
+        }
+
         if(data?.id_responsavel){
             data.id_responsavel = Number(data.id_responsavel);
             const responsavel = await dbPrisma.usuario.findUnique({

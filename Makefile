@@ -30,3 +30,7 @@ down:
 # DB
 psql:
 	docker exec -it kanban-db psql -U $$POSTGRES_USER -d $$POSTGRES_DB
+
+# Backup
+bkp:
+	bash src/database/backup.sh "$(BKP_DIR)"

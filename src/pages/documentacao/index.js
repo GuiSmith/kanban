@@ -37,10 +37,14 @@ const messages = [
   "Convite cancelado",
   "Convite respondido com sucesso",
   "Permissões alteradas com sucesso!",
-  "Tarefa criada",
-  "Tarefa editada",
-  "Tarefa deletada",
-  "Arquivo inserido",
+  "Tarefa criada com sucesso",
+  "Tarefa atualizada com sucesso",
+  "Coluna criada com sucesso",
+  "Coluna atualizada com sucesso",
+  "Tarefa deletada com sucesso",
+  "Mova as tarefas desta coluna antes de desativá-la",
+  "Responsável é obrigatório conforme regras do espaço",
+  "Arquivo registrado",
   "Arquivo deletado com sucesso",
   "Link copiado.",
   "Preencha todos os dados para continuar",
@@ -49,7 +53,6 @@ const messages = [
   "Delete os arquivos antes de deletar as tarefas",
   "Credenciais inválidas",
   "Sessão expirada. Por favor, faça login novamente.",
-  "Ainda não implementado",
 ];
 
 const SectionTitle = ({ icon, title }) => (
@@ -104,7 +107,7 @@ export default function DocumentacaoPage() {
                 <Typography variant="body1">
                   O sistema permite criar uma conta, fazer login, organizar tarefas por espaços, anexar arquivos às
                   tarefas já cadastradas e gerenciar usuários e convites do espaço. Depois de entrar, você acessa a área
-                  de espaços para criar um espaço e gerenciar suas abas.
+                  de espaços para consultar suas abas e a Dashboard para acompanhar as tarefas sob sua responsabilidade.
                 </Typography>
               </Stack>
             </CardContent>
@@ -146,6 +149,13 @@ export default function DocumentacaoPage() {
                   Você pode entrar usando seu username ou e-mail junto com a senha. Após o login, o sistema direciona
                   você para a documentação, a menos que exista um redirecionamento específico na tela acessada antes.
                 </Typography>
+                <BulletList
+                  items={[
+                    "O botão Entrar com Google permite usar uma conta Google. Se não houver conta com o mesmo e-mail, o sistema cria uma com username gerado automaticamente; você pode ajustá-lo no Perfil.",
+                    "Perfil, Dashboard e espaços exigem login. Início, Sobre e Documentação são públicos.",
+                    "Para encerrar a sessão, escolha Sair no menu. Você será direcionado para a tela de login.",
+                  ]}
+                />
               </AccordionDetails>
             </Accordion>
 
@@ -208,22 +218,23 @@ export default function DocumentacaoPage() {
               </AccordionSummary>
               <AccordionDetails>
                 <Typography variant="body1" sx={{ mb: 1 }}>
-                  Espaços são áreas usadas para agrupar tarefas. Na tela de espaços, você pode criar e editar espaços
-                  informando:
+                  Espaços são áreas usadas para agrupar tarefas. A tela reúne ícone, nome, sigla e descrição.
+                  Em espaços existentes, a edição exige permissão de escrita. Também é possível configurar:
                 </Typography>
-                <BulletList items={["ícone", "nome", "sigla", "descrição", "status ativo ou inativo"]} />
+                <BulletList items={["status ativo ou inativo", "responsável obrigatório nas tarefas"]} />
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="body1" sx={{ mb: 1 }}>
                   Regras visíveis no cadastro de espaços:
                 </Typography>
                 <BulletList
                   items={[
-                    "Todos os campos são obrigatórios.",
+                    "Ícone, nome, sigla e descrição são obrigatórios.",
                     "O nome deve ter no máximo 50 caracteres.",
                     "A sigla deve ter exatamente 2 caracteres.",
                     "A descrição deve ter no máximo 255 caracteres.",
                     "Ao salvar um espaço como inativo, o sistema pede confirmação.",
-                    "Espaços inativos deixam de aparecer na Navbar.",
+                    "Espaços inativos deixam de aparecer no menu lateral e podem ser acessados pela aba Espaços inativos do Perfil.",
+                    "Quando Responsável obrigatório estiver marcado, as tarefas precisam ter um responsável para serem salvas.",
                   ]}
                 />
                 <Alert severity="info" sx={{ mt: 2 }}>
@@ -239,8 +250,8 @@ export default function DocumentacaoPage() {
               </AccordionSummary>
               <AccordionDetails>
                 <Typography variant="body1" sx={{ mb: 1 }}>
-                  Ao abrir um espaço salvo, a aba Usuários fica disponível. Nela, você pode visualizar os usuários
-                  vinculados ao espaço e acompanhar os convites cadastrados.
+                  Ao abrir um espaço salvo com acesso à aba Usuários, você pode visualizar os usuários vinculados ao
+                  espaço e acompanhar os convites cadastrados. Alterações exigem permissão de escrita nessa área.
                 </Typography>
                 <BulletList
                   items={[
@@ -248,7 +259,9 @@ export default function DocumentacaoPage() {
                     "O proprietário aparece como Proprietário.",
                     "Usuários adicionados ao espaço aparecem como Participante.",
                     "Ao clicar em um usuário, é possível consultar e alterar permissões do espaço.",
-                    "As permissões disponíveis são Sem permissão, Apenas leitura e Escrita.",
+                    "As permissões disponíveis são Sem permissão, Apenas leitura e Escrita, definidas separadamente para Espaço, Quadro e Usuários.",
+                    "O indicador no alto da tela informa Modo leitura ou Modo escrita para a aba aberta.",
+                    "No modo leitura, você pode consultar os dados; os controles de alteração ficam desabilitados.",
                     "As permissões do proprietário aparecem bloqueadas para edição.",
                     "A área de convites permite buscar uma pessoa por nome, username ou e-mail.",
                     "Quando nenhum resultado é encontrado na busca, o sistema mostra Nenhum usuário encontrado.",
@@ -274,17 +287,77 @@ export default function DocumentacaoPage() {
               </AccordionSummary>
               <AccordionDetails>
                 <Typography variant="body1" sx={{ mb: 1 }}>
-                  Ao abrir um espaço salvo, a aba Quadro fica disponível. Nela, você pode:
+                  Ao abrir um espaço salvo com acesso à aba Quadro, as tarefas aparecem em colunas. Com permissão de escrita, você pode:
                 </Typography>
-                <BulletList items={["listar tarefas", "criar tarefa", "editar tarefa", "excluir tarefa"]} />
+                <BulletList
+                  items={[
+                    "criar uma coluna pelo botão Adicionar coluna",
+                    "adicionar uma tarefa pelo botão Adicionar Tarefa ou pelo menu de ações da coluna",
+                    "abrir uma tarefa clicando no cartão para consultar ou editar seus dados",
+                    "excluir uma tarefa aberta, usando Deletar",
+                    "arrastar tarefas para mudar sua ordem ou movê-las entre colunas",
+                    "arrastar o cabeçalho de uma coluna para mudar a ordem das colunas",
+                  ]}
+                />
+                <Typography variant="body1">
+                  Para navegar horizontalmente pelo quadro, use a barra de rolagem ou arraste uma área vazia com o mouse.
+                </Typography>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="body1" sx={{ mb: 1 }}>
                   Cada tarefa possui:
                 </Typography>
-                <BulletList items={["título", "descrição", "data de cadastro", "data de atualização"]} />
+                <BulletList items={["título e descrição", "coluna", "prioridade", "responsável", "data prevista e data limite (opcionais)", "data de cadastro e data de atualização (somente consulta)"]} />
+                <BulletList
+                  items={[
+                    "As prioridades disponíveis são Crítico, Alto, Médio, Baixa e Muito baixa. A prioridade inicial é Médio.",
+                    "O responsável é escolhido entre os usuários do espaço e é obrigatório quando essa regra estiver ativa no espaço.",
+                    "O cartão mostra o identificador da tarefa, a prioridade, o avatar do responsável e a data limite, quando informada.",
+                    "Na criação, preencha os dados e clique em Criar. Na edição, textos e datas são salvos ao sair do campo; coluna, prioridade e responsável são salvos ao selecionar uma opção.",
+                  ]}
+                />
                 <Alert severity="info" sx={{ mt: 2 }}>
-                  Para criar uma tarefa, título e descrição são obrigatórios. A tarefa fica vinculada ao espaço aberto.
+                  Para criar uma tarefa, informe título, descrição, coluna e prioridade, além do responsável quando exigido. A tarefa fica vinculada ao espaço aberto.
                 </Alert>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <SectionTitle icon={<DashboardIcon color="primary" />} title="Colunas do quadro" />
+              </AccordionSummary>
+              <AccordionDetails>
+                <BulletList
+                  items={[
+                    "Cada coluna tem nome obrigatório, com até 50 caracteres, descrição opcional e um tipo: A FAZER, FAZENDO ou FEITO.",
+                    "O tipo da coluna indica a etapa das tarefas. Na Dashboard, tarefas em colunas do tipo FEITO são consideradas concluídas.",
+                    "Para editar uma coluna, use Editar coluna no menu de ações e clique em Salvar após as alterações.",
+                    "A descrição pode ser consultada ao passar o mouse sobre o cabeçalho da coluna.",
+                    "Para desativar uma coluna, mova todas as tarefas para outras colunas primeiro e desmarque Ativo na edição.",
+                    "Colunas inativas deixam de aparecer no quadro.",
+                  ]}
+                />
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <SectionTitle icon={<DashboardIcon color="primary" />} title="Dashboard" />
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="body1">
+                  Acesse Dashboard no menu para abrir o Radar do meu trabalho. Ele reúne as tarefas atribuídas a você
+                  em espaços ativos, sem incluir tarefas de colunas inativas. Você pode filtrar por espaço.
+                </Typography>
+                <BulletList
+                  items={[
+                    "Os indicadores mostram tarefas em aberto, em andamento, atrasadas e com data limite entre hoje e os próximos 7 dias.",
+                    "Os gráficos mostram a distribuição por etapa e prioridade.",
+                    "Atividade recente conta as tarefas pela última atualização nos últimos 7 dias, 8 semanas e 6 meses; não representa um histórico de todas as alterações.",
+                    "Foco imediato lista até 8 tarefas em aberto, ordenadas por atraso, proximidade do prazo e prioridade.",
+                    "Clique em uma tarefa do Foco imediato para abrir seus detalhes no quadro do espaço, conforme suas permissões de acesso.",
+                    "Quando não há tarefas atribuídas a você no filtro escolhido, a tela oferece um atalho para Espaços.",
+                  ]}
+                />
               </AccordionDetails>
             </Accordion>
 
@@ -339,7 +412,7 @@ export default function DocumentacaoPage() {
               </AccordionSummary>
               <AccordionDetails>
                 <Typography variant="body1">
-                  A aba Quadro recebe atualizações em tempo real quando tarefas são criadas, editadas ou excluídas.
+                  A aba Quadro recebe atualizações em tempo real de tarefas e colunas, incluindo criação, edição, movimentação de tarefas, reordenação e desativação de colunas.
                 </Typography>
               </AccordionDetails>
             </Accordion>
@@ -355,10 +428,12 @@ export default function DocumentacaoPage() {
                 <BulletList
                   items={[
                     "Visitantes podem acessar Início, Sobre, Documentação, Criar conta e Entrar.",
-                    "Usuários logados podem acessar Perfil, Início, Sobre, Espaços, Documentação e Sair.",
+                    "Usuários logados podem acessar Perfil, Dashboard, Início, Sobre, Espaços, Documentação e Sair.",
+                    "Início apresenta o sistema e atalhos para começar. Sobre explica o propósito do projeto e mostra informações e contatos do mantenedor.",
                     "O item Perfil mostra a imagem do usuário quando existe uma imagem cadastrada.",
                     "O menu lateral pode ser recolhido e essa escolha fica salva no navegador.",
-                    "A lista de espaços ativos do menu pode ser expandida ou recolhida.",
+                    "A lista de espaços ativos do menu pode ser expandida ou recolhida e separa os grupos Meus e Compartilhados.",
+                    "Documentação é o guia de uso das telas, regras e limitações atuais do sistema.",
                     "O botão de tema alterna entre modo claro e escuro e também salva a escolha no navegador.",
                   ]}
                 />
@@ -412,9 +487,10 @@ export default function DocumentacaoPage() {
               <AccordionDetails>
                 <BulletList
                   items={[
-                    "A página inicial ainda não possui conteúdo.",
-                    "A página Sobre ainda é simples.",
-                    "As permissões do espaço já podem ser configuradas na tela de usuários, mas nem todas as ações do espaço bloqueiam o usuário de acordo com essas permissões.",
+                    "Na tela Criar espaço, o botão Salvar e os campos ficam desabilitados por falta de permissão de escrita; a criação por essa tela está bloqueada atualmente.",
+                    "Não há uma área na interface para listar ou reativar colunas desativadas.",
+                    "A Dashboard carrega os dados ao abrir a tela e não acompanha as alterações do quadro em tempo real. Recarregue a página para atualizar os indicadores.",
+                    "Os arquivos podem ser abertos em outra aba, mas não há um botão específico para baixar arquivos.",
                   ]}
                 />
               </AccordionDetails>
